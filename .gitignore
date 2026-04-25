@@ -1,0 +1,47 @@
+# Python cache and build output
+__pycache__/
+*.py[cod]
+*.pyo
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Generated workflow state
+.workflow/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# If Railyard is initialized against its own repo root, keep generated
+# project-local workflow files out of the framework repository.
+/docs/domain/
+/docs/system/
+/docs/templates/
+
+# OS and editor local state
+.DS_Store
+Thumbs.db
+.obsidian/
+.vscode/
+.idea/
+
+# Local drafting/reference file. The publishable project README is README.md.
+Github README.md

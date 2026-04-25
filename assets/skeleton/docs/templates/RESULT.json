@@ -1,0 +1,9 @@
+{
+  "ticket_id": "DOMAIN-001",
+  "runner_status": "done",
+  "summary": "Short summary of the work completed.",
+  "files_changed": [],
+  "validation": [],
+  "notes": [],
+  "created_at": "2026-01-01T00:00:00+00:00"
+}

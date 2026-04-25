@@ -1,0 +1,7 @@
+interface:
+  display_name: "Railyard"
+  short_description: "Run a reusable Domain/System epic-ticket workflow with helper-backed SQLite control tables and review gates."
+  default_prompt: "Use $railyard to route work across Domain and System lanes with epics, tickets, helper-backed SQLite access, and explicit review."
+
+policy:
+  allow_implicit_invocation: true
