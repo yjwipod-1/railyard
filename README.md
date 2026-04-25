@@ -307,7 +307,7 @@ Claim and complete a Runner ticket:
 
 ```powershell
 python scripts/ticket.py --lane domain next --actor runner
-python scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor runner --claimed-by codex
+python scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor runner --claimed-by runner-1
 python scripts/ticket.py --lane domain mark-runner-result --ticket-id DOMAIN-001 --runner-result done --outbox-path docs/domain/outbox/DOMAIN-001.result.json
 ```
 
@@ -315,7 +315,7 @@ Review a completed ticket:
 
 ```powershell
 python scripts/ticket.py --lane domain next --actor architect
-python scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by codex
+python scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by architect-1
 python scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
 ```
 

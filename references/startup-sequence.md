@@ -130,10 +130,13 @@ ticket
 spawn.agent_type
 spawn.role
 spawn.runner_name
+spawn.adapter
+spawn.contract
+spawn.prompt_format
 spawn.prompt
 ```
 
-When the operating environment supports subagents, spawn a worker subagent with `spawn.prompt`.
+When the operating environment supports subagents, map this payload to that environment's spawn mechanism and pass `spawn.prompt` as the runner instruction.
 
 ## 7. Runner Execution
 
@@ -147,7 +150,7 @@ python railyard/scripts/ticket.py --lane system next --actor runner
 Runner claims one ticket:
 
 ```powershell
-python railyard/scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor runner --claimed-by codex
+python railyard/scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor runner --claimed-by runner-1
 ```
 
 Runner writes a result file in the declared outbox path, normally:
@@ -182,7 +185,7 @@ python railyard/scripts/ticket.py --lane domain next --actor architect
 Architect claims it:
 
 ```powershell
-python railyard/scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by codex
+python railyard/scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by architect-1
 ```
 
 Architect records review:

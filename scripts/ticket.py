@@ -618,7 +618,7 @@ def parse_args() -> argparse.Namespace:
             "  python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox\n"
             "  python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title \"Define scope\" --task \"Write docs/scope.md.\"\n"
             "  python railyard/scripts/ticket.py --lane domain next --actor runner\n"
-            "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-001 --actor runner --claimed-by codex"
+            "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-001 --actor runner --claimed-by runner-1"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )

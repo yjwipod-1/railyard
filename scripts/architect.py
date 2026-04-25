@@ -68,7 +68,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lane", choices=("domain", "system"), required=True)
     parser.add_argument("--db", default=".workflow/workflow.db")
     parser.add_argument("--project-root", default=".")
-    parser.add_argument("--runner-name", default="codex-runner")
+    parser.add_argument("--runner-name", default="runner-1")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("dispatch-next-runner", help="Return the next runner ticket and a spawn-ready prompt.")
     return parser.parse_args()
@@ -93,9 +93,12 @@ def main() -> int:
                     "synced": sync_payload,
                     "ticket": ticket,
                     "spawn": {
+                        "contract": "railyard.runner_dispatch.v1",
+                        "adapter": "generic",
                         "agent_type": "worker",
                         "role": "runner",
                         "runner_name": args.runner_name,
+                        "prompt_format": "plain_text",
                         "prompt": render_runner_prompt(args.lane, ticket, args.runner_name),
                     },
                 }
