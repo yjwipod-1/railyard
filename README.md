@@ -368,6 +368,7 @@ Read these files for the detailed operating contract:
 - `references/ticket-format.md`
 - `references/result-format.md`
 - `references/helper-commands.md`
+- `references/roadmap.md`
 
 ## Maintenance Checklist
 
