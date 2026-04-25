@@ -368,13 +368,13 @@ Read these files for the detailed operating contract:
 - `references/result-format.md`
 - `references/helper-commands.md`
 
-## Publishing Checklist
+## Maintenance Checklist
 
-Before pushing this repository to GitHub:
+Before publishing or tagging a new version:
 
-- Add a `LICENSE` file if the project is intended for external reuse.
 - Keep generated workflow databases out of version control.
 - Run the helper commands from a clean checkout to verify the examples still match the scripts.
+- Run the E2E smoke check described in `references/startup-sequence.md`.
 
 ## License
 
