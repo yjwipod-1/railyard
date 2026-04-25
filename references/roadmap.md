@@ -4,6 +4,68 @@ Railyard is currently a portable workflow scaffold: files, SQLite tables, templa
 
 The next competitive step is to turn the scaffold into a stronger integration surface without losing the core design principle: agentic work should run inside deterministic control rails.
 
+## Version Direction
+
+### v0.2 - Runner Dispatch And Lifecycle Hardening
+
+Goal:
+- make Architect-to-Runner dispatch explicit and machine-readable
+
+Target features:
+- Architect helper that returns a spawn-ready Runner prompt
+- stricter ticket lifecycle transitions
+- result JSON validation before Architect review
+- ticket lifecycle event log
+- adapter-neutral dispatch payload
+
+Non-goal:
+- directly calling any specific agent runtime
+- making Railyard Codex-only
+
+### v0.3 - MCP-lite Control Surface
+
+Goal:
+- expose Railyard as a safe query, validation, and dispatch surface for MCP clients
+
+Boundary:
+- MCP is a query and dispatch surface, not the primary write authority.
+- Read-only workflow state should be MCP-accessible.
+- Validation should be MCP-accessible.
+- Dispatch prompt generation should be MCP-accessible.
+- Mutating MCP tools should be narrow, state-machine guarded, and auditable.
+- Mailbox registration should remain script-first until artifact schemas and review gates are stricter.
+- Admin mutations should not be exposed by default.
+
+Recommended tools:
+- `get_ticket`
+- `list_tickets`
+- `next_ticket`
+- `get_epic`
+- `list_open_epics`
+- `next_open_epic`
+- `ticket_events`
+- `validate_ticket_artifact`
+- `validate_result_artifact`
+- `validate_schema`
+- `dispatch_next_runner`
+
+Optional narrow writes:
+- `claim_ticket`
+- `start_review`
+- `mark_runner_result`
+- `mark_review_result`
+
+Explicit non-goals:
+- full mailbox registration through MCP by default
+- lifecycle reset through MCP by default
+- force update or admin mutation through MCP by default
+- replacing the SQLite control plane with an MCP server
+
+Reason:
+- a broad mutating MCP surface makes accidental claims, finalisation, reset, or registration too easy for agents
+- MCP should reduce lookup and dispatch friction without weakening deterministic guardrails
+- scripts remain the safer explicit write surface for registration and administrative operations
+
 ## 1. Interoperability With Agent And Project Surfaces
 
 Goal:
@@ -11,16 +73,19 @@ Goal:
 
 Target integrations:
 - `AGENTS.md` project memory and startup instructions
-- MCP tools for read-only state lookup and controlled workflow writes
+- MCP-lite tools for read-only state lookup, validation, event inspection, and dispatch
 - GitHub Issues as an optional external ticket mirror
 
 Expected shape:
 - documented mapping between Railyard roles and `AGENTS.md`
-- MCP read helpers for epics, tickets, queues, and result files
+- MCP read helpers for epics, tickets, queues, event logs, and result files
+- MCP validation helpers for tickets, results, and schema
+- MCP dispatch helper for Runner prompt generation
 - optional sync between GitHub Issues and Railyard tickets
 
 Non-goal:
 - replacing the SQLite control plane with GitHub Issues
+- full mutating MCP as the default control surface
 
 ## 2. GitHub Action And PR Review Integration
 
@@ -113,15 +178,15 @@ Recommended sequence:
 
 1. Define stricter ticket and result schemas.
 2. Add validation commands.
-3. Add multi-runner locking semantics.
-4. Add GitHub Action validation.
-5. Add MCP and GitHub Issues interoperability.
-6. Add minimal dashboard.
-7. Add agent framework adapters.
+3. Add MCP-lite read, validation, event, and dispatch tools.
+4. Add multi-runner locking semantics.
+5. Add GitHub Action validation.
+6. Add GitHub Issues interoperability.
+7. Add minimal dashboard.
+8. Add agent framework adapters.
 
 Reason:
 - schema and validation create the contract
 - locking protects concurrent execution
 - CI makes the contract enforceable
 - integrations and dashboards become safer once the contract is stable
-
