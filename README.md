@@ -378,4 +378,4 @@ Before pushing this repository to GitHub:
 
 ## License
 
-No license file is currently included in this repository.
+Apache License 2.0. See `LICENSE`.
