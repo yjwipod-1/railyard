@@ -33,7 +33,7 @@ Each lane has its own Architect and Runners. A shared Planner handles cross-lane
 
 **No persistent state across sessions.** The agent forgets everything when the session ends. Railyard keeps epics, tickets, statuses, claims, results, and reviews in SQLite so any session can resume from durable state.
 
-**No quality gate before output reaches the Human.** Runner output does not go directly to the Human. It flows upward through Architect review and Planner summary before final Human-level decision making.
+**No quality gate before output reaches the Human.** Work is first shaped by the Human and Planner, scoped by Architects, executed by Runners, then returned through Architect review before the Human and Planner make the next decision.
 
 **Disposable execution sessions.** Runners receive a role definition, a ticket specification, and relevant references. They do not depend on prior conversation history, so a fresh session can execute a ticket and produce clean output.
 
@@ -108,16 +108,17 @@ Human
 
 ## Review Chain
 
-All work flows upward through a strict review chain:
+Railyard is a closed control loop, not a one-way upward chain:
 
 ```text
-Runner result
-  -> Architect review
-      -> Planner summary
-          -> Human decision
+Human + Planner direction
+  -> Architect scoping
+      -> Runner execution
+          -> Architect review
+              -> Human + Planner decision
 ```
 
-No layer is skipped. Each reviewer evaluates at its own abstraction level.
+No layer is skipped. Direction moves downward through planning and scoping; results move back upward through review and decision.
 
 ## Task Management
 
@@ -341,14 +342,14 @@ Template files are included under `assets/skeleton/docs/templates/` and are copi
 - **State lives in the database.** SQLite is the source of truth for task state; conversations are ephemeral.
 - **Declare dependencies early, enforce them late.** Cross-lane dependencies are planned at the epic level and enforced at ticket readiness.
 - **Runners should not see blocked work.** If a ticket is not ready, it should not be offered to a Runner.
-- **Review flows upward.** Acceptance is recorded through explicit review, not implied by completion.
+- **Review closes the loop.** Work starts from Human and Planner direction, moves through Architect scoping and Runner execution, then returns through Architect review to Human and Planner decision.
 - **Handoffs are protocol.** Each role receives a defined context shape.
 - **Roles are defined, not hardcoded.** The core roles are Human, Planner, Architect, and Runner; projects may extend the model.
 
 ## Scope and Limitations
 
 - This is a reference implementation, not a maintained library.
-- It assumes a Human at the top of the review chain. Fully autonomous operation is not a design goal.
+- It assumes Human ownership of the control loop. Fully autonomous operation is not a design goal.
 - It does not include LLM API calls, agent spawning code, or hosted orchestration.
 - The SQLite schema is intentionally simple and intended to be adapted.
 - There is no automated access control beyond helper-script behavior and the workflow contract.
