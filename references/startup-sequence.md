@@ -39,8 +39,10 @@ Expected tables:
 ```text
 domain_epic
 domain_ticket
+schema_version
 system_epic
 system_ticket
+workflow_event
 ```
 
 ## 3. Establish Planner Context
@@ -103,7 +105,37 @@ python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox
 python railyard/scripts/ticket.py --lane system --project-root . sync-mailbox
 ```
 
-## 6. Runner Execution
+Architects may also draft tickets directly through the helper:
+
+```powershell
+python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md."
+```
+
+## 6. Architect Dispatch
+
+Architect can request the next ready Runner ticket and a spawn-ready prompt:
+
+```powershell
+python railyard/scripts/architect.py --lane domain --runner-name domain-runner-1 dispatch-next-runner
+python railyard/scripts/architect.py --lane system --runner-name system-runner-1 dispatch-next-runner
+```
+
+The helper returns:
+
+```text
+status
+lane
+synced
+ticket
+spawn.agent_type
+spawn.role
+spawn.runner_name
+spawn.prompt
+```
+
+When the operating environment supports subagents, spawn a worker subagent with `spawn.prompt`.
+
+## 7. Runner Execution
 
 Runner finds the next ready ticket:
 
@@ -137,7 +169,9 @@ Then record the result:
 python railyard/scripts/ticket.py --lane domain mark-runner-result --ticket-id DOMAIN-001 --runner-result done --outbox-path docs/domain/outbox/DOMAIN-001.result.json
 ```
 
-## 7. Architect Review
+`mark-runner-result` validates the result JSON before handing the ticket to Architect review.
+
+## 8. Architect Review
 
 Architect finds the next ticket waiting for review:
 
@@ -148,7 +182,7 @@ python railyard/scripts/ticket.py --lane domain next --actor architect
 Architect claims it:
 
 ```powershell
-python railyard/scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor architect --claimed-by codex
+python railyard/scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by codex
 ```
 
 Architect records review:
@@ -164,7 +198,11 @@ status=finalised
 next_actor=none
 ```
 
-## 8. Planner And Human Summary
+Rejected tickets move back to `ready` for `runner`.
+
+Redesign tickets move back to `drafted` for `architect`.
+
+## 9. Planner And Human Summary
 
 After Architect review, the Planner summarizes:
 
@@ -176,7 +214,7 @@ After Architect review, the Planner summarizes:
 
 The Human makes final project-level decisions from this summary.
 
-## 9. Minimal E2E Smoke Check
+## 10. Minimal E2E Smoke Check
 
 A clean smoke check should prove both lanes can complete the same lifecycle:
 
@@ -184,6 +222,7 @@ A clean smoke check should prove both lanes can complete the same lifecycle:
 init
 epic create or sync
 ticket create or sync
+architect dispatch
 runner next
 runner claim
 runner result
@@ -219,7 +258,7 @@ Each should return:
 null
 ```
 
-## 10. Command Rule
+## 11. Command Rule
 
 When running helper scripts from outside the target project root, pass both `--project-root` and `--db` before the subcommand:
 

@@ -265,7 +265,7 @@ def command_upsert(conn: sqlite3.Connection, lane: str, epic_id: str, title: str
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Dual-lane workflow epic helper.",
+        description="Railyard workflow epic helper.",
         epilog=(
             "Helper commands:\n"
             "  python railyard/scripts/epic.py --lane domain --project-root . sync-docs\n"

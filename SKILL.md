@@ -22,6 +22,7 @@ Use this skill when a project follows a structured operating model with:
 - Prefer the official helper scripts over direct SQL.
 - Treat mailbox files as body surfaces, not as control truth, unless the project explicitly says otherwise.
 - Keep review explicit. Runner completion does not equal final acceptance.
+- When dispatching execution, prefer `scripts/architect.py dispatch-next-runner` so the Architect receives a spawn-ready Runner prompt.
 
 ## Working Sequence
 
@@ -30,13 +31,15 @@ Use this skill when a project follows a structured operating model with:
 3. Resolve object type: `Epic` or `Ticket`.
 4. Use the official helper script for that lane and object.
 5. Read the specific inbox or outbox file only after control-plane state is known.
-6. Record runner and review outcomes through helper commands.
+6. For Runner execution, let the Architect dispatch the next ticket and spawn a worker subagent with the returned prompt when the environment supports subagents.
+7. Record runner and review outcomes through helper commands.
 
 ## Recommended Entry Commands
 
 ```powershell
 python railyard/scripts/resolve_control_surface.py --lane domain --role architect --epic-id DOMAIN-E001
 python railyard/scripts/epic.py --lane domain list-open
+python railyard/scripts/architect.py --lane domain --runner-name domain-runner-1 dispatch-next-runner
 python railyard/scripts/ticket.py --lane domain next --actor runner
 python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-001
 ```

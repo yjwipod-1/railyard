@@ -94,16 +94,40 @@ CREATE TABLE IF NOT EXISTS system_ticket (
 );
 CREATE INDEX IF NOT EXISTS idx_system_ticket_status_actor ON system_ticket(status, next_actor, id DESC);
 CREATE INDEX IF NOT EXISTS idx_system_ticket_epic ON system_ticket(epic_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS workflow_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lane TEXT NOT NULL,
+    object_type TEXT NOT NULL,
+    object_id TEXT NOT NULL,
+    actor TEXT,
+    action TEXT NOT NULL,
+    from_status TEXT,
+    to_status TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_event_object ON workflow_event(lane, object_type, object_id, id DESC);
+
+CREATE TABLE IF NOT EXISTS schema_version (
+    component TEXT PRIMARY KEY,
+    version INTEGER NOT NULL,
+    updated_at TEXT NOT NULL
+);
 """
 
 
 def ensure_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(DDL)
+    conn.execute(
+        "INSERT INTO schema_version(component, version, updated_at) VALUES ('railyard', 2, datetime('now')) "
+        "ON CONFLICT(component) DO UPDATE SET version = excluded.version, updated_at = excluded.updated_at"
+    )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Initialize or inspect the dual-lane workflow SQLite schema.",
+        description="Initialize or inspect the Railyard workflow SQLite schema.",
         epilog=(
             "Helper commands:\n"
             "  python railyard/scripts/workflow_schema.py ensure --db .workflow/workflow.db\n"
@@ -113,7 +137,7 @@ def parse_args() -> argparse.Namespace:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    ensure_parser = subparsers.add_parser("ensure", help="Create the dual-lane workflow schema if missing.")
+    ensure_parser = subparsers.add_parser("ensure", help="Create the Railyard workflow schema if missing.")
     ensure_parser.add_argument("--db", required=True, help="Path to the SQLite database file.")
 
     tables_parser = subparsers.add_parser("tables", help="List workflow control tables.")
@@ -133,11 +157,12 @@ def main() -> int:
             payload = {
                 "status": "ok",
                 "db_path": str(db_path),
-                "tables": ["domain_epic", "domain_ticket", "system_epic", "system_ticket"],
+                "tables": ["domain_epic", "domain_ticket", "system_epic", "system_ticket", "workflow_event", "schema_version"],
             }
         else:
             rows = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('domain_epic','domain_ticket','system_epic','system_ticket') ORDER BY name"
+                "SELECT name FROM sqlite_master WHERE type='table' AND name IN "
+                "('domain_epic','domain_ticket','system_epic','system_ticket','workflow_event','schema_version') ORDER BY name"
             ).fetchall()
             payload = {"status": "ok", "db_path": str(db_path), "tables": [row[0] for row in rows]}
         print(json.dumps(payload, ensure_ascii=False, indent=2))

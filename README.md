@@ -124,7 +124,7 @@ No layer is skipped. Direction moves downward through planning and scoping; resu
 
 Railyard uses a SQLite-backed epic and ticket system. Mailbox files hold task and result bodies, but the database is the control-plane truth.
 
-The schema contains four tables:
+The schema contains four lane control tables plus two workflow support tables:
 
 | Table | Purpose |
 | --- | --- |
@@ -132,6 +132,8 @@ The schema contains four tables:
 | `domain_ticket` | Domain lane tickets |
 | `system_epic` | System lane epics |
 | `system_ticket` | System lane tickets |
+| `workflow_event` | Ticket lifecycle event log |
+| `schema_version` | Local schema component version |
 
 ### Epics
 
@@ -167,6 +169,14 @@ Architect review result values:
 accept | accept_with_changes | reject | redesign
 ```
 
+Review outcomes are lifecycle decisions:
+
+```text
+accept | accept_with_changes -> finalised
+reject -> ready for Runner
+redesign -> drafted for Architect
+```
+
 ## Cross-Lane Dependencies
 
 System and Domain lanes can run in parallel, but dependencies between them are inevitable. Railyard handles them with explicit ticket readiness rather than lane-wide blocking.
@@ -180,6 +190,7 @@ The key design choice is: declare dependencies early, enforce them late. This ke
 Agents do not share a global context. Each role receives a scoped handoff:
 
 - **Runner handoff**: role definition, ticket specification, acceptance checks, relevant references.
+- **Architect dispatch**: lane-level ticket selection plus a spawn-ready Runner prompt from `scripts/architect.py`.
 - **Architect handoff**: lane-level epic state, ticket statuses, review queue, dependency status.
 - **Planner handoff**: both lanes' epic-level status, global constraints, Human decisions, architecture rules.
 
@@ -280,19 +291,31 @@ python scripts/ticket.py --lane domain --project-root . sync-mailbox
 python scripts/ticket.py --lane system --project-root . sync-mailbox
 ```
 
+Draft a ticket from the helper:
+
+```powershell
+python scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md."
+```
+
+Dispatch the next Runner ticket from the Architect helper:
+
+```powershell
+python scripts/architect.py --lane domain --runner-name domain-runner-1 dispatch-next-runner
+```
+
 Claim and complete a Runner ticket:
 
 ```powershell
 python scripts/ticket.py --lane domain next --actor runner
 python scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor runner --claimed-by codex
-python scripts/ticket.py --lane domain mark-runner-result --ticket-id DOMAIN-001 --runner-result done
+python scripts/ticket.py --lane domain mark-runner-result --ticket-id DOMAIN-001 --runner-result done --outbox-path docs/domain/outbox/DOMAIN-001.result.json
 ```
 
 Review a completed ticket:
 
 ```powershell
 python scripts/ticket.py --lane domain next --actor architect
-python scripts/ticket.py --lane domain claim --ticket-id DOMAIN-001 --actor architect --claimed-by codex
+python scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by codex
 python scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
 ```
 
