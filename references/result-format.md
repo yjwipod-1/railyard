@@ -30,3 +30,5 @@ Allowed values:
 - Keep the result machine-readable.
 - Use arrays for `files_changed` and `validation`.
 - Include short, review-friendly notes rather than long prose dumps.
+- `mark-runner-result` validates this JSON before handing the ticket to architect review.
+- The CLI `--runner-result` value must match `runner_status` in the result JSON.

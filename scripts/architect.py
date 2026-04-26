@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import pathlib
+import sqlite3
+import sys
+
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from ticket import command_next, command_sync_mailbox
+from workflow_schema import ensure_schema
+
+
+def render_runner_prompt(lane: str, ticket: dict[str, object], runner_name: str) -> str:
+    ticket_id = str(ticket["ticket_id"])
+    inbox_path = str(ticket["inbox_path"])
+    outbox_path = str(ticket.get("outbox_path") or f"docs/{lane}/outbox/{ticket_id}.result.json")
+    lane_label = lane.upper()
+    return f"""You are a runner in the {lane_label} lane. You are not alone in the codebase. Do not revert edits made by others.
+
+Your only task is ticket {ticket_id}.
+
+First claim it:
+
+python railyard/scripts/ticket.py --lane {lane} claim --ticket-id {ticket_id} --actor runner --claimed-by {runner_name}
+
+Then read the ticket inbox file:
+
+{inbox_path}
+
+Stay inside the ticket scope. Do not widen the task, redefine acceptance checks, or perform work owned by another lane.
+
+When done, write the required result JSON to:
+
+{outbox_path}
+
+The result JSON must include:
+- ticket_id
+- runner_status
+- summary
+- files_changed
+- validation
+- notes
+- created_at
+
+Then mark the runner result:
+
+python railyard/scripts/ticket.py --lane {lane} mark-runner-result --ticket-id {ticket_id} --runner-result <done|partial|blocked|invalid>
+
+Final response must list changed files and validation performed.
+"""
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Architect helper for dispatching runner tickets.",
+        epilog=(
+            "Helper commands:\n"
+            "  python railyard/scripts/architect.py --lane domain dispatch-next-runner\n"
+            "  python railyard/scripts/architect.py --lane system --runner-name system-runner-1 dispatch-next-runner"
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    parser.add_argument("--lane", choices=("domain", "system"), required=True)
+    parser.add_argument("--db", default=".workflow/workflow.db")
+    parser.add_argument("--project-root", default=".")
+    parser.add_argument("--runner-name", default="runner-1")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("dispatch-next-runner", help="Return the next runner ticket and a spawn-ready prompt.")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    db_path = pathlib.Path(args.db).resolve()
+    project_root = pathlib.Path(args.project_root).resolve()
+    conn = sqlite3.connect(str(db_path))
+    try:
+        ensure_schema(conn)
+        if args.command == "dispatch-next-runner":
+            sync_payload = command_sync_mailbox(conn, project_root, args.lane, ticket_id=None, reset_lifecycle=False)
+            ticket = command_next(conn, args.lane, "runner")
+            if ticket is None:
+                payload = {"status": "idle", "lane": args.lane, "synced": sync_payload, "ticket": None}
+            else:
+                payload = {
+                    "status": "ready",
+                    "lane": args.lane,
+                    "synced": sync_payload,
+                    "ticket": ticket,
+                    "spawn": {
+                        "contract": "railyard.runner_dispatch.v1",
+                        "adapter": "generic",
+                        "agent_type": "worker",
+                        "role": "runner",
+                        "runner_name": args.runner_name,
+                        "prompt_format": "plain_text",
+                        "prompt": render_runner_prompt(args.lane, ticket, args.runner_name),
+                    },
+                }
+        else:
+            raise RuntimeError(f"Unsupported command: {args.command}")
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

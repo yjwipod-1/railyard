@@ -7,6 +7,11 @@ This workflow uses four canonical control tables:
 - `system_epic`
 - `system_ticket`
 
+It also uses workflow support tables:
+
+- `workflow_event`
+- `schema_version`
+
 ## Design Rules
 
 - Use one SQLite database as control-plane truth.
@@ -32,6 +37,19 @@ Expected columns:
 - `completed_at`
 - `created_at`
 - `updated_at`
+
+## Event Columns
+
+Expected columns:
+- `lane`
+- `object_type`
+- `object_id`
+- `actor`
+- `action`
+- `from_status`
+- `to_status`
+- `payload_json`
+- `created_at`
 
 ## Ticket Columns
 
