@@ -45,3 +45,6 @@ Thumbs.db
 
 # Local drafting/reference file. The publishable project README is README.md.
 Github README.md
+
+# Local roadmap draft. Release branches should not publish roadmap notes.
+references/roadmap.md
