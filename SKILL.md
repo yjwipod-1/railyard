@@ -23,6 +23,13 @@ Use this skill when a project follows a structured operating model with:
 - Treat mailbox files as body surfaces, not as control truth, unless the project explicitly says otherwise.
 - Keep review explicit. Runner completion does not equal final acceptance.
 - When dispatching execution, prefer `scripts/architect.py dispatch-next-runner` so the Architect receives a spawn-ready Runner prompt.
+- Default Architect dispatch is closed-loop: the Architect that dispatches Runner work must review the Runner result and record a review result unless an explicit opt-in human-gated exception is declared.
+- Treat `awaiting_review` as an intermediate handoff state, not an Architect completion state.
+- Treat human-gated review as opt-in. It must be declared in the ticket, handoff, or project protocol.
+- Do not place validation scratch state, copied workflow databases, or probe temp files inside `.workflow/`.
+- Do not authorize a child agent's permission escalation on behalf of the Human. If a Runner hits a sandbox or permission boundary outside its ticket contract, record a blocker with the exact command and error.
+- Treat MCP-lite as an optional control-plane adapter over helper-backed operations. SQLite remains canonical workflow state, and helper functions remain lifecycle authority.
+- Do not expose or rely on MCP tools for raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, broad `sync-docs` or `sync-mailbox` replacement, or replacement of a project's pinned stable runtime.
 
 ## Working Sequence
 
@@ -32,7 +39,20 @@ Use this skill when a project follows a structured operating model with:
 4. Use the official helper script for that lane and object.
 5. Read the specific inbox or outbox file only after control-plane state is known.
 6. For Runner execution, let the Architect dispatch the next ticket and spawn a worker subagent with the returned prompt when the environment supports subagents.
-7. Record runner and review outcomes through helper commands.
+7. Runner records the runner outcome through the helper.
+8. Architect inspects the Runner result and validation, then records the review outcome through the helper.
+9. Report Architect completion only after the ticket is finalised, routed back to Runner, routed back to Architect, or blocked with a clear next action.
+
+## MCP-lite Boundary
+
+The optional v0.3 MCP-lite server exists for control-plane integration through stdio. Use it only for narrow workflow operations that mirror existing helper behavior:
+
+- inspect tickets, epics, ticket events, and schema version
+- dispatch the next Runner ticket and receive a spawn-ready Runner prompt
+- claim tickets, start review, mark runner result, and mark review result
+- validate result payloads and ticket state
+
+Lane-specific tools must receive an explicit `lane` value. Probes and smoke checks must operate on a copied database and keep temporary files outside `.workflow/` unless a ticket explicitly authorizes a live workflow transition.
 
 ## Recommended Entry Commands
 

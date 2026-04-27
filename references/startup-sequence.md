@@ -138,6 +138,12 @@ spawn.prompt
 
 When the operating environment supports subagents, map this payload to that environment's spawn mechanism and pass `spawn.prompt` as the runner instruction.
 
+Architect dispatch is a closed-loop responsibility by default. The Architect that dispatches Runner work must resume after the Runner result, inspect the outbox result and validation evidence, then complete Section 8 review. Dispatch is not complete while the ticket remains in `awaiting_review`.
+
+An Architect may leave a ticket in `awaiting_review` only when a blocker is recorded or when the ticket, handoff, or project protocol explicitly declares opt-in human-gated review.
+
+The Architect may not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human has explicitly approved that exact action. Permission denial is a blocker, not an invitation to bypass the workflow helper or write into another control surface.
+
 ## 7. Runner Execution
 
 Runner finds the next ready ticket:
@@ -194,6 +200,10 @@ Architect records review:
 python railyard/scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
 ```
 
+Architect review is mandatory in the default protocol. A Runner result of `done` means the Runner claims completion; it does not mean the ticket is accepted. Acceptance exists only after `mark-review-result` records `accept` or `accept_with_changes`.
+
+If the Architect dispatched the Runner, the Architect must not report the overall task as complete until one review result is recorded or a specific blocker is reported. Human-gated review is opt-in and must be explicit before the Architect can leave raw Runner output for Human acceptance.
+
 Accepted tickets move to:
 
 ```text
@@ -237,6 +247,10 @@ epic done
 queues empty
 ```
 
+Smoke checks for dispatch must verify the closed loop, not only Runner handoff. A smoke that stops at `awaiting_review` proves Runner completion but does not prove Architect completion.
+
+Validation scratch state must stay outside `.workflow/`. Probes that need writable workflow data should copy the database to a separate temporary directory, run against that copy, and verify the live database did not change unless the test is intentionally exercising a lifecycle transition through the helper.
+
 Expected final ticket state:
 
 ```text
@@ -268,3 +282,27 @@ When running helper scripts from outside the target project root, pass both `--p
 ```powershell
 python railyard/scripts/ticket.py --lane domain --project-root C:\path\to\project --db C:\path\to\project\.workflow\workflow.db next --actor runner
 ```
+
+## 12. Optional MCP-lite Surface
+
+The v0.3 MCP-lite server is optional. It runs over stdio and wraps existing helper-backed operations:
+
+```powershell
+python railyard/scripts/railyard_mcp_server.py --db .workflow/workflow.db --project-root .
+```
+
+Install the optional dependency from:
+
+```powershell
+python -m pip install -r railyard/requirements-mcp.txt
+```
+
+Use the probe before relying on the MCP surface:
+
+```powershell
+python railyard/scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db --project-root .
+```
+
+The probe copies the database to a temporary directory, exercises read tools, dispatch, validation tools, and narrow lifecycle write tools, then verifies the live database did not change.
+
+MCP-lite is not a replacement for the helper scripts or for a project's pinned stable Railyard runtime. It must not expose raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, or broad `sync-docs` and `sync-mailbox` replacement. Use helpers directly when a task requires workflow administration outside the MCP-lite boundary.

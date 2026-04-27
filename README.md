@@ -66,6 +66,28 @@ Agents handle reasoning, generation, and review. Those activities depend on mode
 
 The result is agentic reasoning inside deterministic structure. Agents can be creative within their scope. The workflow prevents that creativity from turning into uncontrolled project drift.
 
+## v0.3 MCP-lite Control Surface
+
+Railyard v0.3 adds an optional MCP-lite stdio control surface. It is a thin wrapper over the existing helper-backed workflow contract, not a replacement workflow engine.
+
+SQLite remains the canonical workflow state. Helper functions remain the lifecycle authority. MCP tools expose the same bounded operations that a Planner, Architect, or Runner would otherwise reach through the helper scripts:
+
+- read and inspect tickets, epics, ticket events, and schema version
+- dispatch the next Runner ticket and return the same spawn-ready payload as the Architect helper
+- perform narrow lifecycle writes for ticket claim, start-review, mark-runner-result, and mark-review-result
+- validate result payloads and expected ticket state
+
+Lane-specific tools require an explicit `lane` argument. Write tools preserve the same lifecycle guardrails as the helper functions and should be run against copied workflow databases for probes or smoke tests unless the task explicitly calls for a live workflow transition.
+
+The MCP-lite surface intentionally does not expose:
+
+- raw SQL execution
+- force reset or admin mutation
+- arbitrary source-file editing
+- direct ticket Markdown rewrite
+- full replacement of `sync-docs` or `sync-mailbox`
+- replacement of a project's pinned stable Railyard runtime
+
 ## Architecture
 
 ```text
@@ -119,6 +141,10 @@ Human + Planner direction
 ```
 
 No layer is skipped. Direction moves downward through planning and scoping; results move back upward through review and decision.
+
+The default Architect workflow is closed-loop. If an Architect scopes or dispatches Runner work, that Architect workflow remains responsible until it reviews the Runner result and records a review outcome. `awaiting_review` is only an intermediate handoff state. It is not a completed Architect outcome unless the ticket explicitly declares an opt-in human-gated review mode or a blocker prevents review.
+
+Human review happens above the Architect level by default. The Human reviews Architect-level summaries and decisions, not raw Runner completion as final acceptance. Human-gated review of raw Runner output is opt-in and must be declared explicitly.
 
 ## Task Management
 
@@ -177,6 +203,12 @@ reject -> ready for Runner
 redesign -> drafted for Architect
 ```
 
+`awaiting_review` is not terminal. It means Runner execution has handed work back to the Architect. A ticket is accepted only after Architect review records `accept` or `accept_with_changes`.
+
+Permission escalation remains a Human boundary. An Architect can dispatch Runner work, but it does not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human explicitly approved that action.
+
+Validation scratch state must stay outside `.workflow/`. Probes and smoke tests that need writable workflow data should use a copied database in a separate temporary directory and verify the live database is unchanged unless the test intentionally exercises a helper-backed lifecycle transition.
+
 ## Cross-Lane Dependencies
 
 System and Domain lanes can run in parallel, but dependencies between them are inevitable. Railyard handles them with explicit ticket readiness rather than lane-wide blocking.
@@ -211,6 +243,15 @@ Context size increases as responsibility increases. No agent receives everything
 `-- README.md                    # GitHub project homepage
 ```
 
+Optional MCP-lite files:
+
+```text
+requirements-mcp.txt             # Optional MCP server dependency
+scripts/railyard_mcp_server.py   # Thin FastMCP stdio wrapper
+scripts/probe_railyard_mcp_server.py
+                                  # Temp-DB probe for MCP-lite smoke validation
+```
+
 The skeleton creates this project-local workflow surface:
 
 ```text
@@ -229,6 +270,8 @@ docs/
 ## Quick Start
 
 Railyard has no third-party runtime dependency. It uses Python and the standard-library SQLite module.
+
+The optional MCP-lite server requires the dependency listed in `requirements-mcp.txt`.
 
 Requirements:
 
@@ -332,6 +375,18 @@ Bootstrap epics from a JSON queue:
 python scripts/bootstrap_epics.py --lane domain --input queue.json
 ```
 
+Run the optional MCP-lite server:
+
+```powershell
+python scripts/railyard_mcp_server.py --db .workflow/workflow.db --project-root .
+```
+
+Probe the MCP-lite surface against a temporary database copy:
+
+```powershell
+python scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db --project-root .
+```
+
 ## File Formats
 
 Epic documents live in:
@@ -376,6 +431,7 @@ Template files are included under `assets/skeleton/docs/templates/` and are copi
 - It does not include LLM API calls, agent spawning code, or hosted orchestration.
 - The SQLite schema is intentionally simple and intended to be adapted.
 - There is no automated access control beyond helper-script behavior and the workflow contract.
+- The optional MCP-lite server is a control-plane adapter over helper-backed operations. It is not a raw database console, release manager, source editor, or replacement for a vendored stable runtime.
 
 ## References
 
@@ -391,7 +447,6 @@ Read these files for the detailed operating contract:
 - `references/ticket-format.md`
 - `references/result-format.md`
 - `references/helper-commands.md`
-- `references/roadmap.md`
 
 ## Maintenance Checklist
 
