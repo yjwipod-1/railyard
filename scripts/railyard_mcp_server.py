@@ -452,7 +452,7 @@ def parse_args() -> argparse.Namespace:
         epilog=(
             "Examples:\n"
             "  python scripts/railyard_mcp_server.py --db .workflow/workflow.db --project-root .\n"
-            "  python scripts/railyard_mcp_server.py --db E:\\\\path\\\\workflow.db --project-root E:\\\\path\\\\project"
+            "  python scripts/railyard_mcp_server.py --db ../project/.workflow/workflow.db --project-root ../project"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )

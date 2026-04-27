@@ -280,7 +280,7 @@ null
 When running helper scripts from outside the target project root, pass both `--project-root` and `--db` before the subcommand:
 
 ```powershell
-python railyard/scripts/ticket.py --lane domain --project-root C:\path\to\project --db C:\path\to\project\.workflow\workflow.db next --actor runner
+python railyard/scripts/ticket.py --lane domain --project-root ../project --db ../project/.workflow/workflow.db next --actor runner
 ```
 
 ## 12. Optional MCP-lite Surface
