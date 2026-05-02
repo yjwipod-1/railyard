@@ -41,6 +41,7 @@ ENV/
 .DS_Store
 Thumbs.db
 .obsidian/
+.claude/
 .vscode/
 .idea/
 

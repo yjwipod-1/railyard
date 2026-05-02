@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "epic_id": "SYSTEM-E001",
+      "title": "MCP-lite smoke workflow",
+      "status": "queued",
+      "priority": "high",
+      "source": "examples/mcp-lite-smoke/queue.json",
+      "summary": "Demonstrate the MCP-lite control surface over a disposable Railyard workflow database.",
+      "preferred_entrypoints": [
+        "scripts/railyard_mcp_server.py",
+        "scripts/probe_railyard_mcp_server.py",
+        "scripts/ticket.py"
+      ],
+      "done_definition": [
+        "One System ticket is dispatched through MCP-lite.",
+        "The Runner claims the ticket and records a valid result.",
+        "The Architect reviews and accepts the result.",
+        "The ticket reaches status=finalised and next_actor=none."
+      ],
+      "notes": [
+        "This queue is intended for disposable demo workspaces.",
+        "MCP-lite should not create or rewrite ticket Markdown.",
+        "Do not use raw SQL or write scratch files inside .workflow/."
+      ]
+    }
+  ]
+}

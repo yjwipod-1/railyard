@@ -22,6 +22,8 @@ Use this skill when a project follows a structured operating model with:
 - Prefer the official helper scripts over direct SQL.
 - Treat mailbox files as body surfaces, not as control truth, unless the project explicitly says otherwise.
 - Keep review explicit. Runner completion does not equal final acceptance.
+- Close epics explicitly at the lane Architect level after verifying accepted scoped or linked tickets, the epic done definition, remaining open work, blockers, and dependencies.
+- Do not let Runners close epics; they may only provide closure-readiness evidence in ticket results.
 - When dispatching execution, prefer `scripts/architect.py dispatch-next-runner` so the Architect receives a spawn-ready Runner prompt.
 - Default Architect dispatch is closed-loop: the Architect that dispatches Runner work must review the Runner result and record a review result unless an explicit opt-in human-gated exception is declared.
 - Treat `awaiting_review` as an intermediate handoff state, not an Architect completion state.

@@ -171,6 +171,8 @@ Valid epic statuses:
 queued | in_progress | partial | blocked | done | superseded
 ```
 
+Epic closure is an explicit lane Architect action. Before marking an epic `done`, the Architect verifies finalised scoped or linked tickets, accepted review outcomes, the epic done definition, remaining open work, blockers, and dependencies. Runners do not close epics; they may only provide evidence that an epic is ready for Architect closure. Planner or Human direction may request closure, but the lane Architect records it through the epic helper.
+
 ### Tickets
 
 A ticket is one bounded unit of Runner work. It points to an inbox Markdown file and, after execution, to an outbox JSON result file.
@@ -236,6 +238,8 @@ Context size increases as responsibility increases. No agent receives everything
 |   `-- openai.yaml              # Agent metadata
 |-- assets/
 |   `-- skeleton/                # Project seed copied into target workspaces
+|-- examples/
+|   `-- mcp-lite-smoke/          # Minimal MCP-lite lifecycle example
 |-- references/                  # Detailed workflow contracts
 |-- scripts/                     # SQLite-backed helper commands
 |-- .gitignore                   # Excludes local and generated files
@@ -386,6 +390,12 @@ Probe the MCP-lite surface against a temporary database copy:
 ```powershell
 python scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db --project-root .
 ```
+
+## Examples
+
+The `examples/` directory contains small, public-safe walkthroughs:
+
+- `examples/mcp-lite-smoke/` shows a disposable MCP-lite workflow that reads and dispatches a ready ticket, claims it as a Runner, validates and records the result, then completes Architect review.
 
 ## File Formats
 
