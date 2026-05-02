@@ -217,6 +217,19 @@ Redesign tickets move back to `drafted` for `architect`.
 
 ## 9. Planner And Human Summary
 
+Before summarizing completed lane work, the lane Architect should close any epic whose scoped or linked tickets satisfy the epic done definition.
+
+Epic closure requires checking:
+
+- finalised ticket statuses
+- accepted review outcomes
+- Runner result evidence
+- the epic done definition
+- remaining open tickets in the epic scope
+- blockers and dependencies
+
+Runners do not close epics. Planner or Human direction may request closure, but the lane Architect records it through the epic helper.
+
 After Architect review, the Planner summarizes:
 
 - completed tickets

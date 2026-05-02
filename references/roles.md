@@ -13,6 +13,7 @@ Typical responsibilities:
 - create or revise a ticket
 - dispatch or assign Runner work when execution is ready
 - review runner output
+- close lane epics after verifying completed ticket and dependency evidence
 - decide next actor and final disposition
 
 Default limits:
@@ -37,6 +38,7 @@ Default limits:
 - do not redefine the ticket contract without escalation
 - do not bypass helper scripts for workflow writes
 - do not record Architect review or final acceptance for your own ticket
+- do not close epics or mark lane-level epic completion
 - do not write scratch files, copied databases, or probe temp state inside `.workflow/`
 - do not work around permission denial by mutating another control surface
 
@@ -55,6 +57,12 @@ Default sequence:
 Stopping after step 3 leaves the ticket in `awaiting_review` and is not a completed Architect workflow unless an opt-in human-gated review exception was explicitly declared.
 
 Human-gated review is not the default. It must be declared in the ticket, handoff, or project protocol before raw Runner output can wait on Human acceptance instead of Architect review.
+
+## Epic Closure Ownership
+
+Epics close at the lane Architect level. After all scoped or linked tickets appear complete, the Architect must inspect the finalised ticket results, review outcomes, epic done definition, remaining open tickets, blockers, and dependencies before marking the epic `done`.
+
+Runners may provide closure-readiness evidence as part of a ticket result, but they must not close epics. Planner or Human direction may request closure, but the lane Architect records the lane-level closure through the epic helper after verification.
 
 ## Permission Boundaries
 

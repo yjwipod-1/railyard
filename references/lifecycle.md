@@ -14,6 +14,23 @@ Terminal epic statuses:
 - `done`
 - `superseded`
 
+## Epic Closure Contract
+
+Epic closure is a lane-level Architect responsibility. A Runner may complete tickets that satisfy an epic, but a Runner must not close the epic or mark its lane-level status.
+
+Before recording an epic as `done`, the lane Architect must inspect:
+
+- every scoped or linked ticket for the epic
+- each ticket's final status, runner result, and review result
+- the epic done definition
+- remaining open tickets in the same epic scope
+- unresolved blockers
+- declared epic dependencies and external dependencies
+
+An epic is ready for closure only when the relevant tickets are `finalised`, accepted by Architect review, and no blockers or open scoped work remain. If the epic has a single `linked_ticket_id`, that ticket must be finalised and accepted. If the epic spans multiple tickets, every ticket in the scope must be finalised and accepted or explicitly superseded by an accepted replacement.
+
+Planner or Human direction may request or authorize closure, but the lane Architect records the closure through the epic helper after verifying the evidence. Closing an epic is separate from accepting any individual ticket.
+
 ## Ticket Status
 
 Valid ticket statuses:
