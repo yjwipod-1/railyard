@@ -6,6 +6,9 @@ All notable public-facing changes to Railyard are summarized here.
 
 - Documented the Epic Closure Contract so lane Architects explicitly own epic closure after verifying scoped ticket outcomes, done definitions, blockers, and dependencies.
 - Added a public MCP-lite smoke example for disposable workflow validation.
+- Added `scripts/validate_artifacts.py` for deterministic workflow artifact and example queue validation.
+- Added GitHub Actions validation for compile checks, artifact validation, and MCP-lite smoke checks.
+- Ignored `.claude/` local agent configuration so machine-local tool settings stay out of public releases.
 - Added this changelog as part of release discipline and adoption hardening.
 
 ## v0.3

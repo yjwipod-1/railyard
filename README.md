@@ -397,6 +397,16 @@ The `examples/` directory contains small, public-safe walkthroughs:
 
 - `examples/mcp-lite-smoke/` shows a disposable MCP-lite workflow that reads and dispatches a ready ticket, claims it as a Runner, validates and records the result, then completes Architect review.
 
+## Validation And Release Discipline
+
+Railyard includes deterministic validation and release hygiene surfaces for maintainers:
+
+- `scripts/validate_artifacts.py` validates workflow artifact shapes and example queue files.
+- `.github/workflows/railyard-validate.yml` runs compile, artifact validation, and MCP-lite smoke checks in GitHub Actions.
+- `CHANGELOG.md` records versioned release notes for public-facing changes.
+
+When a release adds or changes user-visible capabilities, update both `CHANGELOG.md` and this README. The changelog explains what changed in that release; the README explains what Railyard can do now.
+
 ## File Formats
 
 Epic documents live in:
@@ -465,6 +475,8 @@ Before publishing or tagging a new version:
 - Keep generated workflow databases out of version control.
 - Run the helper commands from a clean checkout to verify the examples still match the scripts.
 - Run the E2E smoke check described in `references/startup-sequence.md`.
+- Update `CHANGELOG.md` with versioned release details.
+- Update `README.md` when user-visible capabilities, examples, validation surfaces, or workflow boundaries change.
 
 ## License
 
