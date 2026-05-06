@@ -74,7 +74,7 @@ SQLite remains the canonical workflow state. Helper functions remain the lifecyc
 
 - read and inspect tickets, epics, ticket events, and schema version
 - dispatch the next Runner ticket and return the same spawn-ready payload as the Architect helper
-- perform narrow lifecycle writes for ticket claim, start-review, mark-runner-result, and mark-review-result
+- perform narrow lifecycle writes for ticket claim, interrupted-runner recovery, start-review, mark-runner-result, and mark-review-result
 - validate result payloads and expected ticket state
 
 Lane-specific tools require an explicit `lane` argument. Write tools preserve the same lifecycle guardrails as the helper functions and should be run against copied workflow databases for probes or smoke tests unless the task explicitly calls for a live workflow transition.
@@ -230,6 +230,30 @@ Agents do not share a global context. Each role receives a scoped handoff:
 
 Context size increases as responsibility increases. No agent receives everything.
 
+## Platform Dispatch Compatibility
+
+Railyard Runner is a workflow role, not a portable platform `agent_type`.
+
+Agent platforms name and expose their execution surfaces differently. Claude Code, Gemini CLI, GitHub Copilot, VS Code, Windsurf, Cursor, JetBrains, and Codex-like environments do not share one standard subagent type list. Railyard therefore treats platform-specific agent names as adapter details.
+
+Dispatchers should select a safe execution-capable platform surface in this order:
+
+1. documented or discovered platform-native execution agent, such as `general-purpose`, `generalist`, `Agent`, `Code`, or the current platform's explicit implementation agent
+2. Railyard fallback profile, such as `railyard-runner`, when platform-native selection is missing, ambiguous, or unsafe and the platform supports custom or prompt-defined agents
+3. documented implicit default execution path when the platform clearly marks it execution-capable
+4. fail fast with a clear unsupported-dispatch error
+
+Selection is capability-based, not name-based. A Runner requires read, write, execute, scoped file edit, and result JSON capabilities. Read-only and planning agents must not be used for implementation tickets. A dispatched Runner prompt must always state the Railyard workflow role, lane, ticket scope, helper authority, validation commands, result JSON contract, and blocker reporting requirements.
+
+Initialized projects include VS Code / GitHub Copilot-compatible default profiles in `.github/agents/`:
+
+- `railyard-architect`
+- `railyard-runner`
+- `railyard-explorer`
+- `railyard-reviewer`
+
+See `references/platform-dispatch.md` for the platform mapping, capability profile contract, and shared-workspace rules.
+
 ## Repository Contents
 
 ```text
@@ -238,6 +262,7 @@ Context size increases as responsibility increases. No agent receives everything
 |   `-- openai.yaml              # Agent metadata
 |-- assets/
 |   `-- skeleton/                # Project seed copied into target workspaces
+|       `-- .github/agents/      # Default platform agent profiles
 |-- examples/
 |   `-- mcp-lite-smoke/          # Minimal MCP-lite lifecycle example
 |-- references/                  # Detailed workflow contracts
@@ -291,6 +316,7 @@ python railyard/scripts/init_workflow.py --project-root .
 This creates:
 
 - `.workflow/workflow.db`
+- `.github/agents/`
 - `docs/domain/epics/`
 - `docs/domain/inbox/`
 - `docs/domain/outbox/`
@@ -365,6 +391,17 @@ python scripts/ticket.py --lane domain next --actor architect
 python scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by architect-1
 python scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
 ```
+
+Recover an interrupted Runner ticket that is stuck in `running` before an outbox result was written:
+
+```powershell
+python scripts/ticket.py --lane system list --status running --next-actor runner
+python scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason "runner interrupted before outbox"
+```
+
+If the outbox result JSON already exists, use `mark-runner-result` instead.
+
+If the same ticket and intended operation fails three times during recovery, dispatch, claim, result marking, review, validation, or permission-gated work, stop and record a blocker instead of trying more commands.
 
 Resolve the correct control surface before acting:
 
@@ -461,6 +498,7 @@ Read these files for the detailed operating contract:
 - `references/startup-sequence.md`
 - `references/roles.md`
 - `references/routing.md`
+- `references/platform-dispatch.md`
 - `references/lifecycle.md`
 - `references/sql-contract.md`
 - `references/epic-format.md`

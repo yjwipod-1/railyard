@@ -30,8 +30,15 @@ Use this skill when a project follows a structured operating model with:
 - Treat human-gated review as opt-in. It must be declared in the ticket, handoff, or project protocol.
 - Do not place validation scratch state, copied workflow databases, or probe temp files inside `.workflow/`.
 - Do not authorize a child agent's permission escalation on behalf of the Human. If a Runner hits a sandbox or permission boundary outside its ticket contract, record a blocker with the exact command and error.
+- Before drafting or dispatching Runner work, inspect running tickets. If a `running` Runner ticket has no outbox result and the Runner was interrupted, use `ticket.py recover-stale` with a reason instead of drafting around it.
+- Stop after three failed attempts for the same ticket and intended operation. Record a blocker with commands, errors, current state, outbox existence, and recommended next action instead of continuing to try alternate helper commands.
 - Treat MCP-lite as an optional control-plane adapter over helper-backed operations. SQLite remains canonical workflow state, and helper functions remain lifecycle authority.
 - Do not expose or rely on MCP tools for raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, broad `sync-docs` or `sync-mailbox` replacement, or replacement of a project's pinned stable runtime.
+- Treat Runner, Worker, Architect, and Reviewer as Railyard workflow roles, not portable platform `agent_type` names.
+- When dispatching execution, use the current platform's documented execution-capable agent or a project-defined Railyard Runner profile. If no safe execution-capable dispatch path is known, fail fast instead of guessing.
+- Match platform agents by capability, not by name. Runner dispatch requires read, write, execute, scoped file edit, and result JSON capabilities.
+- Do not use read-only or planning platform agents for Runner implementation tickets.
+- Do not treat `.codex/`, `.claude/`, `.cursor/`, `.windsurf/`, or other platform-local configuration as Railyard lifecycle authority.
 
 ## Working Sequence
 
@@ -40,10 +47,13 @@ Use this skill when a project follows a structured operating model with:
 3. Resolve object type: `Epic` or `Ticket`.
 4. Use the official helper script for that lane and object.
 5. Read the specific inbox or outbox file only after control-plane state is known.
-6. For Runner execution, let the Architect dispatch the next ticket and spawn a worker subagent with the returned prompt when the environment supports subagents.
-7. Runner records the runner outcome through the helper.
-8. Architect inspects the Runner result and validation, then records the review outcome through the helper.
-9. Report Architect completion only after the ticket is finalised, routed back to Runner, routed back to Architect, or blocked with a clear next action.
+6. Before dispatching new Runner work, list running Runner tickets and recover interrupted no-outbox tickets with `recover-stale`.
+7. If the same intended operation fails three times for the same ticket, stop and report a blocker.
+8. For Runner execution, let the Architect dispatch the next ticket and spawn an execution-capable subagent with the returned prompt when the environment supports subagents.
+9. Map the returned Runner prompt to the current platform through `references/platform-dispatch.md`; do not require a literal `worker` agent type.
+10. Runner records the runner outcome through the helper.
+11. Architect inspects the Runner result and validation, then records the review outcome through the helper.
+12. Report Architect completion only after the ticket is finalised, routed back to Runner, routed back to Architect, or blocked with a clear next action.
 
 ## MCP-lite Boundary
 
@@ -51,7 +61,7 @@ The optional v0.3 MCP-lite server exists for control-plane integration through s
 
 - inspect tickets, epics, ticket events, and schema version
 - dispatch the next Runner ticket and receive a spawn-ready Runner prompt
-- claim tickets, start review, mark runner result, and mark review result
+- claim tickets, recover interrupted running tickets, start review, mark runner result, and mark review result
 - validate result payloads and ticket state
 
 Lane-specific tools must receive an explicit `lane` value. Probes and smoke checks must operate on a copied database and keep temporary files outside `.workflow/` unless a ticket explicitly authorizes a live workflow transition.
@@ -72,6 +82,7 @@ python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-001
 - Startup sequence and E2E smoke checks: `references/startup-sequence.md`
 - Role behavior: `references/roles.md`
 - Routing rules: `references/routing.md`
+- Platform dispatch rules: `references/platform-dispatch.md`
 - Lifecycle contract: `references/lifecycle.md`
 - SQL contract: `references/sql-contract.md`
 - Helper command examples: `references/helper-commands.md`

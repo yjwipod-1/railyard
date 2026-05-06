@@ -11,7 +11,7 @@ from typing import Any, Iterator
 
 import epic as epic_helper
 import ticket as ticket_helper
-from architect import render_runner_prompt
+from architect import build_runner_spawn_payload
 from workflow_schema import ensure_schema
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -299,15 +299,7 @@ def create_server(config: ServerConfig) -> Any:
             "lane": resolved_lane,
             "synced": sync_payload,
             "ticket": ticket,
-            "spawn": {
-                "contract": "railyard.runner_dispatch.v1",
-                "adapter": "generic",
-                "agent_type": "worker",
-                "role": "runner",
-                "runner_name": resolved_runner_name,
-                "prompt_format": "plain_text",
-                "prompt": render_runner_prompt(resolved_lane, ticket, resolved_runner_name),
-            },
+            "spawn": build_runner_spawn_payload(resolved_lane, ticket, resolved_runner_name),
         }
 
     @server.tool(name="claim_ticket")
@@ -354,6 +346,27 @@ def create_server(config: ServerConfig) -> Any:
                 normalized_runner_result,
                 outbox_path.strip() or None,
             )
+        return normalize_lifecycle_row(resolved_lane, row)
+
+    @server.tool(name="recover_stale_ticket")
+    def recover_stale_ticket(lane: str, ticket_id: str, actor: str, reason: str, dry_run: bool = False) -> dict[str, Any]:
+        resolved_lane = resolve_lane(lane)
+        resolved_ticket_id = require_value(ticket_id, "ticket_id")
+        resolved_actor = resolve_actor(actor)
+        normalized_reason = require_value(reason, "reason")
+        with open_write_connection(config.db_path) as conn:
+            row = ticket_helper.command_recover_stale(
+                conn,
+                config.project_root,
+                resolved_lane,
+                resolved_ticket_id,
+                resolved_actor,
+                normalized_reason,
+                dry_run=dry_run,
+            )
+        if dry_run:
+            row["lane"] = resolved_lane
+            return row
         return normalize_lifecycle_row(resolved_lane, row)
 
     @server.tool(name="mark_review_result")
