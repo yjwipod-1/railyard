@@ -49,9 +49,33 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
     "next_actor": "runner"
   },
   "spawn": {
-    "contract": "railyard.runner_dispatch.v1",
-    "adapter": "generic",
-    "agent_type": "worker",
+    "contract": "railyard.runner_dispatch.v2",
+    "adapter": "platform-dispatch",
+    "workflow_role": "runner",
+    "agent_type": null,
+    "platform_agent_type": null,
+    "required_capabilities": [
+      "read",
+      "write",
+      "execute",
+      "scoped_file_edit",
+      "result_json"
+    ],
+    "reject_if_only": [
+      "read_only",
+      "planning_only",
+      "review_only"
+    ],
+    "capability_match_policy": "conservative_fuzzy",
+    "fallback_profile": "railyard-runner",
+    "profile_priority": "fallback_after_platform_native",
+    "fallback_agent_types": [
+      "general-purpose",
+      "generalist",
+      "Agent",
+      "Code",
+      "default"
+    ],
     "role": "runner",
     "runner_name": "smoke-runner-1",
     "prompt_format": "plain_text",

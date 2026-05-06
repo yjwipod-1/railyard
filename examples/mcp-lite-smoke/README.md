@@ -92,7 +92,7 @@ Build a spawn-ready Runner payload:
 }
 ```
 
-Pass `spawn.prompt` to the Runner agent when the host platform supports subagents.
+Apply `references/platform-dispatch.md`, select a safe execution-capable platform agent, then pass `spawn.prompt` to that Runner agent when the host platform supports subagents.
 
 ## Runner: Claim And Produce Result
 

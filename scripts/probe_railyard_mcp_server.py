@@ -33,6 +33,7 @@ EXPECTED_TOOLS = {
     "claim_ticket": {"lane", "ticket_id", "actor", "claimed_by"},
     "start_review": {"lane", "ticket_id", "claimed_by"},
     "mark_runner_result": {"lane", "ticket_id", "runner_result", "outbox_path"},
+    "recover_stale_ticket": {"lane", "ticket_id", "actor", "reason", "dry_run"},
     "mark_review_result": {"lane", "ticket_id", "review_result", "supersedes_ticket_id"},
     "validate_result_payload": {"lane", "ticket_id", "outbox_path", "payload_json", "expected_runner_result"},
     "validate_ticket_state": {"lane", "ticket_id", "expected_status", "expected_actor"},
@@ -57,6 +58,7 @@ FORBIDDEN_BROAD_MUTATION_TOOLS = {
 PROBE_EPIC_ID = "SYSTEM-PROBE"
 PROBE_TICKET_ID = "SYSTEM-PROBE-001"
 PROBE_ARCHITECT_TICKET_ID = "SYSTEM-PROBE-002"
+PROBE_STALE_TICKET_ID = "SYSTEM-PROBE-003"
 PROBE_RESULT_PATH = pathlib.Path("docs/system/outbox/SYSTEM-PROBE-001.result.json")
 
 
@@ -216,7 +218,28 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
     result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     inbox_path = temp_root / "docs/system/inbox/SYSTEM-PROBE-001.md"
     inbox_path.parent.mkdir(parents=True, exist_ok=True)
-    inbox_path.write_text("# SYSTEM-PROBE-001\n\nProbe fixture.\n", encoding="utf-8")
+    inbox_path.write_text(
+        "\n".join(
+            [
+                "---",
+                f"ticket_id: {PROBE_TICKET_ID}",
+                f"epic_id: {PROBE_EPIC_ID}",
+                "task_mode: general",
+                "task_type: validation",
+                "priority: high",
+                f"outbox_result_path: {PROBE_RESULT_PATH.as_posix()}",
+                "---",
+                "",
+                f"# {PROBE_TICKET_ID} - MCP probe fixture",
+                "",
+                "## Task",
+                "",
+                "Probe fixture.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
     return temp_root
 
 
@@ -256,6 +279,7 @@ def prepare_temp_db(temp_db: pathlib.Path) -> None:
         ticket_rows = [
             (PROBE_TICKET_ID, "ready", "runner", None, None),
             (PROBE_ARCHITECT_TICKET_ID, "awaiting_review", "architect", "done", None),
+            (PROBE_STALE_TICKET_ID, "ready", "runner", None, None),
         ]
         for ticket_id, status, next_actor, runner_result, review_result in ticket_rows:
             conn.execute(
@@ -281,7 +305,7 @@ def prepare_temp_db(temp_db: pathlib.Path) -> None:
                     ticket_id,
                     PROBE_EPIC_ID,
                     f"docs/system/inbox/{ticket_id}.md",
-                    str(PROBE_RESULT_PATH),
+                    f"docs/system/outbox/{ticket_id}.result.json",
                     status,
                     next_actor,
                     runner_result,
@@ -359,6 +383,8 @@ async def run_probe(
                     "claimed_by": "probe",
                     "runner_result": "done",
                     "review_result": "accept",
+                    "reason": "probe validation",
+                    "dry_run": True,
                     "expected_status": "ready",
                     "expected_actor": "runner",
                 }
@@ -389,6 +415,25 @@ async def run_probe(
         dispatch = await call_tool(server, "dispatch_next_runner", {"lane": "system", "runner_name": "probe-runner"})
         require(dispatch["status"] == "ready", "dispatch_next_runner did not return ready")
         require(dispatch["ticket"]["ticket_id"] == PROBE_TICKET_ID, "dispatch_next_runner returned wrong ticket")
+        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v2", "dispatch_next_runner returned wrong dispatch contract")
+        require(dispatch["spawn"]["agent_type"] is None, "dispatch_next_runner must not hardcode platform agent_type")
+        require(dispatch["spawn"]["fallback_profile"] == "railyard-runner", "dispatch_next_runner omitted fallback profile")
+        require(
+            dispatch["spawn"]["profile_priority"] == "fallback_after_platform_native",
+            "dispatch_next_runner returned wrong profile priority",
+        )
+        require(
+            "write" in dispatch["spawn"]["required_capabilities"],
+            "dispatch_next_runner omitted runner write capability",
+        )
+        require(
+            "read_only" in dispatch["spawn"]["reject_if_only"],
+            "dispatch_next_runner omitted read-only rejection category",
+        )
+        require(
+            dispatch["spawn"]["capability_match_policy"] == "conservative_fuzzy",
+            "dispatch_next_runner returned wrong capability match policy",
+        )
         require(dispatch["spawn"]["runner_name"] == "probe-runner", "dispatch_next_runner omitted runner_name")
         checks.append({"name": "dispatch", "status": "ok"})
 
@@ -457,6 +502,48 @@ async def run_probe(
         )
         require(reviewed["ticket"]["status"] == "finalised", "mark_review_result did not finalise accepted ticket")
         checks.append({"name": "narrow_write_tools", "status": "ok"})
+
+        stale_claimed = await call_tool(
+            server,
+            "claim_ticket",
+            {"lane": "system", "ticket_id": PROBE_STALE_TICKET_ID, "actor": "runner", "claimed_by": "interrupted-runner"},
+        )
+        require(stale_claimed["ticket"]["status"] == "running", "stale fixture claim did not move ticket to running")
+        stale_dry_run = await call_tool(
+            server,
+            "recover_stale_ticket",
+            {
+                "lane": "system",
+                "ticket_id": PROBE_STALE_TICKET_ID,
+                "actor": "runner",
+                "reason": "probe runner interrupted before outbox",
+                "dry_run": True,
+            },
+        )
+        require(stale_dry_run["status"] == "dry_run", "recover_stale_ticket dry-run returned wrong status")
+        require(stale_dry_run["to"]["status"] == "ready", "recover_stale_ticket dry-run did not preview ready")
+        stale_recovered = await call_tool(
+            server,
+            "recover_stale_ticket",
+            {
+                "lane": "system",
+                "ticket_id": PROBE_STALE_TICKET_ID,
+                "actor": "runner",
+                "reason": "probe runner interrupted before outbox",
+            },
+        )
+        require(stale_recovered["ticket"]["status"] == "ready", "recover_stale_ticket did not reset to ready")
+        require(stale_recovered["ticket"]["claimed_by"] is None, "recover_stale_ticket did not clear claimed_by")
+        stale_events = await call_tool(
+            server,
+            "list_ticket_events",
+            {"lane": "system", "ticket_id": PROBE_STALE_TICKET_ID, "limit": 5},
+        )
+        require(
+            any(item["action"] == "recover-stale-running" for item in stale_events["events"]),
+            "recover_stale_ticket did not record recover-stale-running event",
+        )
+        checks.append({"name": "stale_running_recovery", "status": "ok"})
 
         temp_counts = db_counts(temp_db)
         temp_info = {"temp_db": str(temp_db), "temp_project_root": str(temp_project_root), "counts": temp_counts}

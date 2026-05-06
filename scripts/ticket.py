@@ -310,7 +310,7 @@ def command_list(conn: sqlite3.Connection, lane: str, status: str | None, next_a
         params.append(next_actor)
     where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
     rows = conn.execute(
-        f"SELECT ticket_id, epic_id, task_mode, task_type, priority, status, next_actor, runner_result, review_result, inbox_path, outbox_path, claimed_by, updated_at "
+        f"SELECT ticket_id, epic_id, task_mode, task_type, priority, status, next_actor, runner_result, review_result, inbox_path, outbox_path, claimed_by, claimed_at, updated_at "
         f"FROM {table} {where} ORDER BY {PRIORITY_RANK_SQL}, {STATUS_RANK_SQL}, id ASC",
         tuple(params),
     ).fetchall()
@@ -363,7 +363,14 @@ def command_claim(conn: sqlite3.Connection, lane: str, ticket_id: str, actor: st
     )
     if cursor.rowcount != 1:
         conn.rollback()
-        raise RuntimeError(f"claim failed for {ticket_id}; expected status in {expected_statuses} next_actor={actor}")
+        recovery_hint = ""
+        if before and actor == "runner" and before.get("status") == RUNNER_RUNNING_STATUS and before.get("next_actor") == "runner":
+            recovery_hint = (
+                "; ticket is already running. If the Runner was interrupted before writing its outbox result JSON, "
+                "use recover-stale --ticket-id "
+                f"{ticket_id} --actor runner --reason \"runner interrupted before outbox\""
+            )
+        raise RuntimeError(f"claim failed for {ticket_id}; expected status in {expected_statuses} next_actor={actor}{recovery_hint}")
     row = fetch_row(conn, lane, ticket_id)
     if row is None:
         raise RuntimeError(f"{table} row missing after claim for {ticket_id}")
@@ -403,7 +410,10 @@ def command_mark_runner_result(
         raise RuntimeError(f"runner result requires an outbox result path for {ticket_id}")
     result_path = resolve_project_path(project_root, str(result_hint))
     if not result_path.exists():
-        raise RuntimeError(f"runner result file not found: {result_path}")
+        raise RuntimeError(
+            f"runner result file not found: {result_path}. "
+            "If the Runner was interrupted before writing this outbox file, use recover-stale instead of mark-runner-result."
+        )
     outbox_payload = read_json(result_path)
     result_from_file = validate_result_payload(outbox_payload, ticket_id)
     if result_from_file != runner_result:
@@ -431,6 +441,103 @@ def command_mark_runner_result(
         from_status=str(before.get("status")),
         to_status=ARCHITECT_READY_STATUS,
         payload={"runner_result": runner_result, "outbox_path": stored_outbox_path},
+    )
+    conn.commit()
+    return row
+
+
+def command_recover_stale(
+    conn: sqlite3.Connection,
+    project_root: pathlib.Path,
+    lane: str,
+    ticket_id: str,
+    actor: str,
+    reason: str,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    if actor != "runner":
+        raise ValueError("recover-stale currently supports actor=runner")
+    normalized_reason = reason.strip()
+    if not normalized_reason:
+        raise ValueError("recover-stale requires a non-empty --reason")
+    table = lane_table(lane)
+    before = fetch_row(conn, lane, ticket_id)
+    if before is None:
+        raise RuntimeError(f"{table} row not found for {ticket_id}")
+    if before.get("status") != RUNNER_RUNNING_STATUS or before.get("next_actor") != "runner":
+        raise RuntimeError(f"recover-stale requires status={RUNNER_RUNNING_STATUS} next_actor=runner for {ticket_id}")
+    result_hint = before.get("outbox_path")
+    stored_outbox_path = str(result_hint) if result_hint else None
+    if result_hint:
+        result_path = resolve_project_path(project_root, str(result_hint))
+        if result_path.exists():
+            raise RuntimeError(
+                f"runner result file exists for {ticket_id}: {result_path}. "
+                "Use mark-runner-result instead of recover-stale."
+            )
+    else:
+        result_path = None
+    recovered = dict(before)
+    recovered.update(
+        {
+            "status": RUNNER_READY_STATUS,
+            "next_actor": "runner",
+            "runner_result": None,
+            "review_result": None,
+            "claimed_by": None,
+            "claimed_at": None,
+        }
+    )
+    if dry_run:
+        return {
+            "status": "dry_run",
+            "lane": lane,
+            "ticket_id": ticket_id,
+            "reason": normalized_reason,
+            "from": before,
+            "to": recovered,
+            "outbox_path": stored_outbox_path,
+            "would_record_event": {
+                "action": "recover-stale-running",
+                "from_status": RUNNER_RUNNING_STATUS,
+                "to_status": RUNNER_READY_STATUS,
+                "payload": {
+                    "reason": normalized_reason,
+                    "previous_claimed_by": before.get("claimed_by"),
+                    "previous_claimed_at": before.get("claimed_at"),
+                    "outbox_path": stored_outbox_path,
+                },
+            },
+        }
+
+    now = iso_now()
+    cursor = conn.execute(
+        f"UPDATE {table} SET status = ?, next_actor = ?, claimed_by = NULL, claimed_at = NULL, "
+        "runner_result = NULL, review_result = NULL, updated_at = ? "
+        "WHERE ticket_id = ? AND status = ? AND next_actor = ?",
+        (RUNNER_READY_STATUS, "runner", now, ticket_id, RUNNER_RUNNING_STATUS, "runner"),
+    )
+    if cursor.rowcount != 1:
+        conn.rollback()
+        raise RuntimeError(f"recover-stale failed for {ticket_id}; expected status=running next_actor=runner")
+    row = fetch_row(conn, lane, ticket_id)
+    if row is None:
+        raise RuntimeError(f"{table} row missing after recover-stale for {ticket_id}")
+    record_event(
+        conn,
+        lane=lane,
+        object_type="ticket",
+        object_id=ticket_id,
+        actor=actor,
+        action="recover-stale-running",
+        from_status=str(before.get("status")),
+        to_status=RUNNER_READY_STATUS,
+        payload={
+            "reason": normalized_reason,
+            "previous_claimed_by": before.get("claimed_by"),
+            "previous_claimed_at": before.get("claimed_at"),
+            "outbox_path": stored_outbox_path,
+        },
     )
     conn.commit()
     return row
@@ -583,7 +690,11 @@ def command_draft(
     ticket_path.parent.mkdir(parents=True, exist_ok=True)
     outbox_dir(project_root, lane).mkdir(parents=True, exist_ok=True)
     if ticket_path.exists() and not force:
-        raise RuntimeError(f"ticket file already exists: {ticket_path}")
+        raise RuntimeError(
+            f"ticket file already exists: {ticket_path}. "
+            "draft creates new or explicitly forced ticket files; it is not a lifecycle recovery command. "
+            "Use show, sync-mailbox, or recover-stale for existing interrupted tickets."
+        )
     ticket_text = render_ticket_doc(
         lane=lane,
         ticket_id=resolved_ticket_id,
@@ -616,9 +727,14 @@ def parse_args() -> argparse.Namespace:
         epilog=(
             "Helper commands:\n"
             "  python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox\n"
+            "  python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox --ticket-id DOMAIN-001 --reset-lifecycle\n"
             "  python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title \"Define scope\" --task \"Write docs/scope.md.\"\n"
             "  python railyard/scripts/ticket.py --lane domain next --actor runner\n"
-            "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-001 --actor runner --claimed-by runner-1"
+            "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-001 --actor runner --claimed-by runner-1\n"
+            "  python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason \"runner interrupted before outbox\"\n\n"
+            "Recovery notes:\n"
+            "  sync-mailbox --reset-lifecycle resets lifecycle fields from the inbox and outbox files.\n"
+            "  Prefer recover-stale for interrupted running tickets that have no runner result JSON."
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -627,7 +743,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-root", default=".")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    sync_parser = subparsers.add_parser("sync-mailbox", help="Sync ticket markdown files into the lane ticket table.")
+    sync_parser = subparsers.add_parser(
+        "sync-mailbox",
+        help="Sync ticket markdown files into the lane ticket table. Use --reset-lifecycle to reset lifecycle fields from mailbox files.",
+    )
     sync_parser.add_argument("--ticket-id", default="")
     sync_parser.add_argument("--reset-lifecycle", action="store_true", help="Allow sync to reset lifecycle fields from mailbox files.")
 
@@ -673,6 +792,15 @@ def parse_args() -> argparse.Namespace:
     runner_result_parser.add_argument("--ticket-id", required=True)
     runner_result_parser.add_argument("--runner-result", choices=tuple(sorted(VALID_RUNNER_RESULTS)), required=True)
     runner_result_parser.add_argument("--outbox-path", default="")
+
+    recover_parser = subparsers.add_parser(
+        "recover-stale",
+        help="Recover an interrupted running Runner ticket when no outbox result JSON exists.",
+    )
+    recover_parser.add_argument("--ticket-id", required=True)
+    recover_parser.add_argument("--actor", choices=("runner",), required=True)
+    recover_parser.add_argument("--reason", required=True)
+    recover_parser.add_argument("--dry-run", action="store_true")
 
     review_parser = subparsers.add_parser("mark-review-result", help="Record architect review result.")
     review_parser.add_argument("--ticket-id", required=True)
@@ -726,6 +854,8 @@ def main() -> int:
             payload = command_claim(conn, args.lane, args.ticket_id, "architect", args.claimed_by or None, action="start-review")
         elif args.command == "mark-runner-result":
             payload = command_mark_runner_result(conn, project_root, args.lane, args.ticket_id, args.runner_result, args.outbox_path or None)
+        elif args.command == "recover-stale":
+            payload = command_recover_stale(conn, project_root, args.lane, args.ticket_id, args.actor, args.reason, args.dry_run)
         elif args.command == "mark-review-result":
             payload = command_mark_review_result(conn, args.lane, args.ticket_id, args.review_result, args.supersedes_ticket_id or None)
         else:

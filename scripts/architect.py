@@ -14,6 +14,25 @@ if str(SCRIPT_DIR) not in sys.path:
 from ticket import command_next, command_sync_mailbox
 from workflow_schema import ensure_schema
 
+ROLE_CAPABILITY_CONTRACTS: dict[str, dict[str, object]] = {
+    "runner": {
+        "required_capabilities": [
+            "read",
+            "write",
+            "execute",
+            "scoped_file_edit",
+            "result_json",
+        ],
+        "reject_if_only": [
+            "read_only",
+            "planning_only",
+            "review_only",
+        ],
+        "fallback_profile": "railyard-runner",
+        "match_policy": "conservative_fuzzy",
+    }
+}
+
 
 def render_runner_prompt(lane: str, ticket: dict[str, object], runner_name: str) -> str:
     ticket_id = str(ticket["ticket_id"])
@@ -55,6 +74,46 @@ Final response must list changed files and validation performed.
 """
 
 
+def build_runner_spawn_payload(lane: str, ticket: dict[str, object], runner_name: str) -> dict[str, object]:
+    role_contract = ROLE_CAPABILITY_CONTRACTS["runner"]
+    return {
+        "contract": "railyard.runner_dispatch.v2",
+        "adapter": "platform-dispatch",
+        "workflow_role": "runner",
+        "role": "runner",
+        "runner_name": runner_name,
+        "required_capabilities": role_contract["required_capabilities"],
+        "reject_if_only": role_contract["reject_if_only"],
+        "capability_match_policy": role_contract["match_policy"],
+        "fallback_profile": role_contract["fallback_profile"],
+        "profile_priority": "fallback_after_platform_native",
+        "agent_type": None,
+        "platform_agent_type": None,
+        "agent_type_policy": (
+            "Select a documented or discovered platform-native execution agent first. "
+            "If platform-native selection is missing, ambiguous, or unsafe, use the Railyard fallback profile "
+            "when the platform supports custom or prompt-defined agents. Do not require or blindly pass a literal "
+            "worker agent type."
+        ),
+        "fallback_agent_types": [
+            "general-purpose",
+            "generalist",
+            "Agent",
+            "Code",
+            "default",
+        ],
+        "excluded_for_implementation": [
+            "Explore",
+            "explore",
+            "Plan",
+            "Ask",
+            "codebase_investigator",
+        ],
+        "prompt_format": "plain_text",
+        "prompt": render_runner_prompt(lane, ticket, runner_name),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Architect helper for dispatching runner tickets.",
@@ -92,15 +151,7 @@ def main() -> int:
                     "lane": args.lane,
                     "synced": sync_payload,
                     "ticket": ticket,
-                    "spawn": {
-                        "contract": "railyard.runner_dispatch.v1",
-                        "adapter": "generic",
-                        "agent_type": "worker",
-                        "role": "runner",
-                        "runner_name": args.runner_name,
-                        "prompt_format": "plain_text",
-                        "prompt": render_runner_prompt(args.lane, ticket, args.runner_name),
-                    },
+                    "spawn": build_runner_spawn_payload(args.lane, ticket, args.runner_name),
                 }
         else:
             raise RuntimeError(f"Unsupported command: {args.command}")

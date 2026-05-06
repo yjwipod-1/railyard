@@ -17,6 +17,7 @@ python railyard/scripts/init_workflow.py --project-root .
 This creates the project-local workflow surface:
 
 ```text
+.github/agents/
 .workflow/workflow.db
 docs/domain/epics/
 docs/domain/inbox/
@@ -26,6 +27,8 @@ docs/system/inbox/
 docs/system/outbox/
 docs/templates/
 ```
+
+The `.github/agents/` directory contains default Railyard agent profiles for platforms that support VS Code / GitHub Copilot-style custom agents. Platforms that do not read this directory can still use the same profile text as prompt material.
 
 ## 2. Confirm The Schema
 
@@ -128,6 +131,10 @@ lane
 synced
 ticket
 spawn.agent_type
+spawn.platform_agent_type
+spawn.fallback_profile
+spawn.profile_priority
+spawn.fallback_agent_types
 spawn.role
 spawn.runner_name
 spawn.adapter
@@ -138,11 +145,32 @@ spawn.prompt
 
 When the operating environment supports subagents, map this payload to that environment's spawn mechanism and pass `spawn.prompt` as the runner instruction.
 
+Before spawning, apply `references/platform-dispatch.md`. Railyard Runner is a workflow role, not a required platform `agent_type`. `spawn.agent_type` and `spawn.platform_agent_type` may be `null` until the host adapter selects a documented execution-capable platform surface. Use capability matching, not name matching: Runner dispatch requires read, write, execute, scoped file edit, and result JSON capabilities. Use a documented or discovered platform-native execution agent first. If platform-native selection is missing, ambiguous, or unsafe, use the Railyard fallback profile when the platform supports custom or prompt-defined agents. Do not use read-only or planning agents for Runner implementation, and fail fast if no safe execution-capable dispatch path is known.
+
 Architect dispatch is a closed-loop responsibility by default. The Architect that dispatches Runner work must resume after the Runner result, inspect the outbox result and validation evidence, then complete Section 8 review. Dispatch is not complete while the ticket remains in `awaiting_review`.
 
 An Architect may leave a ticket in `awaiting_review` only when a blocker is recorded or when the ticket, handoff, or project protocol explicitly declares opt-in human-gated review.
 
 The Architect may not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human has explicitly approved that exact action. Permission denial is a blocker, not an invitation to bypass the workflow helper or write into another control surface.
+
+Before drafting or dispatching new Runner work, the Architect should inspect running tickets:
+
+```powershell
+python railyard/scripts/ticket.py --lane domain list --status running --next-actor runner
+python railyard/scripts/ticket.py --lane system list --status running --next-actor runner
+```
+
+If a ticket is still `running` but the Runner session was interrupted before writing its outbox result JSON, recover it before dispatching later tickets in the same lane:
+
+```powershell
+python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason "runner interrupted before outbox"
+```
+
+Use `--dry-run` first when inspecting an uncertain case. If the outbox result JSON exists, do not recover the ticket; run `mark-runner-result` instead. `sync-mailbox --reset-lifecycle --ticket-id <ID>` remains a lower-level fallback that resets lifecycle fields from inbox and outbox files, but `recover-stale` is the intended recovery path for interrupted running Runner tickets.
+
+Do not use `claim`, `draft`, `next --ticket-id`, or raw SQLite updates to recover stale running tickets. Those commands either require a different lifecycle state or create a different object.
+
+If recovery, dispatch, claim, result marking, review, validation, or permission-gated work fails three times for the same ticket and intended operation, stop and record a blocker. The blocker should include the commands attempted, exact errors, current ticket state, outbox existence, and recommended next action.
 
 ## 7. Runner Execution
 

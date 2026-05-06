@@ -2,6 +2,18 @@
 
 All notable public-facing changes to Railyard are summarized here.
 
+## Unreleased / v0.5
+
+- Added a platform dispatch contract that separates Railyard workflow roles from host-platform agent type names.
+- Documented official platform dispatch notes for Codex, Claude Code, Gemini CLI, GitHub Copilot, VS Code, Windsurf, Cursor, and JetBrains agent surfaces.
+- Added default initialization agent profiles for Railyard Architect, Runner, Explorer, and Reviewer under `.github/agents/`.
+- Updated Runner dispatch payloads to v2 so platform-native agent selection is explicit adapter work and `railyard-runner` is a fallback profile instead of a hardcoded `worker` value.
+- Added the role capability contract and conservative fuzzy matching policy for platform dispatch adapters.
+- Added explicit stale running ticket recovery through `ticket.py recover-stale` and MCP `recover_stale_ticket`.
+- Improved ticket helper errors so failed claim, draft, and missing-result paths point to the intended stale recovery flow.
+- Added a three-failed-attempt retry stop rule so unattended Architect or Runner sessions report blockers instead of looping across helper commands.
+- Documented safe fallback behavior for unknown platforms, including fail-fast behavior when no execution-capable dispatch path is known.
+
 ## Unreleased / v0.4
 
 - Documented the Epic Closure Contract so lane Architects explicitly own epic closure after verifying scoped ticket outcomes, done definitions, blockers, and dependencies.

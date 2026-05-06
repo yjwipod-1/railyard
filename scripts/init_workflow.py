@@ -72,7 +72,8 @@ def main() -> int:
         "copied_paths": created,
         "notes": [
             "The skeleton directory is a reusable project seed copied into the target project.",
-            "Inbox and outbox directories are included as body surfaces for tickets and results."
+            "Inbox and outbox directories are included as body surfaces for tickets and results.",
+            "Default .github/agents profiles provide optional platform dispatch adapters for tools that support them."
         ]
     }
     print(json.dumps(payload, ensure_ascii=False, indent=2))

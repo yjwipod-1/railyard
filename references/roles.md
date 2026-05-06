@@ -58,6 +58,22 @@ Stopping after step 3 leaves the ticket in `awaiting_review` and is not a comple
 
 Human-gated review is not the default. It must be declared in the ticket, handoff, or project protocol before raw Runner output can wait on Human acceptance instead of Architect review.
 
+## Platform Agent Type Boundary
+
+Railyard roles are workflow roles. They are not host-platform agent type names.
+
+An Architect may dispatch a Railyard Runner through a documented or discovered platform-native execution agent first. If platform-native selection is missing, ambiguous, or unsafe, the Architect may use a project-defined Railyard fallback profile such as `railyard-runner` when the platform supports custom or prompt-defined agents. A documented implicit default execution path is valid only when the platform marks it execution-capable.
+
+The Architect must not require a platform type literally named `worker`, must not use read-only exploration agents for implementation tickets, and must not use planning-only agents for implementation tickets. If no safe execution-capable dispatch path is known, the Architect records a blocker instead of guessing.
+
+The dispatched prompt must state the workflow role explicitly:
+
+```text
+You are acting as the Railyard Runner for this ticket.
+```
+
+The Runner does not need to know its platform `agent_type`. Platform identity and capability mapping are dispatcher responsibilities.
+
 ## Epic Closure Ownership
 
 Epics close at the lane Architect level. After all scoped or linked tickets appear complete, the Architect must inspect the finalised ticket results, review outcomes, epic done definition, remaining open tickets, blockers, and dependencies before marking the epic `done`.
@@ -69,6 +85,28 @@ Runners may provide closure-readiness evidence as part of a ticket result, but t
 Agents can request permission when the operating environment requires it, but only the Human can approve that request. An Architect may not approve an escalation for a spawned Runner as a substitute for Human approval.
 
 When a Runner cannot complete a ticket because a command needs blocked filesystem, network, sandbox, or destructive-operation access, the correct result is `blocked` with the exact command, error, and requested permission. The Runner should not broaden the ticket, write into `.workflow/` scratch space, switch to an unapproved helper path, or mutate raw SQL to get around the denial.
+
+## Interrupted Runner Recovery
+
+Before drafting or dispatching new Runner work, an Architect should inspect running Runner tickets in the lane. A running ticket with no outbox result JSON may indicate an interrupted Runner session.
+
+The Architect should recover that ticket through:
+
+```powershell
+python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason "runner interrupted before outbox"
+```
+
+Do not recover when the outbox result JSON exists; use `mark-runner-result` so the ticket moves to Architect review. Do not draft replacement tickets or edit raw SQLite to work around stale running state.
+
+Failed `claim`, `draft`, `next`, or `mark-runner-result` attempts are not alternate recovery paths. If those commands fail during recovery, inspect the ticket with `show`, inspect events with `events`, then use `recover-stale` only when the ticket is running and no outbox result exists.
+
+## Retry Limit
+
+An Architect or Runner must not loop indefinitely on failed helper commands, dispatch attempts, validation commands, or permission-gated operations.
+
+For the same ticket and intended operation, stop after three failed attempts. Then report a blocker with the attempted commands, exact errors, current ticket state, outbox existence, and recommended next action.
+
+Do not keep trying new helper commands just because earlier commands failed. If the correct operation is unclear after three attempts, the correct outcome is a blocker, not another mutation attempt.
 
 ## MCP-lite Role Boundary
 
