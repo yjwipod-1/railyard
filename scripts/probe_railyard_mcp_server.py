@@ -213,6 +213,11 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
         "files_changed": [],
         "validation": ["probe fixture"],
         "notes": [],
+        "protocol_reads": [
+            "railyard/SKILL.md",
+            "railyard/references/roles.md",
+            "railyard/references/startup-sequence.md",
+        ],
         "created_at": utc_now(),
     }
     result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -415,7 +420,7 @@ async def run_probe(
         dispatch = await call_tool(server, "dispatch_next_runner", {"lane": "system", "runner_name": "probe-runner"})
         require(dispatch["status"] == "ready", "dispatch_next_runner did not return ready")
         require(dispatch["ticket"]["ticket_id"] == PROBE_TICKET_ID, "dispatch_next_runner returned wrong ticket")
-        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v2", "dispatch_next_runner returned wrong dispatch contract")
+        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v3", "dispatch_next_runner returned wrong dispatch contract")
         require(dispatch["spawn"]["agent_type"] is None, "dispatch_next_runner must not hardcode platform agent_type")
         require(dispatch["spawn"]["fallback_profile"] == "railyard-runner", "dispatch_next_runner omitted fallback profile")
         require(
@@ -435,6 +440,16 @@ async def run_probe(
             "dispatch_next_runner returned wrong capability match policy",
         )
         require(dispatch["spawn"]["runner_name"] == "probe-runner", "dispatch_next_runner omitted runner_name")
+        startup_reads = dispatch["spawn"].get("required_startup_reads")
+        require(isinstance(startup_reads, list) and startup_reads, "dispatch_next_runner omitted required_startup_reads")
+        require("railyard/references/roles.md" in startup_reads, "dispatch_next_runner omitted roles.md startup read")
+        require(
+            "railyard/references/startup-sequence.md" in startup_reads,
+            "dispatch_next_runner omitted startup-sequence.md startup read",
+        )
+        prompt = dispatch["spawn"].get("prompt")
+        require(isinstance(prompt, str) and "Before claiming or editing anything" in prompt, "runner prompt omitted startup read gate")
+        require("protocol_reads" in prompt, "runner prompt omitted protocol_reads result evidence")
         checks.append({"name": "dispatch", "status": "ok"})
 
         invalid_payload = await call_tool(
@@ -457,6 +472,11 @@ async def run_probe(
                         "files_changed": [],
                         "validation": [],
                         "notes": [],
+                        "protocol_reads": [
+                            "railyard/SKILL.md",
+                            "railyard/references/roles.md",
+                            "railyard/references/startup-sequence.md",
+                        ],
                         "created_at": utc_now(),
                     }
                 ),

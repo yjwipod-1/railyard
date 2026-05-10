@@ -29,7 +29,16 @@ VALID_REVIEW_RESULTS = {"accept", "accept_with_changes", "reject", "redesign"}
 VALID_PRIORITIES = {"high", "medium", "low"}
 PRIORITY_RANK_SQL = "CASE priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 ELSE 9 END"
 STATUS_RANK_SQL = "CASE status WHEN 'awaiting_review' THEN 0 WHEN 'drafted' THEN 1 WHEN 'ready' THEN 2 ELSE 9 END"
-REQUIRED_RESULT_FIELDS = {"ticket_id", "runner_status", "summary", "files_changed", "validation", "notes", "created_at"}
+REQUIRED_RESULT_FIELDS = {
+    "ticket_id",
+    "runner_status",
+    "summary",
+    "files_changed",
+    "validation",
+    "notes",
+    "protocol_reads",
+    "created_at",
+}
 
 
 def iso_now() -> str:
@@ -145,9 +154,11 @@ def validate_result_payload(outbox_payload: dict[str, Any], ticket_id: str) -> s
     runner_status = outbox_payload.get("runner_status")
     if runner_status not in VALID_RUNNER_RESULTS:
         raise ValueError(f"result runner_status must be one of {sorted(VALID_RUNNER_RESULTS)}")
-    for key in ("files_changed", "validation", "notes"):
+    for key in ("files_changed", "validation", "notes", "protocol_reads"):
         if not isinstance(outbox_payload.get(key), list):
             raise ValueError(f"result field {key} must be an array")
+    if not outbox_payload["protocol_reads"] or not all(isinstance(item, str) and item.strip() for item in outbox_payload["protocol_reads"]):
+        raise ValueError("result field protocol_reads must be an array of non-empty strings")
     if not isinstance(outbox_payload.get("summary"), str) or not outbox_payload["summary"].strip():
         raise ValueError("result summary must be a non-empty string")
     if not isinstance(outbox_payload.get("created_at"), str) or not outbox_payload["created_at"].strip():
@@ -730,8 +741,8 @@ def parse_args() -> argparse.Namespace:
             "  python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox --ticket-id DOMAIN-001 --reset-lifecycle\n"
             "  python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title \"Define scope\" --task \"Write docs/scope.md.\"\n"
             "  python railyard/scripts/ticket.py --lane domain next --actor runner\n"
-            "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-001 --actor runner --claimed-by runner-1\n"
-            "  python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason \"runner interrupted before outbox\"\n\n"
+            "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-DEMO-001 --actor runner --claimed-by runner-1\n"
+            "  python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-DEMO-001 --actor runner --reason \"runner interrupted before outbox\"\n\n"
             "Recovery notes:\n"
             "  sync-mailbox --reset-lifecycle resets lifecycle fields from the inbox and outbox files.\n"
             "  Prefer recover-stale for interrupted running tickets that have no runner result JSON."
@@ -772,7 +783,7 @@ def parse_args() -> argparse.Namespace:
     list_parser.add_argument("--status", default="")
     list_parser.add_argument("--next-actor", default="")
 
-    events_parser = subparsers.add_parser("events", help="List control-plane events for one ticket.")
+    events_parser = subparsers.add_parser("events", help="List workflow events for one ticket.")
     events_parser.add_argument("--ticket-id", required=True)
     events_parser.add_argument("--limit", type=int, default=20)
 

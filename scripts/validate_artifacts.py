@@ -20,7 +20,16 @@ TICKET_REQUIRED_FIELDS = {"ticket_id", "epic_id", "task_mode", "task_type", "pri
 TICKET_REQUIRED_SECTIONS = ("Task", "Scope", "Acceptance Checks")
 EPIC_REQUIRED_FIELDS = {"epic_id", "lane", "status", "priority"}
 EPIC_REQUIRED_SECTIONS = ("Summary", "Done Definition")
-RESULT_REQUIRED_FIELDS = {"ticket_id", "runner_status", "summary", "files_changed", "validation", "notes", "created_at"}
+RESULT_REQUIRED_FIELDS = {
+    "ticket_id",
+    "runner_status",
+    "summary",
+    "files_changed",
+    "validation",
+    "notes",
+    "protocol_reads",
+    "created_at",
+}
 QUEUE_ITEM_REQUIRED_FIELDS = {"epic_id", "title", "status", "priority", "summary", "done_definition"}
 
 
@@ -129,6 +138,11 @@ def validate_result(path: pathlib.Path) -> None:
     for key in ("files_changed", "validation", "notes"):
         if not isinstance(payload[key], list):
             raise ValidationError(f"{key} must be an array")
+    protocol_reads = payload["protocol_reads"]
+    if not isinstance(protocol_reads, list) or not protocol_reads:
+        raise ValidationError("protocol_reads must be a non-empty array")
+    if not all(isinstance(item, str) and item.strip() for item in protocol_reads):
+        raise ValidationError("protocol_reads must be an array of non-empty strings")
     for key in ("ticket_id", "summary", "created_at"):
         if not isinstance(payload[key], str) or not payload[key].strip():
             raise ValidationError(f"{key} must be a non-empty string")

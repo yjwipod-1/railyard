@@ -159,6 +159,12 @@ def validate_result_payload_details(
     for key in ("files_changed", "validation", "notes"):
         if key in payload and not isinstance(payload.get(key), list):
             errors.append(f"{key} must be an array")
+    protocol_reads = payload.get("protocol_reads")
+    if "protocol_reads" in payload:
+        if not isinstance(protocol_reads, list) or not protocol_reads:
+            errors.append("protocol_reads must be a non-empty array")
+        elif not all(isinstance(item, str) and item.strip() for item in protocol_reads):
+            errors.append("protocol_reads must be an array of non-empty strings")
     if "summary" in payload and (not isinstance(payload.get("summary"), str) or not payload["summary"].strip()):
         errors.append("summary must be a non-empty string")
     if "created_at" in payload and (not isinstance(payload.get("created_at"), str) or not payload["created_at"].strip()):

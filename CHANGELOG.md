@@ -2,6 +2,14 @@
 
 All notable public-facing changes to Railyard are summarized here.
 
+## Unreleased / v0.5.1
+
+- Hardened Runner dispatch so spawn-ready prompts require Railyard role/startup protocol reads before claim or edits.
+- Updated Runner dispatch payloads to v3 and added `required_startup_reads`.
+- Added required `protocol_reads` evidence to Runner result JSON validation.
+- Updated MCP probe, artifact validation, result templates, and examples to make missing role protocol reads visible before Architect review.
+- Hardened Architect review guidance so prompt text does not replace required protocol reads, rejected tickets continue through Runner redispatch when authorized, and blocked platform spawn authorization is reported explicitly.
+
 ## Unreleased / v0.5
 
 - Added a platform dispatch contract that separates Railyard workflow roles from host-platform agent type names.
@@ -25,7 +33,7 @@ All notable public-facing changes to Railyard are summarized here.
 
 ## v0.3
 
-- Added the optional MCP-lite stdio control surface as a thin adapter over the existing helper-backed workflow contract.
+- Added the optional MCP-lite stdio tool surface as a thin adapter over the existing helper-backed workflow contract.
 - Added read and inspection tools for tickets, epics, ticket events, and workflow schema version.
 - Added narrow lifecycle write tools for ticket claim, review start, runner result, and review result transitions.
 - Added dispatch and validation tools that preserve the existing closed-loop Architect and Runner workflow.

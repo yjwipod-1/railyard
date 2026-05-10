@@ -4,7 +4,7 @@ Agentic workflow with deterministic guardrails.
 
 Railyard is a portable operating scaffold for long-running AI-agent projects. It separates planning, lane ownership, execution, review, and task state so that human-led agent work can survive across sessions, projects, and role boundaries.
 
-This repository is a reference implementation extracted from real project use. It is not an agent runtime, a hosted service, or a Python package. It supplies the workflow structure, SQLite schema, templates, and helper scripts that an agent project can vendor into its own workspace.
+This repository is a reference implementation extracted from real project use. It is not an agent runtime, a hosted service, or a Python package. It supplies the workflow structure, SQLite schema, templates, and helper scripts that an agent project can copy into its own workspace.
 
 ## Why Railyard
 
@@ -64,11 +64,11 @@ Agents handle reasoning, generation, and review. Those activities depend on mode
 - **Cross-lane dependencies** are declared explicitly and enforced at ticket readiness.
 - **Review flow** moves upward from Runner to Architect to Planner to Human.
 
-The result is agentic reasoning inside deterministic structure. Agents can be creative within their scope. The workflow prevents that creativity from turning into uncontrolled project drift.
+The result is agentic reasoning inside deterministic structure. Agents can be creative within their scope. The workflow prevents that creativity from turning into unmanaged project drift.
 
-## v0.3 MCP-lite Control Surface
+## v0.3 MCP-lite Tool Surface
 
-Railyard v0.3 adds an optional MCP-lite stdio control surface. It is a thin wrapper over the existing helper-backed workflow contract, not a replacement workflow engine.
+Railyard v0.3 adds an optional MCP-lite stdio tool surface. It is a thin wrapper over the existing helper-backed workflow contract, not a replacement workflow engine.
 
 SQLite remains the canonical workflow state. Helper functions remain the lifecycle authority. MCP tools expose the same bounded operations that a Planner, Architect, or Runner would otherwise reach through the helper scripts:
 
@@ -76,6 +76,14 @@ SQLite remains the canonical workflow state. Helper functions remain the lifecyc
 - dispatch the next Runner ticket and return the same spawn-ready payload as the Architect helper
 - perform narrow lifecycle writes for ticket claim, interrupted-runner recovery, start-review, mark-runner-result, and mark-review-result
 - validate result payloads and expected ticket state
+
+The exposed tools are intentionally small and explicit:
+
+- Read: `resolve_lane`, `get_ticket`, `list_tickets`, `next_ticket`, `get_epic`, `list_open_epics`, `next_open_epic`
+- Inspect: `list_ticket_events`, `get_workflow_schema_version`
+- Dispatch: `dispatch_next_runner`
+- Lifecycle writes: `claim_ticket`, `recover_stale_ticket`, `start_review`, `mark_runner_result`, `mark_review_result`
+- Validation: `validate_result_payload`, `validate_ticket_state`
 
 Lane-specific tools require an explicit `lane` argument. Write tools preserve the same lifecycle guardrails as the helper functions and should be run against copied workflow databases for probes or smoke tests unless the task explicitly calls for a live workflow transition.
 
@@ -86,7 +94,7 @@ The MCP-lite surface intentionally does not expose:
 - arbitrary source-file editing
 - direct ticket Markdown rewrite
 - full replacement of `sync-docs` or `sync-mailbox`
-- replacement of a project's pinned stable Railyard runtime
+- replacement of the helper lifecycle contract
 
 ## Architecture
 
@@ -118,19 +126,20 @@ Human
 
 - Owns work within one lane.
 - Breaks epics into tickets with acceptance checks.
-- Controls when tickets become ready.
+- Decides when tickets become ready.
 - Reviews Runner output against the ticket contract.
 
 **Runner**
 
 - Executes one ticket at a time.
 - Sees only scoped ticket context and relevant references.
+- Reads the required Railyard role and startup protocol before claiming or editing.
 - Writes a result file and records a runner result.
 - Does not manage cross-lane dependencies.
 
 ## Review Chain
 
-Railyard is a closed control loop, not a one-way upward chain:
+Railyard is a closed workflow loop, not a one-way upward chain:
 
 ```text
 Human + Planner direction
@@ -146,11 +155,13 @@ The default Architect workflow is closed-loop. If an Architect scopes or dispatc
 
 Human review happens above the Architect level by default. The Human reviews Architect-level summaries and decisions, not raw Runner completion as final acceptance. Human-gated review of raw Runner output is opt-in and must be declared explicitly.
 
+Architect review requires the Railyard role, startup, and lifecycle protocol reads. A prompt can add stricter ticket rules, but it does not replace the protocol. If review rejects a ticket, the ticket returns to `ready` for Runner and the closed loop continues through Runner redispatch when the platform and current authorization allow it. Architect dispatching or spawning a Runner is allowed; personally implementing the rejected fix is not Architect work.
+
 ## Task Management
 
-Railyard uses a SQLite-backed epic and ticket system. Mailbox files hold task and result bodies, but the database is the control-plane truth.
+Railyard uses a SQLite-backed epic and ticket system. Mailbox files hold task and result bodies, but the database is the workflow truth.
 
-The schema contains four lane control tables plus two workflow support tables:
+The schema contains four lane tables plus two workflow support tables:
 
 | Table | Purpose |
 | --- | --- |
@@ -171,7 +182,7 @@ Valid epic statuses:
 queued | in_progress | partial | blocked | done | superseded
 ```
 
-Epic closure is an explicit lane Architect action. Before marking an epic `done`, the Architect verifies finalised scoped or linked tickets, accepted review outcomes, the epic done definition, remaining open work, blockers, and dependencies. Runners do not close epics; they may only provide evidence that an epic is ready for Architect closure. Planner or Human direction may request closure, but the lane Architect records it through the epic helper.
+Epic closure is a lane-level Planner responsibility. Before marking an epic `done`, the Planner reviews completed tickets (done definition, scope coverage, cross-ticket consistency, blockers, dependencies, and follow-up needs). Architects provide closure-readiness evidence but must not close epics by default. Runners do not close epics; they may only provide evidence that an epic is ready for Planner closure. Planner or Human direction may request closure, but the lane Planner records it through the epic helper.
 
 ### Tickets
 
@@ -209,7 +220,19 @@ redesign -> drafted for Architect
 
 Permission escalation remains a Human boundary. An Architect can dispatch Runner work, but it does not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human explicitly approved that action.
 
-Validation scratch state must stay outside `.workflow/`. Probes and smoke tests that need writable workflow data should use a copied database in a separate temporary directory and verify the live database is unchanged unless the test intentionally exercises a helper-backed lifecycle transition.
+Some platforms also require explicit Human authorization before subagent spawn. In that case, the Architect reports a spawn authorization blocker with the exact spawn-ready Runner prompt or dispatch command instead of stopping silently or treating the workflow as complete.
+
+## Workflow State Boundary
+
+Railyard uses one authoritative workflow database per project:
+
+- **Authoritative workflow DB**: `.workflow/workflow.db` is the single source of truth for tickets, epics, claims, reviews, and lifecycle transitions.
+- **Disposable validation DBs**: Smoke tests and MCP-lite probes may copy the workflow database to a temporary directory and run against that copy.
+
+**Agents must never:**
+- Write scratch files, copied databases, or probe state inside `.workflow/`.
+- Treat a copied validation database as authoritative workflow state.
+- Copy generated ticket, epic, or outbox files into documentation directories unless the ticket explicitly asks for documentation fixtures.
 
 ## Cross-Lane Dependencies
 
@@ -243,7 +266,17 @@ Dispatchers should select a safe execution-capable platform surface in this orde
 3. documented implicit default execution path when the platform clearly marks it execution-capable
 4. fail fast with a clear unsupported-dispatch error
 
-Selection is capability-based, not name-based. A Runner requires read, write, execute, scoped file edit, and result JSON capabilities. Read-only and planning agents must not be used for implementation tickets. A dispatched Runner prompt must always state the Railyard workflow role, lane, ticket scope, helper authority, validation commands, result JSON contract, and blocker reporting requirements.
+Selection is capability-based, not name-based. A Runner requires read, write, execute, scoped file edit, and result JSON capabilities. Read-only and planning agents must not be used for implementation tickets. A dispatched Runner prompt must always state the Railyard workflow role, lane, ticket scope, helper authority, required startup reads, validation commands, result JSON contract, and blocker reporting requirements.
+
+Runner startup reads are part of the dispatch contract, not optional background reading. The default dispatch payload includes:
+
+```text
+railyard/SKILL.md
+railyard/references/roles.md
+railyard/references/startup-sequence.md
+```
+
+Runner result JSON must include non-empty `protocol_reads` evidence. If a prompt, adapter, or custom handoff omits role protocol reads, the omission becomes visible as either a missing `required_startup_reads` field in dispatch validation or a rejected result payload with missing/empty `protocol_reads`.
 
 Initialized projects include VS Code / GitHub Copilot-compatible default profiles in `.github/agents/`:
 
@@ -307,7 +340,7 @@ Requirements:
 - Python 3.10 or newer
 - A project directory where workflow state should be created
 
-From a target project, vendor or clone this repository into a subdirectory such as `railyard/`, then initialize the workflow:
+From a target project, copy or clone this repository into a subdirectory such as `railyard/`, then initialize the workflow:
 
 ```powershell
 python railyard/scripts/init_workflow.py --project-root .
@@ -396,18 +429,18 @@ Recover an interrupted Runner ticket that is stuck in `running` before an outbox
 
 ```powershell
 python scripts/ticket.py --lane system list --status running --next-actor runner
-python scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason "runner interrupted before outbox"
+python scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-DEMO-001 --actor runner --reason "runner interrupted before outbox"
 ```
 
 If the outbox result JSON already exists, use `mark-runner-result` instead.
 
 If the same ticket and intended operation fails three times during recovery, dispatch, claim, result marking, review, validation, or permission-gated work, stop and record a blocker instead of trying more commands.
 
-Resolve the correct control surface before acting:
+Route a workflow target to its helper command and mailbox paths:
 
 ```powershell
-python scripts/resolve_control_surface.py --lane domain --role architect --epic-id DOMAIN-E001
-python scripts/resolve_control_surface.py --lane system --role runner --ticket-id SYSTEM-001
+python scripts/route_workflow_target.py --lane domain --role architect --epic-id DOMAIN-E001
+python scripts/route_workflow_target.py --lane system --role runner --ticket-id SYSTEM-DEMO-001
 ```
 
 Bootstrap epics from a JSON queue:
@@ -473,7 +506,7 @@ Template files are included under `assets/skeleton/docs/templates/` and are copi
 
 - **The Human stays in the loop.** Automation reduces what the Human must watch; it does not remove Human judgment.
 - **Agentic reasoning, deterministic structure.** Agents reason inside fixed workflow boundaries.
-- **Separate control from execution.** Global awareness belongs to the Planner and Architects, not every Runner.
+- **Separate planning from execution.** Global awareness belongs to the Planner and Architects, not every Runner.
 - **State lives in the database.** SQLite is the source of truth for task state; conversations are ephemeral.
 - **Declare dependencies early, enforce them late.** Cross-lane dependencies are planned at the epic level and enforced at ticket readiness.
 - **Runners should not see blocked work.** If a ticket is not ready, it should not be offered to a Runner.
@@ -484,11 +517,11 @@ Template files are included under `assets/skeleton/docs/templates/` and are copi
 ## Scope and Limitations
 
 - This is a reference implementation, not a maintained library.
-- It assumes Human ownership of the control loop. Fully autonomous operation is not a design goal.
+- It assumes Human ownership of final workflow accountability. Fully autonomous operation is not a design goal.
 - It does not include LLM API calls, agent spawning code, or hosted orchestration.
 - The SQLite schema is intentionally simple and intended to be adapted.
-- There is no automated access control beyond helper-script behavior and the workflow contract.
-- The optional MCP-lite server is a control-plane adapter over helper-backed operations. It is not a raw database console, release manager, source editor, or replacement for a vendored stable runtime.
+- There is no automated permission system beyond helper-script behavior and the workflow contract.
+- The optional MCP-lite server is a thin adapter over helper-backed workflow operations. It is not a raw database console, release manager, source editor, or replacement for the helper lifecycle contract.
 
 ## References
 
@@ -510,7 +543,7 @@ Read these files for the detailed operating contract:
 
 Before publishing or tagging a new version:
 
-- Keep generated workflow databases out of version control.
+- Keep generated workflow databases out of Git.
 - Run the helper commands from a clean checkout to verify the examples still match the scripts.
 - Run the E2E smoke check described in `references/startup-sequence.md`.
 - Update `CHANGELOG.md` with versioned release details.

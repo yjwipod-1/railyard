@@ -140,7 +140,7 @@ def parse_args() -> argparse.Namespace:
     ensure_parser = subparsers.add_parser("ensure", help="Create the Railyard workflow schema if missing.")
     ensure_parser.add_argument("--db", required=True, help="Path to the SQLite database file.")
 
-    tables_parser = subparsers.add_parser("tables", help="List workflow control tables.")
+    tables_parser = subparsers.add_parser("tables", help="List workflow tables.")
     tables_parser.add_argument("--db", required=True, help="Path to the SQLite database file.")
     return parser.parse_args()
 

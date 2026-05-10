@@ -140,6 +140,7 @@ spawn.runner_name
 spawn.adapter
 spawn.contract
 spawn.prompt_format
+spawn.required_startup_reads
 spawn.prompt
 ```
 
@@ -151,7 +152,7 @@ Architect dispatch is a closed-loop responsibility by default. The Architect tha
 
 An Architect may leave a ticket in `awaiting_review` only when a blocker is recorded or when the ticket, handoff, or project protocol explicitly declares opt-in human-gated review.
 
-The Architect may not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human has explicitly approved that exact action. Permission denial is a blocker, not an invitation to bypass the workflow helper or write into another control surface.
+The Architect may not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human has explicitly approved that exact action. Permission denial is a blocker, not an invitation to bypass the workflow helper or write into another workflow state store.
 
 Before drafting or dispatching new Runner work, the Architect should inspect running tickets:
 
@@ -163,7 +164,7 @@ python railyard/scripts/ticket.py --lane system list --status running --next-act
 If a ticket is still `running` but the Runner session was interrupted before writing its outbox result JSON, recover it before dispatching later tickets in the same lane:
 
 ```powershell
-python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason "runner interrupted before outbox"
+python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-DEMO-001 --actor runner --reason "runner interrupted before outbox"
 ```
 
 Use `--dry-run` first when inspecting an uncertain case. If the outbox result JSON exists, do not recover the ticket; run `mark-runner-result` instead. `sync-mailbox --reset-lifecycle --ticket-id <ID>` remains a lower-level fallback that resets lifecycle fields from inbox and outbox files, but `recover-stale` is the intended recovery path for interrupted running Runner tickets.
@@ -173,6 +174,16 @@ Do not use `claim`, `draft`, `next --ticket-id`, or raw SQLite updates to recove
 If recovery, dispatch, claim, result marking, review, validation, or permission-gated work fails three times for the same ticket and intended operation, stop and record a blocker. The blocker should include the commands attempted, exact errors, current ticket state, outbox existence, and recommended next action.
 
 ## 7. Runner Execution
+
+Before claiming or editing a ticket, the Runner reads the required Railyard startup references from the dispatch payload:
+
+```text
+railyard/SKILL.md
+railyard/references/roles.md
+railyard/references/startup-sequence.md
+```
+
+If a project keeps Railyard under another path, the Runner reads the equivalent Railyard files and records the actual paths in `protocol_reads`. If the Runner cannot locate equivalent role/startup references, it stops and reports a blocker rather than guessing the role contract.
 
 Runner finds the next ready ticket:
 
@@ -191,7 +202,7 @@ Runner writes a result file in the declared outbox path, normally:
 
 ```text
 docs/domain/outbox/DOMAIN-001.result.json
-docs/system/outbox/SYSTEM-001.result.json
+docs/system/outbox/SYSTEM-DEMO-001.result.json
 ```
 
 Use:
@@ -208,7 +219,20 @@ python railyard/scripts/ticket.py --lane domain mark-runner-result --ticket-id D
 
 `mark-runner-result` validates the result JSON before handing the ticket to Architect review.
 
+The result JSON must include a non-empty `protocol_reads` array. A missing or empty `protocol_reads` field means the Runner did not leave evidence that it read the role/startup contract, and result validation fails before Architect review.
+
 ## 8. Architect Review
+
+Before starting or recording review, the Architect reads:
+
+```text
+railyard/SKILL.md
+railyard/references/roles.md
+railyard/references/startup-sequence.md
+railyard/references/lifecycle.md
+```
+
+Prompt text can add ticket-specific or project-specific review rules, but it does not replace these Railyard protocol reads.
 
 Architect finds the next ticket waiting for review:
 
@@ -241,11 +265,15 @@ next_actor=none
 
 Rejected tickets move back to `ready` for `runner`.
 
+After `review_result=reject`, the Architect remains responsible for the closed loop. If the platform supports execution-capable subagents and the current session is authorized to spawn them, the Architect dispatches or spawns a Runner for the rejected ticket. This is not Architect implementation work; it is Architect dispatch work.
+
+If the current platform requires explicit Human authorization before subagent spawn and no authorization was given, the Architect records a blocker instead of stopping silently. The blocker includes the rejected ticket id, rejection reason, current ticket state, and exact spawn-ready Runner prompt or dispatch command needed next.
+
 Redesign tickets move back to `drafted` for `architect`.
 
 ## 9. Planner And Human Summary
 
-Before summarizing completed lane work, the lane Architect should close any epic whose scoped or linked tickets satisfy the epic done definition.
+Before summarizing completed lane work, the lane Planner reviews completed tickets (done definition, scope coverage, cross-ticket consistency, blockers, dependencies, and follow-up needs) to determine epic closure readiness. The lane Architect provides closure-readiness evidence but must not close the epic by default.
 
 Epic closure requires checking:
 
@@ -256,7 +284,7 @@ Epic closure requires checking:
 - remaining open tickets in the epic scope
 - blockers and dependencies
 
-Runners do not close epics. Planner or Human direction may request closure, but the lane Architect records it through the epic helper.
+Runners do not close epics. Architects provide closure-readiness evidence but must not close epics merely because all currently scoped tickets appear finalised. Planner or Human direction may request closure, but the lane Planner records it through the epic helper.
 
 After Architect review, the Planner summarizes:
 
@@ -290,7 +318,7 @@ queues empty
 
 Smoke checks for dispatch must verify the closed loop, not only Runner handoff. A smoke that stops at `awaiting_review` proves Runner completion but does not prove Architect completion.
 
-Validation scratch state must stay outside `.workflow/`. Probes that need writable workflow data should copy the database to a separate temporary directory, run against that copy, and verify the live database did not change unless the test is intentionally exercising a lifecycle transition through the helper.
+Validation scratch state must stay outside `.workflow/`. Probes that need writable workflow data should copy the database to a separate temporary directory, run against that copy, and verify the live database is unchanged unless the test is intentionally exercising a lifecycle transition through the helper.
 
 Expected final ticket state:
 
@@ -346,4 +374,16 @@ python railyard/scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db 
 
 The probe copies the database to a temporary directory, exercises read tools, dispatch, validation tools, and narrow lifecycle write tools, then verifies the live database did not change.
 
-MCP-lite is not a replacement for the helper scripts or for a project's pinned stable Railyard runtime. It must not expose raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, or broad `sync-docs` and `sync-mailbox` replacement. Use helpers directly when a task requires workflow administration outside the MCP-lite boundary.
+MCP-lite is not a replacement for the helper scripts or the Railyard lifecycle contract. It must not expose raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, or broad `sync-docs` / `sync-mailbox` replacement.
+
+## Workflow State Boundary
+
+Railyard uses one authoritative workflow database per project:
+
+- **Authoritative workflow DB**: `.workflow/workflow.db` is the single source of truth for tickets, epics, claims, reviews, and lifecycle transitions.
+- **Disposable validation DBs**: Smoke tests and MCP-lite probes may copy the workflow database to a temporary directory and run against that copy.
+
+**Agents must never:**
+- Write scratch files, copied databases, or probe state inside `.workflow/`.
+- Treat a copied validation database as authoritative workflow state.
+- Copy generated ticket, epic, or outbox files into documentation directories unless the ticket explicitly asks for documentation fixtures.

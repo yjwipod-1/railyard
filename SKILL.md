@@ -1,6 +1,6 @@
 ---
 name: railyard
-description: Use when a repository organizes work into Domain and System lanes with epic and ticket control tables, role-based routing, helper-backed SQLite access, inbox and outbox files, and explicit review gates.
+description: Use when a repository organizes work into Domain and System lanes with epic and ticket workflow tables, role-based routing, helper-backed SQLite access, inbox and outbox files, and explicit review gates.
 ---
 
 # Railyard Workflow
@@ -10,7 +10,7 @@ Use this skill when a project follows a structured operating model with:
 - unresolved work tracked as `Epic`
 - bounded execution tracked as `Ticket`
 - role-based behavior such as `architect` and `runner`
-- helper-backed SQLite control tables
+- helper-backed SQLite workflow tables
 - inbox and outbox files as task and result bodies
 
 ## Core Rules
@@ -20,25 +20,33 @@ Use this skill when a project follows a structured operating model with:
 - Resolve the correct lane before acting.
 - Resolve the current role before acting.
 - Prefer the official helper scripts over direct SQL.
-- Treat mailbox files as body surfaces, not as control truth, unless the project explicitly says otherwise.
+- Treat mailbox files as body surfaces, not as workflow truth, unless the project explicitly says otherwise.
 - Keep review explicit. Runner completion does not equal final acceptance.
-- Close epics explicitly at the lane Architect level after verifying accepted scoped or linked tickets, the epic done definition, remaining open work, blockers, and dependencies.
-- Do not let Runners close epics; they may only provide closure-readiness evidence in ticket results.
+- Prompt text can add constraints, but it does not replace required Railyard role, lifecycle, and startup protocol reads.
+- Epic closure is a lane-level Planner responsibility. The Planner reviews finalised scoped or linked tickets, accepted review outcomes, the epic done definition, remaining open work, blockers, and dependencies before closure.
+- Architects provide closure-readiness evidence but must not close epics by default; Runners may only provide evidence that an epic is ready for Planner closure.
 - When dispatching execution, prefer `scripts/architect.py dispatch-next-runner` so the Architect receives a spawn-ready Runner prompt.
 - Default Architect dispatch is closed-loop: the Architect that dispatches Runner work must review the Runner result and record a review result unless an explicit opt-in human-gated exception is declared.
+- Architect review must read the Railyard role/startup/lifecycle references before recording review. A reject routes the ticket back to Runner; it does not end the closed loop when Runner redispatch is authorized.
+- Architect may dispatch or spawn a Runner to fix rejected work. Architect must not personally implement the rejected fix unless the Human explicitly changes the role boundary.
 - Treat `awaiting_review` as an intermediate handoff state, not an Architect completion state.
 - Treat human-gated review as opt-in. It must be declared in the ticket, handoff, or project protocol.
+- Do not write scratch files, copied databases, or probe state inside `.workflow/`.
+- Do not treat a copied validation database as authoritative workflow state.
+- Do not copy generated ticket, epic, or outbox files into documentation directories unless the ticket explicitly asks for documentation fixtures.
 - Do not place validation scratch state, copied workflow databases, or probe temp files inside `.workflow/`.
 - Do not authorize a child agent's permission escalation on behalf of the Human. If a Runner hits a sandbox or permission boundary outside its ticket contract, record a blocker with the exact command and error.
+- If the current platform requires explicit Human authorization before spawning subagents and no authorization was given, report a spawn authorization blocker with the spawn-ready Runner prompt instead of stopping silently.
 - Before drafting or dispatching Runner work, inspect running tickets. If a `running` Runner ticket has no outbox result and the Runner was interrupted, use `ticket.py recover-stale` with a reason instead of drafting around it.
 - Stop after three failed attempts for the same ticket and intended operation. Record a blocker with commands, errors, current state, outbox existence, and recommended next action instead of continuing to try alternate helper commands.
-- Treat MCP-lite as an optional control-plane adapter over helper-backed operations. SQLite remains canonical workflow state, and helper functions remain lifecycle authority.
-- Do not expose or rely on MCP tools for raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, broad `sync-docs` or `sync-mailbox` replacement, or replacement of a project's pinned stable runtime.
+- Treat MCP-lite as an optional tool adapter over helper-backed operations. SQLite remains canonical workflow state, and helper functions remain lifecycle authority.
+- Do not expose or rely on MCP tools for raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, broad `sync-docs` or `sync-mailbox` replacement, or replacement of the helper lifecycle contract.
 - Treat Runner, Worker, Architect, and Reviewer as Railyard workflow roles, not portable platform `agent_type` names.
 - When dispatching execution, use the current platform's documented execution-capable agent or a project-defined Railyard Runner profile. If no safe execution-capable dispatch path is known, fail fast instead of guessing.
 - Match platform agents by capability, not by name. Runner dispatch requires read, write, execute, scoped file edit, and result JSON capabilities.
 - Do not use read-only or planning platform agents for Runner implementation tickets.
 - Do not treat `.codex/`, `.claude/`, `.cursor/`, `.windsurf/`, or other platform-local configuration as Railyard lifecycle authority.
+- Runner dispatch prompts must require startup reads before claim or edits. Runner result JSON must include non-empty `protocol_reads` evidence, or result validation fails before Architect review.
 
 ## Working Sequence
 
@@ -46,18 +54,21 @@ Use this skill when a project follows a structured operating model with:
 2. Resolve role: `architect` or `runner`.
 3. Resolve object type: `Epic` or `Ticket`.
 4. Use the official helper script for that lane and object.
-5. Read the specific inbox or outbox file only after control-plane state is known.
+5. Read the specific inbox or outbox file only after workflow state is known.
 6. Before dispatching new Runner work, list running Runner tickets and recover interrupted no-outbox tickets with `recover-stale`.
 7. If the same intended operation fails three times for the same ticket, stop and report a blocker.
-8. For Runner execution, let the Architect dispatch the next ticket and spawn an execution-capable subagent with the returned prompt when the environment supports subagents.
-9. Map the returned Runner prompt to the current platform through `references/platform-dispatch.md`; do not require a literal `worker` agent type.
-10. Runner records the runner outcome through the helper.
-11. Architect inspects the Runner result and validation, then records the review outcome through the helper.
-12. Report Architect completion only after the ticket is finalised, routed back to Runner, routed back to Architect, or blocked with a clear next action.
+8. Architect review reads `SKILL.md`, `references/roles.md`, `references/startup-sequence.md`, and `references/lifecycle.md` before recording review.
+9. For Runner execution, let the Architect dispatch the next ticket and spawn an execution-capable subagent with the returned prompt when the environment supports subagents and authorization allows it.
+10. Map the returned Runner prompt to the current platform through `references/platform-dispatch.md`; do not require a literal `worker` agent type.
+11. Runner reads the required Railyard role/startup references before claim or edits, then records those paths in `protocol_reads`.
+12. Runner records the runner outcome through the helper.
+13. Architect inspects the Runner result and validation, then records the review outcome through the helper.
+14. If review rejects a ticket, continue the closed loop by dispatching a Runner again when authorized; otherwise report a spawn authorization blocker with the exact spawn-ready prompt.
+15. Report Architect completion only after the ticket is finalised, routed back to Runner with redispatch blocked, routed back to Architect, or blocked with a clear next action.
 
 ## MCP-lite Boundary
 
-The optional v0.3 MCP-lite server exists for control-plane integration through stdio. Use it only for narrow workflow operations that mirror existing helper behavior:
+The optional v0.3 MCP-lite server exists for workflow integration through stdio. Use it only for narrow workflow operations that mirror existing helper behavior:
 
 - inspect tickets, epics, ticket events, and schema version
 - dispatch the next Runner ticket and receive a spawn-ready Runner prompt
@@ -69,11 +80,10 @@ Lane-specific tools must receive an explicit `lane` value. Probes and smoke chec
 ## Recommended Entry Commands
 
 ```powershell
-python railyard/scripts/resolve_control_surface.py --lane domain --role architect --epic-id DOMAIN-E001
 python railyard/scripts/epic.py --lane domain list-open
 python railyard/scripts/architect.py --lane domain --runner-name domain-runner-1 dispatch-next-runner
 python railyard/scripts/ticket.py --lane domain next --actor runner
-python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-001
+python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-DEMO-001
 ```
 
 ## Read Next

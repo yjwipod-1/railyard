@@ -28,8 +28,8 @@ python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --ti
 python railyard/scripts/ticket.py --lane domain next --actor runner
 python railyard/scripts/ticket.py --lane domain list --status running --next-actor runner
 python railyard/scripts/ticket.py --lane domain show --ticket-id DOMAIN-001
-python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-001 --actor runner --claimed-by system-runner-1
-python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-001 --actor runner --reason "runner interrupted before outbox"
+python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-DEMO-001 --actor runner --claimed-by system-runner-1
+python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-DEMO-001 --actor runner --reason "runner interrupted before outbox"
 python railyard/scripts/ticket.py --lane domain mark-runner-result --ticket-id DOMAIN-001 --runner-result done --outbox-path docs/domain/outbox/DOMAIN-001.result.json
 python railyard/scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by domain-architect
 python railyard/scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
@@ -46,8 +46,8 @@ python railyard/scripts/architect.py --lane system --runner-name system-runner-1
 ## Routing Helper
 
 ```powershell
-python railyard/scripts/resolve_control_surface.py --lane domain --role architect --epic-id DOMAIN-E001
-python railyard/scripts/resolve_control_surface.py --lane system --role runner --ticket-id SYSTEM-001
+python railyard/scripts/route_workflow_target.py --lane domain --role architect --epic-id DOMAIN-E001
+python railyard/scripts/route_workflow_target.py --lane system --role runner --ticket-id SYSTEM-DEMO-001
 ```
 
 ## Bootstrap Import
