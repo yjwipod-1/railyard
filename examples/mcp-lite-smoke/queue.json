@@ -6,7 +6,7 @@
       "status": "queued",
       "priority": "high",
       "source": "examples/mcp-lite-smoke/queue.json",
-      "summary": "Demonstrate the MCP-lite control surface over a disposable Railyard workflow database.",
+      "summary": "Demonstrate the MCP-lite tool surface over a disposable Railyard workflow database.",
       "preferred_entrypoints": [
         "scripts/railyard_mcp_server.py",
         "scripts/probe_railyard_mcp_server.py",

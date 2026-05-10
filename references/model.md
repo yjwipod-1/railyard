@@ -13,18 +13,18 @@ This skill models a reusable two-lane operating system for agentic work.
   - ids: `DOMAIN-E001`, `SYSTEM-E001`
 - `Ticket`
   - bounded execution unit
-  - ids: `DOMAIN-001`, `SYSTEM-001`
+  - ids: `DOMAIN-123`, `SYSTEM-123`
 - `Role`
   - `architect` creates, routes, narrows, and reviews work
   - `runner` executes one bounded ticket at a time
 - `Helper`
-  - the canonical script or tool for reading and mutating control-plane state
+  - the canonical script or tool for reading and mutating workflow state
 - `Mailbox`
   - inbox and outbox files that hold task bodies and result bodies
 
 ## Truth Boundaries
 
-- SQLite control tables are the canonical workflow truth.
+- SQLite workflow tables are the canonical workflow truth.
 - Epic tables store unresolved work, dependencies, and planning context.
 - Ticket tables store execution lifecycle, ownership, and review state.
 - Inbox and outbox files store the body of work, not the queue truth.

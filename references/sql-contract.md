@@ -1,6 +1,6 @@
 # SQL Contract
 
-This workflow uses four canonical control tables:
+This workflow uses four canonical lane tables:
 
 - `domain_epic`
 - `domain_ticket`
@@ -14,7 +14,7 @@ It also uses workflow support tables:
 
 ## Design Rules
 
-- Use one SQLite database as control-plane truth.
+- Use one SQLite database as workflow truth.
 - Keep one epic table and one ticket table per lane.
 - Prefer JSON columns for small structured fields such as blockers and notes.
 - Access workflow data through helper scripts by default.

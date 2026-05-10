@@ -14,6 +14,12 @@ if str(SCRIPT_DIR) not in sys.path:
 from ticket import command_next, command_sync_mailbox
 from workflow_schema import ensure_schema
 
+REQUIRED_RUNNER_STARTUP_READS = [
+    "railyard/SKILL.md",
+    "railyard/references/roles.md",
+    "railyard/references/startup-sequence.md",
+]
+
 ROLE_CAPABILITY_CONTRACTS: dict[str, dict[str, object]] = {
     "runner": {
         "required_capabilities": [
@@ -39,11 +45,18 @@ def render_runner_prompt(lane: str, ticket: dict[str, object], runner_name: str)
     inbox_path = str(ticket["inbox_path"])
     outbox_path = str(ticket.get("outbox_path") or f"docs/{lane}/outbox/{ticket_id}.result.json")
     lane_label = lane.upper()
+    startup_reads = "\n".join(f"- {path}" for path in REQUIRED_RUNNER_STARTUP_READS)
     return f"""You are a runner in the {lane_label} lane. You are not alone in the codebase. Do not revert edits made by others.
 
 Your only task is ticket {ticket_id}.
 
-First claim it:
+Before claiming or editing anything, read these Railyard protocol files:
+
+{startup_reads}
+
+If a listed protocol path is not present because the project keeps Railyard elsewhere, read the equivalent Railyard file and record the actual path in protocol_reads. If no equivalent file exists, stop and report a blocker instead of guessing the role contract.
+
+Then claim the ticket:
 
 python railyard/scripts/ticket.py --lane {lane} claim --ticket-id {ticket_id} --actor runner --claimed-by {runner_name}
 
@@ -64,24 +77,26 @@ The result JSON must include:
 - files_changed
 - validation
 - notes
+- protocol_reads
 - created_at
 
 Then mark the runner result:
 
 python railyard/scripts/ticket.py --lane {lane} mark-runner-result --ticket-id {ticket_id} --runner-result <done|partial|blocked|invalid>
 
-Final response must list changed files and validation performed.
+Final response must list protocol reads, changed files, and validation performed.
 """
 
 
 def build_runner_spawn_payload(lane: str, ticket: dict[str, object], runner_name: str) -> dict[str, object]:
     role_contract = ROLE_CAPABILITY_CONTRACTS["runner"]
     return {
-        "contract": "railyard.runner_dispatch.v2",
+        "contract": "railyard.runner_dispatch.v3",
         "adapter": "platform-dispatch",
         "workflow_role": "runner",
         "role": "runner",
         "runner_name": runner_name,
+        "required_startup_reads": REQUIRED_RUNNER_STARTUP_READS,
         "required_capabilities": role_contract["required_capabilities"],
         "reject_if_only": role_contract["reject_if_only"],
         "capability_match_policy": role_contract["match_policy"],

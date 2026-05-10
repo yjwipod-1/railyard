@@ -11,6 +11,7 @@ Responsibilities:
 
 - execute only the assigned ticket
 - stay inside the assigned lane and workspace boundaries
+- read the required Railyard role and startup references before claiming or editing
 - inspect only the ticket, relevant references, and files required by the ticket
 - make minimal, focused edits required by the ticket
 - run the ticket's validation commands
@@ -27,3 +28,8 @@ Limits:
 - do not close epics
 - do not bypass helper scripts or mutate raw workflow state
 - do not treat platform agent type names as Railyard workflow roles
+
+Result contract:
+
+- include non-empty `protocol_reads` listing the actual Railyard role/startup files read
+- if the role/startup files cannot be located, stop and report a blocker instead of guessing the role contract

@@ -7,7 +7,7 @@ This example shows the smallest useful MCP-lite workflow:
 3. create one ready System ticket with the helper script
 4. use MCP-lite tools to inspect, dispatch, claim, validate, and close the ticket
 
-MCP-lite is intentionally not used to create or rewrite ticket Markdown. Ticket and epic creation stay in the script/file workflow. MCP-lite exposes a narrow control surface over the existing helper-backed lifecycle.
+MCP-lite is intentionally not used to create or rewrite ticket Markdown. Ticket and epic creation stay in the script/file workflow. MCP-lite exposes a narrow tool surface over the existing helper-backed lifecycle.
 
 ## Files
 
@@ -45,14 +45,14 @@ Create one ready ticket:
 
 ```powershell
 python scripts/ticket.py --lane system --db "$project/.workflow/workflow.db" --project-root $project draft `
-  --ticket-id SYSTEM-001 `
+  --ticket-id SYSTEM-DEMO-001 `
   --epic-id SYSTEM-E001 `
   --title "Run MCP-lite smoke workflow" `
   --task "Create docs/smoke-output.md with a short MCP-lite smoke summary." `
   --task-type validation `
   --priority high `
   --scope "Create docs/smoke-output.md." `
-  --scope "Write the runner result JSON to docs/system/outbox/SYSTEM-001.result.json." `
+  --scope "Write the runner result JSON to docs/system/outbox/SYSTEM-DEMO-001.result.json." `
   --acceptance-check "MCP-lite claim, result validation, runner result, review start, and review result transitions all complete." `
   --constraint "Do not use raw SQL." `
   --constraint "Do not write probe or scratch files inside .workflow/."
@@ -103,7 +103,7 @@ Claim the ticket:
   "tool": "claim_ticket",
   "arguments": {
     "lane": "system",
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "actor": "runner",
     "claimed_by": "smoke-runner-1"
   }
@@ -123,12 +123,12 @@ Write the runner result file:
 New-Item -ItemType Directory -Force -Path "$project/docs/system/outbox" | Out-Null
 @'
 {
-  "ticket_id": "SYSTEM-001",
+  "ticket_id": "SYSTEM-DEMO-001",
   "runner_status": "done",
   "summary": "Created docs/smoke-output.md and completed the MCP-lite smoke task.",
   "files_changed": [
     "docs/smoke-output.md",
-    "docs/system/outbox/SYSTEM-001.result.json"
+    "docs/system/outbox/SYSTEM-DEMO-001.result.json"
   ],
   "validation": [
     "MCP-lite claim_ticket returned status=running next_actor=runner",
@@ -138,9 +138,14 @@ New-Item -ItemType Directory -Force -Path "$project/docs/system/outbox" | Out-Nu
     "No raw SQL was used.",
     "No scratch files were written inside .workflow/."
   ],
+  "protocol_reads": [
+    "railyard/SKILL.md",
+    "railyard/references/roles.md",
+    "railyard/references/startup-sequence.md"
+  ],
   "created_at": "2026-01-01T00:00:00+00:00"
 }
-'@ | Set-Content -Path "$project/docs/system/outbox/SYSTEM-001.result.json" -Encoding utf8
+'@ | Set-Content -Path "$project/docs/system/outbox/SYSTEM-DEMO-001.result.json" -Encoding utf8
 ```
 
 Validate the result payload before marking completion:
@@ -150,8 +155,8 @@ Validate the result payload before marking completion:
   "tool": "validate_result_payload",
   "arguments": {
     "lane": "system",
-    "ticket_id": "SYSTEM-001",
-    "outbox_path": "docs/system/outbox/SYSTEM-001.result.json",
+    "ticket_id": "SYSTEM-DEMO-001",
+    "outbox_path": "docs/system/outbox/SYSTEM-DEMO-001.result.json",
     "expected_runner_result": "done"
   }
 }
@@ -164,9 +169,9 @@ Mark the Runner result:
   "tool": "mark_runner_result",
   "arguments": {
     "lane": "system",
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "runner_result": "done",
-    "outbox_path": "docs/system/outbox/SYSTEM-001.result.json"
+    "outbox_path": "docs/system/outbox/SYSTEM-DEMO-001.result.json"
   }
 }
 ```
@@ -182,7 +187,7 @@ Start Architect review:
   "tool": "start_review",
   "arguments": {
     "lane": "system",
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "claimed_by": "smoke-architect-1"
   }
 }
@@ -195,7 +200,7 @@ Record the review result:
   "tool": "mark_review_result",
   "arguments": {
     "lane": "system",
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "review_result": "accept"
   }
 }
@@ -208,7 +213,7 @@ Confirm the final ticket state:
   "tool": "validate_ticket_state",
   "arguments": {
     "lane": "system",
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "expected_status": "finalised",
     "expected_actor": "none"
   }

@@ -25,7 +25,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
   "lane": "system",
   "actor": "runner",
   "ticket": {
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "epic_id": "SYSTEM-E001",
     "status": "ready",
     "next_actor": "runner",
@@ -44,7 +44,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
   "status": "ready",
   "lane": "system",
   "ticket": {
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "status": "ready",
     "next_actor": "runner"
   },
@@ -92,7 +92,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
 {
   "lane": "system",
   "ticket": {
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "status": "running",
     "next_actor": "runner",
     "claimed_by": "smoke-runner-1"
@@ -104,11 +104,13 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
 
 `validate_result_payload` accepts the result JSON:
 
+The fixture result includes non-empty `protocol_reads` evidence for the Railyard role and startup references read before Runner claim/edit work.
+
 ```json
 {
   "valid": true,
   "lane": "system",
-  "ticket_id": "SYSTEM-001",
+  "ticket_id": "SYSTEM-DEMO-001",
   "runner_status": "done",
   "expected_runner_result": "done",
   "missing_fields": [],
@@ -124,7 +126,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
 {
   "lane": "system",
   "ticket": {
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "status": "awaiting_review",
     "next_actor": "architect",
     "runner_result": "done",
@@ -141,7 +143,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
 {
   "lane": "system",
   "ticket": {
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "status": "in_review",
     "next_actor": "architect",
     "runner_result": "done"
@@ -157,7 +159,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
 {
   "lane": "system",
   "ticket": {
-    "ticket_id": "SYSTEM-001",
+    "ticket_id": "SYSTEM-DEMO-001",
     "status": "finalised",
     "next_actor": "none",
     "runner_result": "done",
@@ -174,7 +176,7 @@ After drafting the ticket, `next_ticket` for the Runner returns a ready ticket:
 {
   "valid": true,
   "lane": "system",
-  "ticket_id": "SYSTEM-001",
+  "ticket_id": "SYSTEM-DEMO-001",
   "expected_status": "finalised",
   "expected_actor": "none",
   "actual_status": "finalised",

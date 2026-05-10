@@ -10,7 +10,7 @@ The dispatch contract does not change lifecycle authority:
 
 - SQLite remains the canonical workflow state.
 - Helper scripts remain the lifecycle implementation authority.
-- MCP-lite remains an optional helper-backed control adapter.
+- MCP-lite remains an optional helper-backed tool adapter.
 - Platform-specific agent files, memories, modes, and hidden directories do not override Railyard workflow rules.
 
 ## Core Rule
@@ -167,8 +167,11 @@ The dispatcher must not:
 - use a planning-only agent for implementation
 - retry indefinitely when the platform rejects an agent type
 - bypass lifecycle helpers to compensate for dispatch failure
+- treat a platform spawn authorization boundary as completed workflow
 
 Railyard fallback profiles are not stronger than platform-native types. They exist to give unknown, custom, or plugin-based platforms a stable target when those platforms cannot clearly report their own execution-capable agent type.
+
+If a platform requires explicit Human authorization before subagent spawn, the Architect must not invent implicit approval. It reports a spawn authorization blocker with the exact spawn-ready Runner prompt or dispatch command. If authorization is granted, spawning a Runner remains Architect dispatch work and does not violate the Architect/Runner implementation boundary.
 
 ## Official Platform Notes
 

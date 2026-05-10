@@ -41,12 +41,7 @@ def build_payload(project_root: pathlib.Path, lane: str, role: str, ticket_id: s
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Resolve the next control surface for dual-lane workflow operations.",
-        epilog=(
-            "Helper commands:\n"
-            "  python railyard/scripts/resolve_control_surface.py --lane domain --role architect --epic-id DOMAIN-E001\n"
-            "  python railyard/scripts/resolve_control_surface.py --lane system --role runner --ticket-id SYSTEM-001"
-        ),
+        description="Route the next helper command for dual-lane workflow operations.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("--project-root", default=".")

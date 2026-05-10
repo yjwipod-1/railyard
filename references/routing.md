@@ -12,11 +12,7 @@ Before acting, resolve these in order:
 
 ## Recommended Resolution Order
 
-```powershell
-python railyard/scripts/resolve_control_surface.py --lane domain --role architect --epic-id DOMAIN-E001
-```
-
-Then use the returned helper and command suggestion.
+Use the lane-specific helper for the current object type.
 
 ## Default Command Map
 
@@ -25,10 +21,11 @@ Then use the returned helper and command suggestion.
 - schema setup: `scripts/workflow_schema.py`
 - project initialization: `scripts/init_workflow.py`
 - bootstrap epic import: `scripts/bootstrap_epics.py`
+- workflow target routing: `scripts/route_workflow_target.py`
 
 ## Routing Guardrails
 
-- Do not infer open work from summary docs when control tables exist.
+- Do not infer open work from summary docs when workflow tables exist.
 - Do not inspect inbox files first when the ticket lifecycle state is not yet known.
 - Do not bypass lane resolution.
 - Do not treat platform agent type names as Railyard workflow roles.
