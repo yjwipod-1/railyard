@@ -31,6 +31,39 @@ All notable public-facing changes to Railyard are summarized here.
 - Ignored `.claude/` local agent configuration so machine-local tool settings stay out of public releases.
 - Added this changelog as part of release discipline and adoption hardening.
 
+## v0.6
+
+Railyard v0.6 introduces enhanced execution observability through execution profiles and a standardized failure taxonomy.
+
+### execution profile, confidence, evidence, and failure taxonomy (SYSTEM-018)
+
+- Added execution profile hints (`fast`, `strong`, `local`) as advisory routing hints for dispatch adapters. These are not automatic model routing.
+- Added structured `confidence` field (`high`, `medium`, `low`) to Runner result JSON.
+- Added `evidence` array to Runner results for documenting file paths, command outputs, or logs that justify confidence levels.
+- Added failure taxonomy for blocked result reporting: `permission_denied`, `command_failed`, `sandbox_boundary`, `authorization_required`, `environment_issue`, `unresolved_dependency`.
+- Updated SKILL.md and README.md with execution profile, confidence, evidence, and failure taxonomy documentation.
+
+### result payload validation (SYSTEM-019)
+
+- Added validation for `confidence` and `evidence` fields in runner result JSON contract.
+- `mark-runner-result` now validates these fields before handing the ticket to Architect review.
+
+### runner dispatch payload v4 (SYSTEM-020)
+
+- Updated `architect.py dispatch-next-runner` to include `profile_hints` in spawn-ready Runner dispatch payloads.
+- Profile hints flow through the dispatch contract to platform dispatch adapters.
+
+### MCP validation and probe coverage (SYSTEM-021)
+
+- Extended MCP-lite probe to validate v0.6 result fields: `confidence`, `evidence`, and `protocol_reads`.
+- Probe runs against a copied workflow database to preserve the live database during validation.
+
+### blocked result example (SYSTEM-022)
+
+- Added `examples/blocked-result-example/` demonstrating the failure taxonomy in practice.
+
+Note: v0.6 does not implement automatic model routing. Profile hints are advisory only.
+
 ## v0.3
 
 - Added the optional MCP-lite stdio tool surface as a thin adapter over the existing helper-backed workflow contract.

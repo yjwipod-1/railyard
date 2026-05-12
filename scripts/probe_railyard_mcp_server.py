@@ -218,6 +218,8 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
             "railyard/references/roles.md",
             "railyard/references/startup-sequence.md",
         ],
+        "confidence": "medium",
+        "evidence": [],
         "created_at": utc_now(),
     }
     result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -420,7 +422,7 @@ async def run_probe(
         dispatch = await call_tool(server, "dispatch_next_runner", {"lane": "system", "runner_name": "probe-runner"})
         require(dispatch["status"] == "ready", "dispatch_next_runner did not return ready")
         require(dispatch["ticket"]["ticket_id"] == PROBE_TICKET_ID, "dispatch_next_runner returned wrong ticket")
-        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v3", "dispatch_next_runner returned wrong dispatch contract")
+        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v4", "dispatch_next_runner returned wrong dispatch contract")
         require(dispatch["spawn"]["agent_type"] is None, "dispatch_next_runner must not hardcode platform agent_type")
         require(dispatch["spawn"]["fallback_profile"] == "railyard-runner", "dispatch_next_runner omitted fallback profile")
         require(
@@ -477,6 +479,8 @@ async def run_probe(
                             "railyard/references/roles.md",
                             "railyard/references/startup-sequence.md",
                         ],
+                        "confidence": "medium",
+                        "evidence": [],
                         "created_at": utc_now(),
                     }
                 ),

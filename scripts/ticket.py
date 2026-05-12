@@ -37,6 +37,8 @@ REQUIRED_RESULT_FIELDS = {
     "validation",
     "notes",
     "protocol_reads",
+    "confidence",
+    "evidence",
     "created_at",
 }
 
@@ -154,11 +156,16 @@ def validate_result_payload(outbox_payload: dict[str, Any], ticket_id: str) -> s
     runner_status = outbox_payload.get("runner_status")
     if runner_status not in VALID_RUNNER_RESULTS:
         raise ValueError(f"result runner_status must be one of {sorted(VALID_RUNNER_RESULTS)}")
-    for key in ("files_changed", "validation", "notes", "protocol_reads"):
+    for key in ("files_changed", "validation", "notes", "protocol_reads", "evidence"):
         if not isinstance(outbox_payload.get(key), list):
             raise ValueError(f"result field {key} must be an array")
     if not outbox_payload["protocol_reads"] or not all(isinstance(item, str) and item.strip() for item in outbox_payload["protocol_reads"]):
         raise ValueError("result field protocol_reads must be an array of non-empty strings")
+    if not all(isinstance(item, str) and item.strip() for item in outbox_payload["evidence"]):
+        raise ValueError("result field evidence must be an array of non-empty strings")
+    confidence = outbox_payload.get("confidence")
+    if confidence not in {"high", "medium", "low"}:
+        raise ValueError(f"result confidence must be one of {{'high', 'medium', 'low'}}, got {confidence!r}")
     if not isinstance(outbox_payload.get("summary"), str) or not outbox_payload["summary"].strip():
         raise ValueError("result summary must be a non-empty string")
     if not isinstance(outbox_payload.get("created_at"), str) or not outbox_payload["created_at"].strip():

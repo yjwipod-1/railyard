@@ -85,6 +85,32 @@ The exposed tools are intentionally small and explicit:
 - Lifecycle writes: `claim_ticket`, `recover_stale_ticket`, `start_review`, `mark_runner_result`, `mark_review_result`
 - Validation: `validate_result_payload`, `validate_ticket_state`
 
+## v0.6 Execution Profile & Failure Taxonomy
+
+Railyard v0.6 introduces enhanced execution observability through execution profiles and a standardized failure taxonomy.
+
+### Execution Profile Hints
+
+All Railyard agents indicate their confidence level (`high`, `medium`, or `low`) and provide supporting evidence in their results. Profile hints (e.g., `fast`, `strong`, `local`) are advisory routing hints for dispatch adapters and are not automatic model routing. The framework does not implement automatic model selection based on profile hints.
+
+### Result Confidence and Evidence
+
+Runner results include a structured `confidence` field and an `evidence` array documenting the file paths, command outputs, or logs that justify the stated confidence level.
+
+### Failure Taxonomy
+
+When a Runner cannot complete a task, it reports a blocker using a defined failure taxonomy: `permission_denied`, `command_failed`, `sandbox_boundary`, `authorization_required`, `environment_issue`, or `unresolved_dependency`. This ensures blockers are actionable.
+
+### MCP-lite Validation Coverage
+
+The v0.3 MCP-lite tool surface and probe now validate the v0.6 result fields including `confidence`, `evidence`, and `protocol_reads`. A copied workflow database is used for probe validation to preserve the live database.
+
+### Blocked Result Example
+
+A blocked result example is provided in `examples/blocked-result-example/` demonstrating the failure taxonomy in practice.
+
+Note: v0.6 does not implement automatic model routing. Profile hints are advisory only and fall back to normal Runner behavior when dispatch adapters are not available.
+
 Lane-specific tools require an explicit `lane` argument. Write tools preserve the same lifecycle guardrails as the helper functions and should be run against copied workflow databases for probes or smoke tests unless the task explicitly calls for a live workflow transition.
 
 The MCP-lite surface intentionally does not expose:

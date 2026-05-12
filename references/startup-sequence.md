@@ -61,7 +61,18 @@ The Human and Planner should define:
 
 Do not start Runner work before the relevant lane Architect has created or approved ready tickets.
 
-## 4. Create Or Sync Epics
+## 4. Runner Protocol Requirements
+
+Before claiming or editing a ticket, every Runner must read the following Railyard protocol files to understand their role, the startup sequence, and the lifecycle:
+
+- `railyard/SKILL.md`
+- `railyard/references/roles.md`
+- `railyard/references/startup-sequence.md`
+- `railyard/references/lifecycle.md`
+
+Failure to include these files in the `protocol_reads` field of the Runner result JSON is a violation of the Railyard contract and will be rejected by the Architect review process.
+
+## 5. Create Or Sync Epics
 
 Use one of these paths.
 
@@ -86,7 +97,7 @@ python railyard/scripts/epic.py --lane domain next-open
 python railyard/scripts/epic.py --lane system next-open
 ```
 
-## 5. Create Tickets
+## 6. Create Tickets
 
 Architects create ticket Markdown files in:
 
@@ -114,7 +125,7 @@ Architects may also draft tickets directly through the helper:
 python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md."
 ```
 
-## 6. Architect Dispatch
+## 7. Architect Dispatch
 
 Architect can request the next ready Runner ticket and a spawn-ready prompt:
 
@@ -148,7 +159,7 @@ When the operating environment supports subagents, map this payload to that envi
 
 Before spawning, apply `references/platform-dispatch.md`. Railyard Runner is a workflow role, not a required platform `agent_type`. `spawn.agent_type` and `spawn.platform_agent_type` may be `null` until the host adapter selects a documented execution-capable platform surface. Use capability matching, not name matching: Runner dispatch requires read, write, execute, scoped file edit, and result JSON capabilities. Use a documented or discovered platform-native execution agent first. If platform-native selection is missing, ambiguous, or unsafe, use the Railyard fallback profile when the platform supports custom or prompt-defined agents. Do not use read-only or planning agents for Runner implementation, and fail fast if no safe execution-capable dispatch path is known.
 
-Architect dispatch is a closed-loop responsibility by default. The Architect that dispatches Runner work must resume after the Runner result, inspect the outbox result and validation evidence, then complete Section 8 review. Dispatch is not complete while the ticket remains in `awaiting_review`.
+Architect dispatch is a closed-loop responsibility by default. The Architect that dispatches Runner work must resume after the Runner result, inspect the outbox result and validation evidence, then complete Section 9 review. Dispatch is not complete while the ticket remains in `awaiting_review`.
 
 An Architect may leave a ticket in `awaiting_review` only when a blocker is recorded or when the ticket, handoff, or project protocol explicitly declares opt-in human-gated review.
 
@@ -173,7 +184,7 @@ Do not use `claim`, `draft`, `next --ticket-id`, or raw SQLite updates to recove
 
 If recovery, dispatch, claim, result marking, review, validation, or permission-gated work fails three times for the same ticket and intended operation, stop and record a blocker. The blocker should include the commands attempted, exact errors, current ticket state, outbox existence, and recommended next action.
 
-## 7. Runner Execution
+## 8. Runner Execution
 
 Before claiming or editing a ticket, the Runner reads the required Railyard startup references from the dispatch payload:
 
@@ -221,7 +232,7 @@ python railyard/scripts/ticket.py --lane domain mark-runner-result --ticket-id D
 
 The result JSON must include a non-empty `protocol_reads` array. A missing or empty `protocol_reads` field means the Runner did not leave evidence that it read the role/startup contract, and result validation fails before Architect review.
 
-## 8. Architect Review
+## 9. Architect Review
 
 Before starting or recording review, the Architect reads:
 
@@ -271,7 +282,7 @@ If the current platform requires explicit Human authorization before subagent sp
 
 Redesign tickets move back to `drafted` for `architect`.
 
-## 9. Planner And Human Summary
+## 10. Planner And Human Summary
 
 Before summarizing completed lane work, the lane Planner reviews completed tickets (done definition, scope coverage, cross-ticket consistency, blockers, dependencies, and follow-up needs) to determine epic closure readiness. The lane Architect provides closure-readiness evidence but must not close the epic by default.
 
@@ -296,7 +307,7 @@ After Architect review, the Planner summarizes:
 
 The Human makes final project-level decisions from this summary.
 
-## 10. Minimal E2E Smoke Check
+## 11. Minimal E2E Smoke Check
 
 A clean smoke check should prove both lanes can complete the same lifecycle:
 
@@ -344,7 +355,7 @@ Each should return:
 null
 ```
 
-## 11. Command Rule
+## 12. Command Rule
 
 When running helper scripts from outside the target project root, pass both `--project-root` and `--db` before the subcommand:
 
@@ -352,7 +363,7 @@ When running helper scripts from outside the target project root, pass both `--p
 python railyard/scripts/ticket.py --lane domain --project-root ../project --db ../project/.workflow/workflow.db next --actor runner
 ```
 
-## 12. Optional MCP-lite Surface
+## 13. Optional MCP-lite Surface
 
 The v0.3 MCP-lite server is optional. It runs over stdio and wraps existing helper-backed operations:
 

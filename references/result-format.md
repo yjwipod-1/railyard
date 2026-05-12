@@ -16,6 +16,8 @@ Recommended filename:
 - `validation`
 - `notes`
 - `protocol_reads`
+- `confidence`
+- `evidence`
 - `created_at`
 
 ## `runner_status`
@@ -25,6 +27,17 @@ Allowed values:
 - `partial`
 - `blocked`
 - `invalid`
+
+## `confidence`
+
+Allowed values:
+- `high`
+- `medium`
+- `low`
+
+## `evidence`
+
+An array of strings representing the evidence used to justify the confidence level (e.g., file paths, command outputs, or logs).
 
 ## Notes
 
