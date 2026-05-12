@@ -150,6 +150,31 @@ If native matching fails but fallback profiles are supported:
 }
 ```
 
+## Fallback Behavior
+
+If a dispatcher cannot identify a platform-native agent that matches the required capability profile for a Railyard role, it must fallback to a project-defined Railyard profile.
+
+The priority of fallback selection is:
+
+1. **Project-specific profile**: If the project has custom agent profiles in `.github/agents/` that match the required capabilities.
+2. **Railyard fallback profile**: Using a prompt-defined agent type like `railyard-runner` or `railyard-architect` when the platform supports custom or prompt-defined agents.
+3. **Conservative fail-fast**: If no safe execution-capable dispatch path is known, the dispatcher must fail fast with a clear unsupported-dispatch error, rather than attempting to use a read-only or planning agent for an implementation task.
+
+Profile hints (e.g., `fast`, `strong`, `local`) are consumed by platform dispatch adapters when available; otherwise, they fall back to normal Railyard Runner behavior.
+
+## Agent Failure Taxonomy
+
+When an agent cannot complete a task, it must not simply fail or retry indefinitely. Instead, it must report a **blocker** using one of the following categories:
+
+- `permission_denied`: Command blocked by OS or sandbox.
+- `command_failed`: Command returned an error or non-zero exit code.
+- `sandbox_boundary`: Attempted access outside the assigned ticket scope.
+- `authorization_required`: Requires human intervention (e.g., explicit permission to spawn a subagent).
+- `environment_issue`: Missing tools, dependencies, or an incorrect environment.
+- `unresolved_dependency`: Blocked by an external or cross-lane dependency.
+
+This taxonomy ensures that blockers are actionable and that the Architect or Human can quickly identify the root cause.
+
 ## Dispatch Selection Order
 
 For execution tickets, select the first safe option:

@@ -91,7 +91,7 @@ Final response must list protocol reads, changed files, and validation performed
 def build_runner_spawn_payload(lane: str, ticket: dict[str, object], runner_name: str) -> dict[str, object]:
     role_contract = ROLE_CAPABILITY_CONTRACTS["runner"]
     return {
-        "contract": "railyard.runner_dispatch.v3",
+        "contract": "railyard.runner_dispatch.v4",
         "adapter": "platform-dispatch",
         "workflow_role": "runner",
         "role": "runner",
@@ -102,6 +102,11 @@ def build_runner_spawn_payload(lane: str, ticket: dict[str, object], runner_name
         "capability_match_policy": role_contract["match_policy"],
         "fallback_profile": role_contract["fallback_profile"],
         "profile_priority": "fallback_after_platform_native",
+        "profile_hints": {
+            "execution_profile": "default",
+            "preferred_execution_profile": "default",
+            "advisory": True,
+        },
         "agent_type": None,
         "platform_agent_type": None,
         "agent_type_policy": (

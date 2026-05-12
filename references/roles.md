@@ -43,11 +43,10 @@ Default limits:
 - do not bypass helper scripts for workflow writes
 - do not record Architect review or final acceptance for your own ticket
 - do not close epics or mark lane-level epic completion
-- do not write scratch files, copied databases, or probe temp state inside `.workflow/`
 - do not write scratch files, copied databases, or probe state inside `.workflow/`
 - do not treat a copied validation database as authoritative workflow state
 - do not copy generated ticket, epic, or outbox files into documentation directories unless the ticket explicitly asks for documentation fixtures
-- do not work around permission denial by mutating another workflow state store
+- do not work around permission denial; if blocked by a permission boundary, record `runner_result=blocked` using the failure taxonomy in `SKILL.md`
 
 ## Default Closed-Loop Ownership
 

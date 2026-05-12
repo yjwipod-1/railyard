@@ -83,6 +83,19 @@ Prompt text can add constraints, but it does not replace Railyard protocol reads
 
 `review_result=reject` routes the ticket back to `ready` for `runner`. A rejected ticket remains in the closed-loop workflow. If Runner redispatch is authorized on the current platform, the Architect dispatches or spawns a Runner for the rejected ticket instead of stopping. If platform rules require explicit Human authorization before spawning and none was granted, the Architect reports a blocker with the exact spawn-ready prompt or dispatch command.
 
+## Failure Taxonomy (Blocker Categories)
+
+When a Runner cannot complete a ticket, it must not simply fail or retry indefinitely. Instead, it must record `runner_result=blocked` and report a blocker using one of the following categories:
+
+- `permission_denied`: Command blocked by OS or sandbox.
+- `command_failed`: Command returned an error or non-zero exit code.
+- `sandbox_boundary`: Attempted access outside the assigned ticket scope.
+- `authorization_required`: Requires human intervention (e.g., explicit permission to spawn a subagent).
+- `environment_issue`: Missing tools, dependencies, or an incorrect environment.
+- `unresolved_dependency`: Blocked by an external or cross-lane dependency.
+
+This taxonomy ensures that blockers are actionable and that the Architect or Human can quickly identify the root cause.
+
 ## Permission And Scratch-State Boundary
 
 Permission escalation is a Human boundary, not an Architect-to-Runner delegation. An Architect may dispatch a Runner, but it must not approve a child agent's sandbox, filesystem, network, or destructive-operation escalation unless the Human has explicitly granted that approval for the requested action.

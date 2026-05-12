@@ -5,6 +5,8 @@
   "files_changed": [],
   "validation": [],
   "notes": [],
+  "confidence": "medium",
+  "evidence": [],
   "protocol_reads": [
     "railyard/SKILL.md",
     "railyard/references/roles.md",

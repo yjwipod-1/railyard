@@ -156,7 +156,7 @@ def validate_result_payload_details(
         errors.append(f"runner_status must be one of {sorted(ticket_helper.VALID_RUNNER_RESULTS)}")
     if expected_runner_result and runner_status != expected_runner_result:
         errors.append(f"runner_status mismatch: expected {expected_runner_result}, got {runner_status}")
-    for key in ("files_changed", "validation", "notes"):
+    for key in ("files_changed", "validation", "notes", "protocol_reads", "evidence"):
         if key in payload and not isinstance(payload.get(key), list):
             errors.append(f"{key} must be an array")
     protocol_reads = payload.get("protocol_reads")
@@ -165,6 +165,15 @@ def validate_result_payload_details(
             errors.append("protocol_reads must be a non-empty array")
         elif not all(isinstance(item, str) and item.strip() for item in protocol_reads):
             errors.append("protocol_reads must be an array of non-empty strings")
+    evidence = payload.get("evidence")
+    if "evidence" in payload:
+        if not isinstance(evidence, list):
+            errors.append("evidence must be an array")
+        elif evidence and not all(isinstance(item, str) and item.strip() for item in evidence):
+            errors.append("evidence must be an array of non-empty strings")
+    confidence = payload.get("confidence")
+    if "confidence" in payload and confidence not in {"high", "medium", "low"}:
+        errors.append(f"confidence must be one of {{'high', 'medium', 'low'}}, got {confidence!r}")
     if "summary" in payload and (not isinstance(payload.get("summary"), str) or not payload["summary"].strip()):
         errors.append("summary must be a non-empty string")
     if "created_at" in payload and (not isinstance(payload.get("created_at"), str) or not payload["created_at"].strip()):

@@ -1,6 +1,6 @@
 ---
 name: railyard
-description: Use when a repository organizes work into Domain and System lanes with epic and ticket workflow tables, role-based routing, helper-backed SQLite access, inbox and outbox files, and explicit review gates.
+description: "Use when a project follows a structured operating model with: two work lanes (Domain, System), unresolved work tracked as Epic, bounded execution tracked as Ticket, role-based behavior (architect, runner), helper-backed SQLite workflow tables, inbox and outbox files as task and result bodies."
 ---
 
 # Railyard Workflow
@@ -26,7 +26,7 @@ Use this skill when a project follows a structured operating model with:
 - Epic closure is a lane-level Planner responsibility. The Planner reviews finalised scoped or linked tickets, accepted review outcomes, the epic done definition, remaining open work, blockers, and dependencies before closure.
 - Architects provide closure-readiness evidence but must not close epics by default; Runners may only provide evidence that an epic is ready for Planner closure.
 - When dispatching execution, prefer `scripts/architect.py dispatch-next-runner` so the Architect receives a spawn-ready Runner prompt.
-- Default Architect dispatch is closed-loop: the Architect that dispatches Runner work must review the Runner result and record a review result unless an explicit opt-in human-gated exception is declared.
+- Default Architect dispatch is closed-loop: The Architect that dispatches Runner work must review the Runner result and record a review result unless an explicit opt-in human-gated exception is declared.
 - Architect review must read the Railyard role/startup/lifecycle references before recording review. A reject routes the ticket back to Runner; it does not end the closed loop when Runner redispatch is authorized.
 - Architect may dispatch or spawn a Runner to fix rejected work. Architect must not personally implement the rejected fix unless the Human explicitly changes the role boundary.
 - Treat `awaiting_review` as an intermediate handoff state, not an Architect completion state.
@@ -47,6 +47,31 @@ Use this skill when a project follows a structured operating model with:
 - Do not use read-only or planning platform agents for Runner implementation tickets.
 - Do not treat `.codex/`, `.claude/`, `.cursor/`, `.windsurf/`, or other platform-local configuration as Railyard lifecycle authority.
 - Runner dispatch prompts must require startup reads before claim or edits. Runner result JSON must include non-empty `protocol_reads` evidence, or result validation fails before Architect review.
+
+## Execution Profile
+
+All Railyard agents must indicate their confidence level and provide supporting evidence in their results:
+
+- **Confidence**: `high`, `medium`, or `low`.
+- **Evidence**: A collection of file paths, command outputs, or logs that justify the stated confidence.
+
+## Failure Taxonomy (Blocker Categories)
+
+When an agent cannot complete a task, it must not simply fail or retry indefinitely. Instead, it must report a **blocker** using one of the following categories:
+
+- `permission_denied`: Command blocked by OS or sandbox.
+- `command_failed`: Command returned an error or non-zero exit code.
+- `sandbox_boundary`: Attempted access outside the assigned ticket scope.
+- `authorization_required`: Requires human intervention (e.g., explicit permission to spawn a subagent).
+- `environment_issue`: Missing tools, dependencies, or an incorrect environment.
+- `unresolved_dependency`: Blocked by an external or cross-lane dependency.
+
+This taxonomy ensures that blockers are actionable and that the Architect or Human can quickly identify the root cause.
+
+## Non-Goals
+
+- Railyard is not an automated error recovery system.
+- It is not a replacement for human judgment.
 
 ## Working Sequence
 

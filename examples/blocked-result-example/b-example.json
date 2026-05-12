@@ -1,0 +1,26 @@
+{
+  "ticket_id": "EXAMPLE-001",
+  "runner_status": "blocked",
+  "summary": "Example: Runner reports blocked status due to missing environment dependency.",
+  "files_changed": [],
+  "validation": [
+    "Example is self-contained; no external validation required"
+  ],
+  "notes": [
+    "The runner was blocked because the required tool 'example-cli' is not installed in the environment.",
+    "Next action: Install example-cli >= 1.0.0 and re-run the task.",
+    "This example demonstrates the blocked runner_status with evidence and a clear next action."
+  ],
+  "confidence": "high",
+  "evidence": [
+    "Command 'example-cli --version' returned: exit code 127, stderr: 'command not found'",
+    "Environment check: PATH contains /usr/bin and /usr/local/bin, but example-cli is not present",
+    "Dependency manifest (requirements.txt) lists example-cli>=1.0.0 but it is not installed"
+  ],
+  "protocol_reads": [
+    "railyard/SKILL.md",
+    "railyard/references/roles.md",
+    "railyard/references/startup-sequence.md"
+  ],
+  "created_at": "2026-01-01T00:00:00+00:00"
+}
