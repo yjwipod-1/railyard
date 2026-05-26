@@ -27,6 +27,14 @@ SUPERSEDED_STATUS = "superseded"
 VALID_RUNNER_RESULTS = {"done", "partial", "blocked", "invalid"}
 VALID_REVIEW_RESULTS = {"accept", "accept_with_changes", "reject", "redesign"}
 VALID_PRIORITIES = {"high", "medium", "low"}
+VALID_BLOCKER_CATEGORIES = {
+    "permission_denied",
+    "command_failed",
+    "sandbox_boundary",
+    "authorization_required",
+    "environment_issue",
+    "unresolved_dependency",
+}
 PRIORITY_RANK_SQL = "CASE priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 ELSE 9 END"
 STATUS_RANK_SQL = "CASE status WHEN 'awaiting_review' THEN 0 WHEN 'drafted' THEN 1 WHEN 'ready' THEN 2 ELSE 9 END"
 REQUIRED_RESULT_FIELDS = {
@@ -36,9 +44,6 @@ REQUIRED_RESULT_FIELDS = {
     "files_changed",
     "validation",
     "notes",
-    "protocol_reads",
-    "confidence",
-    "evidence",
     "created_at",
 }
 
@@ -156,21 +161,63 @@ def validate_result_payload(outbox_payload: dict[str, Any], ticket_id: str) -> s
     runner_status = outbox_payload.get("runner_status")
     if runner_status not in VALID_RUNNER_RESULTS:
         raise ValueError(f"result runner_status must be one of {sorted(VALID_RUNNER_RESULTS)}")
-    for key in ("files_changed", "validation", "notes", "protocol_reads", "evidence"):
+    for key in ("files_changed", "validation", "notes"):
         if not isinstance(outbox_payload.get(key), list):
             raise ValueError(f"result field {key} must be an array")
-    if not outbox_payload["protocol_reads"] or not all(isinstance(item, str) and item.strip() for item in outbox_payload["protocol_reads"]):
-        raise ValueError("result field protocol_reads must be an array of non-empty strings")
-    if not all(isinstance(item, str) and item.strip() for item in outbox_payload["evidence"]):
-        raise ValueError("result field evidence must be an array of non-empty strings")
-    confidence = outbox_payload.get("confidence")
-    if confidence not in {"high", "medium", "low"}:
-        raise ValueError(f"result confidence must be one of {{'high', 'medium', 'low'}}, got {confidence!r}")
+    if "protocol_reads" in outbox_payload:
+        protocol_reads = outbox_payload["protocol_reads"]
+        if not isinstance(protocol_reads, list) or not protocol_reads or not all(isinstance(item, str) and item.strip() for item in protocol_reads):
+            raise ValueError("result field protocol_reads must be an array of non-empty strings")
+    if "evidence" in outbox_payload:
+        evidence = outbox_payload["evidence"]
+        if not isinstance(evidence, list) or not all(isinstance(item, str) and item.strip() for item in evidence):
+            raise ValueError("result field evidence must be an array of non-empty strings")
+    if "confidence" in outbox_payload:
+        confidence = outbox_payload["confidence"]
+        if confidence not in {"high", "medium", "low"}:
+            raise ValueError(f"result confidence must be one of {{'high', 'medium', 'low'}}, got {confidence!r}")
+    if "runner_trace" in outbox_payload:
+        validate_runner_trace(outbox_payload["runner_trace"], str(runner_status))
     if not isinstance(outbox_payload.get("summary"), str) or not outbox_payload["summary"].strip():
         raise ValueError("result summary must be a non-empty string")
     if not isinstance(outbox_payload.get("created_at"), str) or not outbox_payload["created_at"].strip():
         raise ValueError("result created_at must be a non-empty string")
     return str(runner_status)
+
+
+def validate_optional_string_or_null(payload: dict[str, Any], key: str) -> None:
+    value = payload.get(key)
+    if value is not None and (not isinstance(value, str) or not value.strip()):
+        raise ValueError(f"runner_trace.{key} must be a non-empty string or null")
+
+
+def validate_runner_trace(trace: Any, runner_status: str) -> None:
+    if not isinstance(trace, dict):
+        raise ValueError("result field runner_trace must be an object")
+    required = {"platform_name", "agent_profile", "attempts", "commands", "blocker_category", "next_action"}
+    missing = sorted(required - set(trace))
+    if missing:
+        raise ValueError(f"runner_trace missing required fields: {', '.join(missing)}")
+    validate_optional_string_or_null(trace, "platform_name")
+    validate_optional_string_or_null(trace, "agent_profile")
+    attempts = trace.get("attempts")
+    if not isinstance(attempts, int) or attempts < 1:
+        raise ValueError("runner_trace.attempts must be an integer >= 1")
+    commands = trace.get("commands")
+    if not isinstance(commands, list) or not all(isinstance(item, str) and item.strip() for item in commands):
+        raise ValueError("runner_trace.commands must be an array of non-empty command strings")
+    blocker_category = trace.get("blocker_category")
+    if runner_status == "blocked":
+        if blocker_category not in VALID_BLOCKER_CATEGORIES:
+            raise ValueError(f"runner_trace.blocker_category must be one of {sorted(VALID_BLOCKER_CATEGORIES)} when runner_status is blocked")
+    elif blocker_category is not None:
+        raise ValueError("runner_trace.blocker_category must be null unless runner_status is blocked")
+    next_action = trace.get("next_action")
+    if runner_status in {"blocked", "partial"}:
+        if not isinstance(next_action, str) or not next_action.strip():
+            raise ValueError("runner_trace.next_action must be a non-empty string when runner_status is blocked or partial")
+    elif next_action is not None and (not isinstance(next_action, str) or not next_action.strip()):
+        raise ValueError("runner_trace.next_action must be a non-empty string or null")
 
 
 def load_ticket_row(project_root: pathlib.Path, lane: str, ticket_path: pathlib.Path) -> dict[str, Any]:

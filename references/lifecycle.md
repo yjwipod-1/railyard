@@ -50,11 +50,21 @@ Typical flow:
 2. ticket becomes `ready` for `runner`
 3. `runner` claims the ticket
 4. ticket becomes `running`
-5. runner writes outbox result, including `protocol_reads` evidence, and marks runner result
+5. runner writes outbox result, including `protocol_reads` evidence when available, and marks runner result
 6. ticket becomes `awaiting_review` for `architect`
 7. `architect` starts review and ticket becomes `in_review`
 8. `architect` reviews and records review result
 9. ticket becomes `finalised`, `ready`, or `drafted` depending on review outcome
+
+## Runner Result Boundaries
+
+`done` means the Runner completed the ticket scope and provided validation evidence.
+
+`partial` means the Runner completed a useful, reviewable subset of the ticket inside the allowed scope, but the full ticket is not complete. A partial result must state what is done, what remains, validation status, and a concrete `next_action`. Partial is not a way to hide missing validation or outside dependencies.
+
+`blocked` means the Runner cannot continue without outside action from a Human, Planner, Architect, platform, dependency owner, environment, secret provider, permission boundary, network boundary, or tool installation. Blocked work stops. The Runner must not fake success, broaden scope, use dummy secrets, skip required network checks while reporting success, substitute unrelated tools, write alternate workflow state, or mutate SQLite directly.
+
+`invalid` means the result cannot be trusted or does not satisfy the result contract.
 
 ## Closed-Loop Architect Contract
 
@@ -81,7 +91,7 @@ Architect review is not a rubber stamp. The Architect must inspect the Runner re
 
 Prompt text can add constraints, but it does not replace Railyard protocol reads. Before Architect review decisions, the Architect reads the role, startup, and lifecycle references from the Railyard files used by the project.
 
-`review_result=reject` routes the ticket back to `ready` for `runner`. A rejected ticket remains in the closed-loop workflow. If Runner redispatch is authorized on the current platform, the Architect dispatches or spawns a Runner for the rejected ticket instead of stopping. If platform rules require explicit Human authorization before spawning and none was granted, the Architect reports a blocker with the exact spawn-ready prompt or dispatch command.
+`review_result=reject` routes the ticket back to `ready` for `runner`. A rejected ticket remains in the closed-loop workflow. If Runner redispatch is authorized on the current platform, an execution-capable Runner path is available, and the same-kind failure limit has not been reached, the Architect dispatches or spawns a Runner for the rejected ticket instead of stopping. If platform rules require explicit Human authorization before spawning and none was granted, no safe Runner path exists, or the failure limit has been reached, the Architect reports a blocker with the rejected ticket id, rejection reason, current state, outbox existence, and exact spawn-ready prompt or dispatch command.
 
 ## Failure Taxonomy (Blocker Categories)
 
@@ -95,6 +105,23 @@ When a Runner cannot complete a ticket, it must not simply fail or retry indefin
 - `unresolved_dependency`: Blocked by an external or cross-lane dependency.
 
 This taxonomy ensures that blockers are actionable and that the Architect or Human can quickly identify the root cause.
+
+Permission denial, network denial, missing secrets, and missing required tools are blockers unless the ticket explicitly provides an approved fallback. They must not be faked, bypassed, silently skipped, or replaced with unrelated tools.
+
+Human-required blockers must include:
+
+- ticket id
+- lane
+- blocker category
+- intended operation
+- commands attempted
+- exact errors
+- current ticket state
+- whether the outbox result exists
+- required Human action
+- recommended next action
+
+After recording a human-required blocker, the agent stops. It does not continue by trying alternate lifecycle helpers, raw SQL, unapproved credentials, unapproved network access, or broader filesystem access.
 
 ## Permission And Scratch-State Boundary
 
@@ -142,7 +169,7 @@ python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM
 
 Agents must stop retry loops before they become unattended drift.
 
-For the same ticket and the same intended lifecycle operation, an Architect or Runner may make at most three failed attempts. After the third failure, the agent must stop trying alternate commands and record or report a blocker.
+For the same ticket and the same intended lifecycle operation, an Architect or Runner may make at most three same-kind failed attempts. After the third failure, the agent must stop trying alternate commands and record or report a blocker.
 
 The blocker must include:
 
@@ -155,9 +182,13 @@ The blocker must include:
 - whether the outbox result exists
 - recommended next action
 
-The retry limit applies to recovery, claim, dispatch, result marking, review transitions, validation, and permission-gated commands. Repeating the same command with cosmetic changes counts as another attempt. Trying a different helper command for the same intended state change also counts as another attempt.
+The retry limit applies to recovery, claim, dispatch, result marking, review transitions, validation, and permission-gated commands. Repeating the same command with cosmetic changes counts as another attempt. Trying a different helper command for the same intended state change also counts as another attempt. Same-kind failures include repeated helper transition failures, repeated validation failures with the same cause, repeated permission or network denials, repeated missing-secret failures, repeated missing-tool failures, and repeated platform dispatch failures.
 
-The retry limit does not authorize bypassing helper scripts, direct SQLite edits, broad reset commands, or cross-lane mutation.
+The retry limit does not authorize bypassing helper scripts, direct SQLite edits, broad reset commands, cross-lane mutation, automatic model routing, telemetry, token cost tracking, or a heavy observability system.
+
+## Restricted-Runner Mode
+
+Restricted-runner mode is a platform permission fallback for environments where a Runner can edit source files but must not write Control workflow state or Control outbox files. The Architect owns the Control lifecycle, including claim, result marking, review, and outbox writes. The Runner edits only allowed source files, runs validation, removes any allowed temporary probe state it created, and returns exact JSON-compatible result content for the Architect to record.
 
 ## MCP-lite Lifecycle Boundary
 

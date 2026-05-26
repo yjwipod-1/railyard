@@ -42,6 +42,7 @@ ENV/
 Thumbs.db
 .obsidian/
 .claude/
+.qwen/
 .vscode/
 .idea/
 

@@ -160,7 +160,7 @@ The priority of fallback selection is:
 2. **Railyard fallback profile**: Using a prompt-defined agent type like `railyard-runner` or `railyard-architect` when the platform supports custom or prompt-defined agents.
 3. **Conservative fail-fast**: If no safe execution-capable dispatch path is known, the dispatcher must fail fast with a clear unsupported-dispatch error, rather than attempting to use a read-only or planning agent for an implementation task.
 
-Profile hints (e.g., `fast`, `strong`, `local`) are consumed by platform dispatch adapters when available; otherwise, they fall back to normal Railyard Runner behavior.
+Fallback selection is driven by capability matching, not by profile hints. Profile hints (e.g., `fast`, `strong`, `local`) are advisory routing hints for dispatch adapters when available. They never trigger automatic model routing. When no dispatch adapter consumes profile hints, they fall back to normal Railyard Runner behavior. The presence of `preferred_execution_profile` or `allowed_execution_profiles` in the dispatch contract does not override conservative fail-fast semantics.
 
 ## Agent Failure Taxonomy
 
@@ -198,6 +198,19 @@ Railyard fallback profiles are not stronger than platform-native types. They exi
 
 If a platform requires explicit Human authorization before subagent spawn, the Architect must not invent implicit approval. It reports a spawn authorization blocker with the exact spawn-ready Runner prompt or dispatch command. If authorization is granted, spawning a Runner remains Architect dispatch work and does not violate the Architect/Runner implementation boundary.
 
+## Restricted-Runner Mode
+
+Restricted-runner mode is a platform permission fallback for environments where source editing is allowed but workflow lifecycle writes are not. It is appropriate when the Architect can own Control workflow transitions and Control outbox writes while the Runner can only modify allowed source files.
+
+In restricted-runner mode:
+
+- Architect owns claim, result marking, review, Control DB writes, and Control outbox writes.
+- Runner must not write Control DB, Control outbox, vendor content, commits, pushes, or epic closure.
+- Runner edits only files allowed by the ticket, runs validation, removes any allowed temporary probe state it created, and returns exact JSON-compatible result content.
+- Permission, network, missing-secret, and missing-tool blockers remain blockers. Restricted-runner mode does not authorize bypasses or fake validation.
+
+Use this mode only when the platform permission model requires it. It does not replace normal helper-backed lifecycle operation.
+
 ## Official Platform Notes
 
 These platform notes are based on official public documentation and should be treated as adapter guidance, not as a universal agent standard.
@@ -225,7 +238,7 @@ The default profile names are:
 
 | Profile | Purpose |
 | --- | --- |
-| `railyard-architect` | lane scoping, dispatch, review, and epic closure |
+| `railyard-architect` | lane scoping, dispatch, review, and closure-readiness evidence |
 | `railyard-runner` | execution-capable bounded ticket work |
 | `railyard-explorer` | read-only codebase and workflow inspection |
 | `railyard-reviewer` | review of Runner output, validation, and changed files |
