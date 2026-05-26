@@ -105,7 +105,16 @@ def build_runner_spawn_payload(lane: str, ticket: dict[str, object], runner_name
         "profile_hints": {
             "execution_profile": "default",
             "preferred_execution_profile": "default",
+            "allowed_execution_profiles": [],
             "advisory": True,
+            "_contract_note": (
+                "profile_hints are advisory routing hints for dispatch adapters. "
+                "They do not trigger automatic model selection or automatic model routing. "
+                "When no dispatch adapter consumes profile_hints, they fall back to normal Runner behavior. "
+                "preferred_execution_profile and allowed_execution_profiles enter the dispatch contract "
+                "as metadata only; the dispatcher may use them for capability matching but must not "
+                "treat them as hard constraints on model choice."
+            ),
         },
         "agent_type": None,
         "platform_agent_type": None,

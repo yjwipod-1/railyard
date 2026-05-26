@@ -70,7 +70,7 @@ Before claiming or editing a ticket, every Runner must read the following Railya
 - `railyard/references/startup-sequence.md`
 - `railyard/references/lifecycle.md`
 
-Failure to include these files in the `protocol_reads` field of the Runner result JSON is a violation of the Railyard contract and will be rejected by the Architect review process.
+Failure to read these files before claim or edits is a violation of the Railyard contract. New Runner results should record the actual paths in `protocol_reads`; historical results without `protocol_reads` remain valid.
 
 ## 5. Create Or Sync Epics
 
@@ -150,6 +150,7 @@ spawn.role
 spawn.runner_name
 spawn.adapter
 spawn.contract
+spawn.profile_hints
 spawn.prompt_format
 spawn.required_startup_reads
 spawn.prompt
@@ -183,6 +184,8 @@ Use `--dry-run` first when inspecting an uncertain case. If the outbox result JS
 Do not use `claim`, `draft`, `next --ticket-id`, or raw SQLite updates to recover stale running tickets. Those commands either require a different lifecycle state or create a different object.
 
 If recovery, dispatch, claim, result marking, review, validation, or permission-gated work fails three times for the same ticket and intended operation, stop and record a blocker. The blocker should include the commands attempted, exact errors, current ticket state, outbox existence, and recommended next action.
+
+Same-kind failures count toward the three-attempt limit even when the exact command changes. This includes repeated helper transition failures, validation failures with the same cause, permission or network denials, missing-secret failures, missing-tool failures, and platform dispatch failures. The retry limit does not permit raw SQLite edits, broad lifecycle resets, unapproved credentials, unapproved network access, automatic model routing, telemetry, token cost tracking, or a heavy observability system.
 
 ## 8. Runner Execution
 
@@ -230,7 +233,28 @@ python railyard/scripts/ticket.py --lane domain mark-runner-result --ticket-id D
 
 `mark-runner-result` validates the result JSON before handing the ticket to Architect review.
 
-The result JSON must include a non-empty `protocol_reads` array. A missing or empty `protocol_reads` field means the Runner did not leave evidence that it read the role/startup contract, and result validation fails before Architect review.
+The result JSON should include a non-empty `protocol_reads` array. A missing or empty `protocol_reads` field means the Runner did not leave structured evidence that it read the role/startup contract, but historical results without `protocol_reads` remain valid.
+
+The result JSON should include a lightweight `runner_trace` object as recommended optional audit evidence. Missing `runner_trace` remains valid for backward compatibility; malformed `runner_trace` is rejected when present. Record `platform_name` and `agent_profile` when known, `attempts` as the number of attempts for this ticket result, and `commands` as the exact ordered command strings executed. For `runner_status=blocked`, set `blocker_category` to one failure taxonomy value. For `runner_status=blocked` or `runner_status=partial`, set `next_action` to the concrete next step. This trace is not a heavy observability system and must not include token cost statistics, automatic model routing, or failure redispatch policy.
+
+Use `partial` only for honest, reviewable, in-scope work that is incomplete. Use `blocked` when progress requires outside action, including permission approval, network access, a missing secret, a missing required tool, a platform dispatch capability, or an unresolved dependency. Do not fake blocked work with dummy credentials, skipped checks, unrelated tools, alternate workflow state, or raw database edits.
+
+A human-required blocker in the result notes or blocker detail includes:
+
+- category
+- ticket id
+- lane
+- intended operation
+- commands attempted
+- exact errors
+- current ticket state
+- whether the outbox result exists
+- required Human action
+- recommended next action
+
+After reporting a human-required blocker, the Runner stops.
+
+In restricted-runner mode, the Runner cannot write Control lifecycle state or Control outbox files. The Runner edits only the allowed source files, runs validation, removes any allowed temporary probe state it created, and returns exact JSON-compatible result content. The Architect writes the Control outbox and performs lifecycle transitions.
 
 ## 9. Architect Review
 
@@ -278,7 +302,9 @@ Rejected tickets move back to `ready` for `runner`.
 
 After `review_result=reject`, the Architect remains responsible for the closed loop. If the platform supports execution-capable subagents and the current session is authorized to spawn them, the Architect dispatches or spawns a Runner for the rejected ticket. This is not Architect implementation work; it is Architect dispatch work.
 
-If the current platform requires explicit Human authorization before subagent spawn and no authorization was given, the Architect records a blocker instead of stopping silently. The blocker includes the rejected ticket id, rejection reason, current ticket state, and exact spawn-ready Runner prompt or dispatch command needed next.
+Architect redispatches automatically after reject when the rejected ticket is `ready` for `runner`, an execution-capable Runner path is available, current authorization allows dispatch, and the same-kind failure limit has not been reached.
+
+If the current platform requires explicit Human authorization before subagent spawn and no authorization was given, no safe Runner path exists, or three same-kind failures have occurred, the Architect records a blocker instead of stopping silently. The blocker includes the rejected ticket id, rejection reason, current ticket state, outbox existence, and exact spawn-ready Runner prompt or dispatch command needed next.
 
 Redesign tickets move back to `drafted` for `architect`.
 

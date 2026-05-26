@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import railyard_mcp_server
+import ticket as ticket_helper
 from workflow_schema import ensure_schema
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -220,6 +221,16 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
         ],
         "confidence": "medium",
         "evidence": [],
+        "runner_trace": {
+            "platform_name": "mcp-probe",
+            "agent_profile": "probe-runner",
+            "attempts": 1,
+            "commands": [
+                "python scripts/probe_railyard_mcp_server.py"
+            ],
+            "blocker_category": None,
+            "next_action": None,
+        },
         "created_at": utc_now(),
     }
     result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -452,6 +463,20 @@ async def run_probe(
         prompt = dispatch["spawn"].get("prompt")
         require(isinstance(prompt, str) and "Before claiming or editing anything" in prompt, "runner prompt omitted startup read gate")
         require("protocol_reads" in prompt, "runner prompt omitted protocol_reads result evidence")
+        profile_hints = dispatch["spawn"].get("profile_hints")
+        require(isinstance(profile_hints, dict), "dispatch_next_runner omitted profile_hints")
+        require(
+            profile_hints.get("advisory") is True,
+            "dispatch_next_runner profile_hints.advisory must be True",
+        )
+        require(
+            isinstance(profile_hints.get("allowed_execution_profiles"), list),
+            "dispatch_next_runner profile_hints.allowed_execution_profiles must be a list",
+        )
+        require(
+            "preferred_execution_profile" in profile_hints,
+            "dispatch_next_runner profile_hints missing preferred_execution_profile",
+        )
         checks.append({"name": "dispatch", "status": "ok"})
 
         invalid_payload = await call_tool(
@@ -460,6 +485,38 @@ async def run_probe(
             {"lane": "system", "ticket_id": PROBE_TICKET_ID, "payload_json": json_dumps({"ticket_id": PROBE_TICKET_ID})},
         )
         require(invalid_payload["valid"] is False, "validate_result_payload accepted incomplete payload")
+        old_style_payload = {
+            "ticket_id": PROBE_TICKET_ID,
+            "runner_status": "done",
+            "summary": "Valid old-style probe payload without runner_trace.",
+            "files_changed": [],
+            "validation": [],
+            "notes": [],
+            "protocol_reads": [
+                "railyard/SKILL.md",
+                "railyard/references/roles.md",
+                "railyard/references/startup-sequence.md",
+            ],
+            "confidence": "medium",
+            "evidence": [],
+            "created_at": utc_now(),
+        }
+        valid_old_style_payload = await call_tool(
+            server,
+            "validate_result_payload",
+            {
+                "lane": "system",
+                "ticket_id": PROBE_TICKET_ID,
+                "payload_json": json_dumps(old_style_payload),
+                "expected_runner_result": "done",
+            },
+        )
+        require(valid_old_style_payload["valid"] is True, "validate_result_payload rejected payload without runner_trace")
+        require(
+            ticket_helper.validate_result_payload(dict(old_style_payload), PROBE_TICKET_ID) == "done",
+            "ticket helper rejected payload without runner_trace",
+        )
+
         valid_payload = await call_tool(
             server,
             "validate_result_payload",
@@ -481,6 +538,16 @@ async def run_probe(
                         ],
                         "confidence": "medium",
                         "evidence": [],
+                        "runner_trace": {
+                            "platform_name": "mcp-probe",
+                            "agent_profile": "probe-runner",
+                            "attempts": 1,
+                            "commands": [
+                                "validate_result_payload"
+                            ],
+                            "blocker_category": None,
+                            "next_action": None,
+                        },
                         "created_at": utc_now(),
                     }
                 ),
@@ -488,6 +555,14 @@ async def run_probe(
             },
         )
         require(valid_payload["valid"] is True, "validate_result_payload rejected valid payload")
+        malformed_trace_payload = dict(old_style_payload)
+        malformed_trace_payload["runner_trace"] = {"attempts": 0}
+        try:
+            ticket_helper.validate_result_payload(malformed_trace_payload, PROBE_TICKET_ID)
+        except ValueError as exc:
+            require("runner_trace missing required fields" in str(exc), "ticket helper rejected malformed runner_trace with unexpected error")
+        else:
+            raise ProbeFailure("ticket helper accepted malformed present runner_trace")
         state = await call_tool(
             server,
             "validate_ticket_state",

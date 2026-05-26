@@ -91,19 +91,74 @@ Railyard v0.6 introduces enhanced execution observability through execution prof
 
 ### Execution Profile Hints
 
-All Railyard agents indicate their confidence level (`high`, `medium`, or `low`) and provide supporting evidence in their results. Profile hints (e.g., `fast`, `strong`, `local`) are advisory routing hints for dispatch adapters and are not automatic model routing. The framework does not implement automatic model selection based on profile hints.
+Railyard agents should indicate their confidence level (`high`, `medium`, or `low`) and provide supporting evidence in new results. Profile hints (e.g., `fast`, `strong`, `local`) are advisory routing hints for dispatch adapters and are not automatic model routing. The framework does not implement automatic model selection based on profile hints.
+
+The dispatch contract includes `profile_hints` as metadata:
+- `execution_profile`: the default execution profile (e.g., `default`).
+- `preferred_execution_profile`: the dispatcher's preferred execution profile when multiple options exist.
+- `allowed_execution_profiles`: an optional list of profiles the dispatcher considers acceptable.
+- `advisory`: always `True`, confirming that profile hints are advisory only.
+
+`preferred_execution_profile` and `allowed_execution_profiles` enter the dispatch contract as metadata only. The dispatcher may use them for capability matching, but must not treat them as hard constraints on model choice. When no dispatch adapter consumes profile_hints, they fall back to normal Railyard Runner behavior. Profile hints never trigger automatic model routing.
 
 ### Result Confidence and Evidence
 
-Runner results include a structured `confidence` field and an `evidence` array documenting the file paths, command outputs, or logs that justify the stated confidence level.
+Runner results should include a structured `confidence` field and an `evidence` array documenting the file paths, command outputs, or logs that justify the stated confidence level. Missing confidence or evidence remains valid for historical results; malformed fields are rejected when present.
+
+Runner results should also include a lightweight `runner_trace` object as recommended optional audit evidence so Architects and Planners can compare outputs across platforms consistently. It records `platform_name` when available, `agent_profile` when available, `attempts`, the exact ordered `commands` list, `blocker_category` when blocked, and `next_action` when blocked or partial. Missing `runner_trace` remains valid for backward compatibility; malformed `runner_trace` is rejected when present. This is audit evidence only; Railyard does not turn it into telemetry, token cost statistics, automatic model routing, or failure redispatch discipline.
 
 ### Failure Taxonomy
 
 When a Runner cannot complete a task, it reports a blocker using a defined failure taxonomy: `permission_denied`, `command_failed`, `sandbox_boundary`, `authorization_required`, `environment_issue`, or `unresolved_dependency`. This ensures blockers are actionable.
 
+## v0.6.1 Failure Handling & Redispatch Discipline
+
+Railyard v0.6.1 clarifies how agents stop cleanly when work cannot proceed and how rejected work returns to Runner execution.
+
+### Blocked vs Partial
+
+`partial` means the Runner completed a useful, reviewable subset of the ticket inside the ticket scope. The result must describe what was completed, what remains, validation status, and the concrete next action. Partial is appropriate when the remaining work can be reviewed or rescoped without pretending the full ticket is complete.
+
+`blocked` means progress cannot continue without a Human, Planner, Architect, platform, environment, secret, dependency, permission, network, or tooling action outside the Runner's authority. A blocked Runner stops instead of faking results, bypassing permission checks, broadening scope, writing alternate workflow state, or substituting unapproved tools.
+
+Permission denial, network denial, missing secrets, and missing required tools are blockers unless the ticket explicitly provides an approved fallback. They must not be hidden as successful validation, approximated with dummy credentials, replaced with unrelated tools, or worked around through raw database writes or scratch workflow state.
+
+Human-required blockers use a standard shape in the result notes or blocker detail:
+
+```json
+{
+  "category": "authorization_required",
+  "ticket_id": "SYSTEM-001",
+  "lane": "system",
+  "intended_operation": "install required dependency",
+  "commands_attempted": ["python -m pip install -r requirements-mcp.txt"],
+  "exact_errors": ["network access denied by sandbox"],
+  "current_ticket_state": "running",
+  "outbox_exists": false,
+  "required_human_action": "Approve network access or provide an offline dependency bundle.",
+  "recommended_next_action": "Redispatch Runner after the dependency is available."
+}
+```
+
+### Reject Redispatch
+
+`review_result=reject` routes the ticket back to `ready` for `runner`. When the platform has an execution-capable Runner path and the current session is authorized to use it, Architect redispatches the rejected ticket automatically as part of the same closed loop. Architect redispatch is not Architect implementation work.
+
+Architect stops and records a blocker instead of redispatching when subagent spawn needs explicit Human authorization, the platform has no safe execution-capable Runner path, or the rejected ticket has reached the same-kind failure limit.
+
+### Same-Kind Failure Limit
+
+For the same ticket and same intended operation, agents may make at most three failed attempts of the same kind. Same-kind failures include repeated helper transition failures, repeated validation failures with the same cause, repeated permission or network denials, repeated missing-secret failures, repeated missing-tool failures, and repeated platform dispatch failures. After the third failed attempt, the workflow stops as blocked with the attempted commands, exact errors, current state, outbox existence, and recommended next action.
+
+The three-attempt rule does not authorize direct SQLite edits, broad lifecycle resets, unapproved network or filesystem access, automatic model routing, telemetry, token cost tracking, or a heavy observability system.
+
+### Restricted-Runner Mode
+
+Restricted-runner mode is a platform permission fallback for environments where the Runner can edit source files but cannot safely write Control workflow state or outbox files. In this mode, the Architect owns Control lifecycle transitions and Control outbox writes. The Runner edits only allowed source files, runs validation, cleans any allowed scratch state it created, and returns exact JSON-compatible result content for the Architect to record.
+
 ### MCP-lite Validation Coverage
 
-The v0.3 MCP-lite tool surface and probe now validate the v0.6 result fields including `confidence`, `evidence`, and `protocol_reads`. A copied workflow database is used for probe validation to preserve the live database.
+The v0.3 MCP-lite tool surface and probe now validate v0.6 result fields including `confidence`, `evidence`, and `protocol_reads` when they are present. A copied workflow database is used for probe validation to preserve the live database.
 
 ### Blocked Result Example
 
@@ -228,6 +283,8 @@ Runner result values:
 done | partial | blocked | invalid
 ```
 
+`partial` is for reviewable in-scope work that is incomplete but honestly reported. `blocked` is for work that cannot continue without outside action, such as permission, network, missing secret, missing required tool, or unresolved dependency intervention.
+
 Architect review result values:
 
 ```text
@@ -247,6 +304,8 @@ redesign -> drafted for Architect
 Permission escalation remains a Human boundary. An Architect can dispatch Runner work, but it does not approve a spawned Runner's sandbox, filesystem, network, or destructive-operation escalation unless the Human explicitly approved that action.
 
 Some platforms also require explicit Human authorization before subagent spawn. In that case, the Architect reports a spawn authorization blocker with the exact spawn-ready Runner prompt or dispatch command instead of stopping silently or treating the workflow as complete.
+
+After reject, Architect redispatches Runner automatically when an execution-capable dispatch path is available, the session is authorized to use it, and the same-kind failure limit has not been reached. Otherwise the Architect records a blocker with the rejected ticket id, reason, current state, and exact next dispatch prompt or command.
 
 ## Workflow State Boundary
 
@@ -302,7 +361,7 @@ railyard/references/roles.md
 railyard/references/startup-sequence.md
 ```
 
-Runner result JSON must include non-empty `protocol_reads` evidence. If a prompt, adapter, or custom handoff omits role protocol reads, the omission becomes visible as either a missing `required_startup_reads` field in dispatch validation or a rejected result payload with missing/empty `protocol_reads`.
+Runner result JSON should include non-empty `protocol_reads` evidence for new work. If a prompt, adapter, or custom handoff omits role protocol reads, the omission becomes visible through dispatch validation and review evidence, but historical results without `protocol_reads` remain valid.
 
 Initialized projects include VS Code / GitHub Copilot-compatible default profiles in `.github/agents/`:
 

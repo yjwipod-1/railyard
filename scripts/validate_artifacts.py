@@ -15,6 +15,14 @@ VALID_LANES = {"domain", "system"}
 VALID_PRIORITIES = {"high", "medium", "low"}
 VALID_EPIC_STATUSES = {"queued", "in_progress", "partial", "blocked", "done", "superseded"}
 VALID_RUNNER_STATUSES = {"done", "partial", "blocked", "invalid"}
+VALID_BLOCKER_CATEGORIES = {
+    "permission_denied",
+    "command_failed",
+    "sandbox_boundary",
+    "authorization_required",
+    "environment_issue",
+    "unresolved_dependency",
+}
 
 TICKET_REQUIRED_FIELDS = {"ticket_id", "epic_id", "task_mode", "task_type", "priority"}
 TICKET_REQUIRED_SECTIONS = ("Task", "Scope", "Acceptance Checks")
@@ -27,7 +35,6 @@ RESULT_REQUIRED_FIELDS = {
     "files_changed",
     "validation",
     "notes",
-    "protocol_reads",
     "created_at",
 }
 QUEUE_ITEM_REQUIRED_FIELDS = {"epic_id", "title", "status", "priority", "summary", "done_definition"}
@@ -138,17 +145,61 @@ def validate_result(path: pathlib.Path) -> None:
     for key in ("files_changed", "validation", "notes"):
         if not isinstance(payload[key], list):
             raise ValidationError(f"{key} must be an array")
-    protocol_reads = payload["protocol_reads"]
-    if not isinstance(protocol_reads, list) or not protocol_reads:
-        raise ValidationError("protocol_reads must be a non-empty array")
-    if not all(isinstance(item, str) and item.strip() for item in protocol_reads):
-        raise ValidationError("protocol_reads must be an array of non-empty strings")
     for key in ("ticket_id", "summary", "created_at"):
         if not isinstance(payload[key], str) or not payload[key].strip():
             raise ValidationError(f"{key} must be a non-empty string")
+    if "protocol_reads" in payload:
+        protocol_reads = payload["protocol_reads"]
+        if not isinstance(protocol_reads, list) or not protocol_reads:
+            raise ValidationError("protocol_reads must be a non-empty array")
+        if not all(isinstance(item, str) and item.strip() for item in protocol_reads):
+            raise ValidationError("protocol_reads must be an array of non-empty strings")
+    if "evidence" in payload:
+        evidence = payload["evidence"]
+        if not isinstance(evidence, list) or not all(isinstance(item, str) and item.strip() for item in evidence):
+            raise ValidationError("evidence must be an array of non-empty strings")
+    if "confidence" in payload and payload["confidence"] not in {"high", "medium", "low"}:
+        raise ValidationError("confidence must be one of: high, medium, low")
+    if "runner_trace" in payload:
+        validate_runner_trace(payload["runner_trace"], runner_status)
     expected_ticket_id = path.name.removesuffix(".result.json")
     if payload["ticket_id"] != expected_ticket_id:
         raise ValidationError(f"ticket_id must match result filename {expected_ticket_id!r}")
+
+
+def require_optional_string_or_null(payload: dict[str, Any], key: str, prefix: str) -> None:
+    value = payload.get(key)
+    if value is not None and (not isinstance(value, str) or not value.strip()):
+        raise ValidationError(f"{prefix}.{key} must be a non-empty string or null")
+
+
+def validate_runner_trace(trace: Any, runner_status: str) -> None:
+    if not isinstance(trace, dict):
+        raise ValidationError("runner_trace must be an object")
+    required = {"platform_name", "agent_profile", "attempts", "commands", "blocker_category", "next_action"}
+    missing = sorted(required - set(trace))
+    if missing:
+        raise ValidationError(f"runner_trace missing required fields: {', '.join(missing)}")
+    require_optional_string_or_null(trace, "platform_name", "runner_trace")
+    require_optional_string_or_null(trace, "agent_profile", "runner_trace")
+    attempts = trace.get("attempts")
+    if not isinstance(attempts, int) or attempts < 1:
+        raise ValidationError("runner_trace.attempts must be an integer >= 1")
+    commands = trace.get("commands")
+    if not isinstance(commands, list) or not all(isinstance(item, str) and item.strip() for item in commands):
+        raise ValidationError("runner_trace.commands must be an array of non-empty command strings")
+    blocker_category = trace.get("blocker_category")
+    if runner_status == "blocked":
+        if blocker_category not in VALID_BLOCKER_CATEGORIES:
+            raise ValidationError(f"runner_trace.blocker_category must be one of {sorted(VALID_BLOCKER_CATEGORIES)} when runner_status is blocked")
+    elif blocker_category is not None:
+        raise ValidationError("runner_trace.blocker_category must be null unless runner_status is blocked")
+    next_action = trace.get("next_action")
+    if runner_status in {"blocked", "partial"}:
+        if not isinstance(next_action, str) or not next_action.strip():
+            raise ValidationError("runner_trace.next_action must be a non-empty string when runner_status is blocked or partial")
+    elif next_action is not None and (not isinstance(next_action, str) or not next_action.strip()):
+        raise ValidationError("runner_trace.next_action must be a non-empty string or null")
 
 
 def require_string(payload: dict[str, Any], key: str) -> None:

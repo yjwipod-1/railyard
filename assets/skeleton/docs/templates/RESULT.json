@@ -3,10 +3,30 @@
   "runner_status": "done",
   "summary": "Short summary of the work completed.",
   "files_changed": [],
-  "validation": [],
-  "notes": [],
+  "validation": [
+    {
+      "command": "python scripts/validate_artifacts.py --project-root .",
+      "status": "pass",
+      "summary": "Replace with exact validation output summary."
+    }
+  ],
+  "notes": [
+    "For blocked results, include category, ticket id, lane, intended operation, commands attempted, exact errors, current ticket state, outbox existence, required Human action, and recommended next action."
+  ],
   "confidence": "medium",
-  "evidence": [],
+  "evidence": [
+    "Replace with changed file paths, validation output, or logs that justify confidence."
+  ],
+  "runner_trace": {
+    "platform_name": null,
+    "agent_profile": null,
+    "attempts": 1,
+    "commands": [
+      "python scripts/validate_artifacts.py --project-root ."
+    ],
+    "blocker_category": null,
+    "next_action": null
+  },
   "protocol_reads": [
     "railyard/SKILL.md",
     "railyard/references/roles.md",
