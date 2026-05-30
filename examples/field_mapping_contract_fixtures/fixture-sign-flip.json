@@ -1,0 +1,57 @@
+{
+  "fixture_id": "fixture-sign-flip",
+  "description": "Signed numeric value has unexpected sign flip in derived output. Expected: fail.",
+  "source_artifact": {
+    "artifact_kind": "source",
+    "source_path": "examples/field_mapping_contract_fixtures/source_signflip.json",
+    "data": {
+      "record_id": "r-004",
+      "signed_amount": -100
+    },
+    "source_header": ["record_id", "signed_amount"]
+  },
+  "derived_artifact": {
+    "artifact_kind": "derived",
+    "actual_output": {
+      "record_id": "r-004",
+      "absolute_amount": 100
+    }
+  },
+  "field_mapping_contract": {
+    "contract_id": "field-mapping-signflip",
+    "version": "0.1.0",
+    "applies_to": "mapping",
+    "validation_scope": "transform_only",
+    "record_selector": null,
+    "source_path": "examples/field_mapping_contract_fixtures/source_signflip.json",
+    "source_description": "Generic source artifact for sign flip fixture",
+    "field_mappings": [
+      {
+        "source_path": "record_id",
+        "derived_path": "record_id",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "signed_amount",
+        "derived_path": "absolute_amount",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": true
+      }
+    ],
+    "derived_field": {
+      "derived_path": "absolute_amount",
+      "source_path": "signed_amount",
+      "expected_transform": "identity",
+      "preserve_sign": true
+    },
+    "warnings_as_errors": false,
+    "missing_mapping_policy": "fail"
+  },
+  "expected_validation": {
+    "overall_verdict": "fail",
+    "reason": "Source value -100 became 100 in derived output. preserve_sign=true was declared but sign was flipped. signed_numeric_preservation rule fails."
+  }
+}

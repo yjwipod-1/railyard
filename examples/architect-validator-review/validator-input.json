@@ -1,0 +1,54 @@
+{
+  "artifacts": [
+    { "path": "examples/architect-validator-review/source-artifact.json", "kind": "source" },
+    { "path": "examples/architect-validator-review/derived-artifact.json", "kind": "derived" },
+    { "path": "examples/architect-validator-review/field-mapping-contract.json", "kind": "contract" }
+  ],
+  "validation_contract": {
+    "contract_id": "source-to-derived-reconciliation",
+    "version": "0.7.0",
+    "rules": [
+      {
+        "rule_id": "record_count_preservation",
+        "severity": "error",
+        "check": {
+          "type": "equal_counts",
+          "path": "source._meta.record_count",
+          "expected": "derived._meta.record_count"
+        }
+      },
+      {
+        "rule_id": "field_mapping_completeness",
+        "severity": "error",
+        "check": {
+          "type": "required_field",
+          "path": "field_mappings"
+        }
+      },
+      {
+        "rule_id": "transform_rule_presence",
+        "severity": "error",
+        "check": {
+          "type": "non_empty",
+          "path": "evidence_pack.transform_rules"
+        }
+      }
+    ]
+  },
+  "acceptance_criteria": null,
+  "evidence_pack": {
+    "transform_rules": {
+      "record_id": "identity",
+      "source_value": "multiply_by_2",
+      "derived_value": "identity"
+    },
+    "record_count": 3
+  },
+  "risk_level": "high",
+  "allowed_read_only_commands": [
+    "cat",
+    "head",
+    "diff",
+    "python -c 'import json; print(len(json.load(open(\"input.json\"))))'"
+  ]
+}

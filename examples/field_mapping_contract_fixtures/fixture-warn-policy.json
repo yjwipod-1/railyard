@@ -1,0 +1,57 @@
+{
+  "fixture_id": "fixture-warn-policy-false",
+  "description": "Warn+fail finding with warnings_as_errors=false. Expected: overall_verdict=pass (warn does not auto-fail).",
+  "source_artifact": {
+    "artifact_kind": "source",
+    "source_path": "examples/field_mapping_contract_fixtures/source_warn.json",
+    "data": {
+      "record_id": "r-006",
+      "source_value": 30
+    },
+    "source_header": ["record_id", "source_value"]
+  },
+  "derived_artifact": {
+    "artifact_kind": "derived",
+    "actual_output": {
+      "record_id": "r-006",
+      "derived_value": 30,
+      "extra_field": "unexpected"
+    }
+  },
+  "field_mapping_contract": {
+    "contract_id": "field-mapping-warn-policy",
+    "version": "0.1.0",
+    "applies_to": "mapping",
+    "validation_scope": "transform_only",
+    "record_selector": null,
+    "source_path": "examples/field_mapping_contract_fixtures/source_warn.json",
+    "source_description": "Generic source artifact for warn policy fixture (false)",
+    "field_mappings": [
+      {
+        "source_path": "record_id",
+        "derived_path": "record_id",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "source_value",
+        "derived_path": "derived_value",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      }
+    ],
+    "derived_field": {
+      "derived_path": "derived_value",
+      "source_path": "source_value",
+      "expected_transform": "identity"
+    },
+    "warnings_as_errors": false,
+    "missing_mapping_policy": "inconclusive"
+  },
+  "expected_validation": {
+    "overall_verdict": "pass",
+    "reason": "Derived field 'extra_field' is undeclared and not in any mapping. The field_identity_preservation rule generates a warn-level finding. However, warnings_as_errors=false, so warn+fail does not force overall_verdict=fail. Overall verdict stays pass."
+  }
+}

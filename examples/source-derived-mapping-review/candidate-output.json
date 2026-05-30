@@ -1,0 +1,13 @@
+{
+  "artifact_kind": "derived_output",
+  "description": "Runner-produced output for validation.",
+  "records": [
+    {
+      "record_key": "record-031",
+      "current_metric": 1242.0,
+      "sample_count": 23,
+      "quarter_change_pct": 3.5,
+      "year_change_pct": 7.6
+    }
+  ]
+}

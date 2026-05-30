@@ -1,0 +1,61 @@
+{
+  "artifacts": [
+    {
+      "path": "examples/source-derived-mapping-review/source-table.json",
+      "kind": "source"
+    },
+    {
+      "path": "examples/source-derived-mapping-review/candidate-output.json",
+      "kind": "derived"
+    },
+    {
+      "path": "examples/source-derived-mapping-review/mapping-contract.json",
+      "kind": "contract"
+    }
+  ],
+  "validation_contract": {
+    "contract_id": "generic-quarterly-mapping-contract",
+    "version": "0.7.0",
+    "rules": [
+      {
+        "rule_id": "candidate_output_not_truth_source",
+        "severity": "error",
+        "check": {
+          "type": "truth_hierarchy",
+          "expected": "contract_and_source_before_candidate_output"
+        }
+      },
+      {
+        "rule_id": "field_mapping_required",
+        "severity": "error",
+        "check": {
+          "type": "required_field",
+          "path": "field_mappings"
+        }
+      },
+      {
+        "rule_id": "source_value_preservation",
+        "severity": "error",
+        "check": {
+          "type": "mapped_value_comparison"
+        }
+      },
+      {
+        "rule_id": "signed_numeric_preservation",
+        "severity": "error",
+        "check": {
+          "type": "sign_preservation"
+        }
+      }
+    ]
+  },
+  "acceptance_criteria": null,
+  "evidence_pack": {
+    "record_selector": "record_key = record-031"
+  },
+  "risk_level": "high",
+  "allowed_read_only_commands": [
+    "cat",
+    "python -c 'import json; print(\"read-only shape check\")'"
+  ]
+}

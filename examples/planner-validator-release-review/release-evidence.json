@@ -1,0 +1,29 @@
+{
+  "changed_files_summary": [
+    { "path": "README.md", "kind": "documentation", "user_visible": true },
+    { "path": "CHANGELOG.md", "kind": "documentation", "user_visible": true },
+    { "path": "references/validator-protocol.md", "kind": "protocol", "user_visible": true },
+    { "path": "scripts/validate_artifacts.py", "kind": "validation", "user_visible": false }
+  ],
+  "validation_command_outputs": [
+    { "command": "python -m compileall scripts", "status": "pass" },
+    { "command": "python scripts/validate_artifacts.py --project-root .", "status": "missing" },
+    { "command": "git diff --check", "status": "pass" }
+  ],
+  "public_hygiene_scan": {
+    "status": "not_run",
+    "checked_files": []
+  },
+  "release_note_coverage": [
+    { "path": "README.md", "covered": true },
+    { "path": "CHANGELOG.md", "covered": true },
+    { "path": "references/validator-protocol.md", "covered": false },
+    { "path": "scripts/validate_artifacts.py", "covered": false }
+  ],
+  "followups": [
+    {
+      "description": "Document release-readiness validation behavior after final smoke testing",
+      "tracked": false
+    }
+  ]
+}

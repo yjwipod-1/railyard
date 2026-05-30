@@ -1,0 +1,65 @@
+{
+  "fixture_id": "fixture-valid-mapping",
+  "description": "Valid source-to-derived field mapping with all required fields present and correct transform.",
+  "source_artifact": {
+    "artifact_kind": "source",
+    "source_path": "examples/field_mapping_contract_fixtures/source_valid.json",
+    "data": {
+      "record_id": "r-001",
+      "source_value": 42,
+      "source_label": "test_label"
+    },
+    "source_header": ["record_id", "source_value", "source_label"]
+  },
+  "derived_artifact": {
+    "artifact_kind": "derived",
+    "expected_output": {
+      "record_id": "r-001",
+      "derived_value": 42,
+      "derived_label": "test_label"
+    }
+  },
+  "field_mapping_contract": {
+    "contract_id": "field-mapping-valid",
+    "version": "0.1.0",
+    "applies_to": "mapping",
+    "validation_scope": "transform_only",
+    "record_selector": null,
+    "source_path": "examples/field_mapping_contract_fixtures/source_valid.json",
+    "source_description": "Generic source artifact for valid mapping fixture",
+    "field_mappings": [
+      {
+        "source_path": "record_id",
+        "derived_path": "record_id",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "source_value",
+        "derived_path": "derived_value",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": true
+      },
+      {
+        "source_path": "source_label",
+        "derived_path": "derived_label",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      }
+    ],
+    "derived_field": {
+      "derived_path": "derived_value",
+      "source_path": "source_value",
+      "expected_transform": "identity"
+    },
+    "warnings_as_errors": false,
+    "missing_mapping_policy": "fail"
+  },
+  "expected_validation": {
+    "overall_verdict": "pass",
+    "reason": "All derived fields have explicit source mappings; transforms match declared behavior; sign is preserved."
+  }
+}

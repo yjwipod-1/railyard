@@ -1,0 +1,65 @@
+{
+  "artifacts": [
+    { "path": "examples/planner-validator-release-review/epic-summary.json", "kind": "evidence" },
+    { "path": "examples/planner-validator-release-review/ticket-state-table.json", "kind": "evidence" },
+    { "path": "examples/planner-validator-release-review/release-evidence.json", "kind": "evidence" }
+  ],
+  "validation_contract": {
+    "contract_id": "planner-release-readiness",
+    "version": "0.7.0",
+    "rules": [
+      {
+        "rule_id": "scoped-tickets-complete",
+        "severity": "error",
+        "check": {
+          "type": "enum_value",
+          "path": "ticket_state_table[*].status",
+          "expected": "done"
+        }
+      },
+      {
+        "rule_id": "required-validation-present",
+        "severity": "error",
+        "check": {
+          "type": "all_required_commands_passed",
+          "required_commands": [
+            "python -m compileall scripts",
+            "python scripts/validate_artifacts.py --project-root .",
+            "git diff --check"
+          ]
+        }
+      },
+      {
+        "rule_id": "public-hygiene-scan-present",
+        "severity": "error",
+        "check": {
+          "type": "status_equals",
+          "path": "public_hygiene_scan.status",
+          "expected": "pass"
+        }
+      },
+      {
+        "rule_id": "user-visible-change-coverage",
+        "severity": "warn",
+        "check": {
+          "type": "user_visible_files_have_release_coverage"
+        }
+      },
+      {
+        "rule_id": "followups-tracked",
+        "severity": "error",
+        "check": {
+          "type": "all_followups_tracked"
+        }
+      }
+    ]
+  },
+  "acceptance_criteria": null,
+  "evidence_pack": null,
+  "risk_level": "high",
+  "allowed_read_only_commands": [
+    "cat",
+    "head",
+    "python -c 'import json; print(\"read-only\")'"
+  ]
+}

@@ -113,6 +113,37 @@ When `runner_status` is `blocked` because Human action is required, include a st
 
 Stop after reporting this blocker. Do not try alternate lifecycle helpers, raw SQLite updates, unapproved credentials, unapproved network access, or broader filesystem access.
 
+## Validation Reports
+
+Validation Reports are distinct from Runner result files. A Validation Report describes whether one or more artifacts satisfy one or more structural or semantic checks, while a Runner result expresses whether a ticket's work is complete.
+
+Validation Report `overall_verdict` values:
+- `pass`: all `error`-severity rules passed; no `error` findings.
+- `fail`: at least one `error`-severity rule failed.
+- `blocked`: at least one rule or artifact was blocked and could not be evaluated.
+- `inconclusive`: not enough information to determine pass or fail.
+- `human_review_required`: findings require manual review before a verdict can be assigned.
+
+Note: `warn` is not a Validation Report overall verdict value. Warnings are expressed via finding `severity`.
+
+Finding `status` values:
+- `pass`, `fail`, `not_applicable`, `blocked`, `inconclusive`
+
+Finding `severity` values:
+- `error`, `warn`, `info`
+
+### Severity and Status Independence
+
+`severity` and `status` are independent dimensions:
+
+- `severity=error, status=fail` forces `overall_verdict=fail`.
+- `severity=warn, status=fail` does NOT force `overall_verdict=fail` unless the contract declares `warnings_as_errors: true`.
+- `severity=warn, status=pass` means the warning rule was checked and no warning issue was found (NOT that a warning was found).
+
+For detailed examples, verdict computation algorithm, and the source-to-derived reconciliation pattern, see `references/validator-protocol.md` and `references/validation-contract.md`.
+
+For the complete Validation Contract and Report schema, see `references/validation-contract.md`.
+
 ## Notes
 
 - Keep the result machine-readable.

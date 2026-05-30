@@ -177,6 +177,43 @@ The MCP-lite surface intentionally does not expose:
 - full replacement of `sync-docs` or `sync-mailbox`
 - replacement of the helper lifecycle contract
 
+## v0.7 Validation Contract Foundation
+
+Railyard v0.7 introduces a generic, development-time-first validation contract foundation. It defines how a declared Validation Contract is applied to an artifact and produces a structured Validation Report, without embedding project-specific business rules and without adding runtime orchestration.
+
+### Design Goals
+
+- Generic: no encoding of a specific business domain, data schema, or content policy.
+- Development-time first: the primary use case is validating Railyard artifacts (tickets, epics, results, queues) during authoring or CI.
+- Read-only Validator: validation reports findings only. Architect and Planner retain all lifecycle decisions.
+- Extension boundary: future external or runtime-adjacent validation is explicitly acknowledged as an extension, not implemented in this foundation ticket; later queued validation work may extend the same contract model.
+
+### Core Concepts
+
+The foundation defines three artifacts:
+
+- **Validation Contract**: a declarative specification that describes what checks must be satisfied by a target artifact. It includes `contract_id`, `version`, `description`, `applies_to`, and `rules` with `rule_id`, `description`, `severity`, and `check` objects.
+- **Validation Report**: the structured output produced when a Validation Contract is applied to one or more artifacts. It includes `contract_id`, `contract_version`, and `results` with per-artifact `overall_verdict` (`pass`, `fail`, `blocked`, `inconclusive`, `human_review_required`) and `findings`.
+- **Validator**: the component that applies a Validation Contract to artifacts and produces a Validation Report. The Validator is read-only by default; it does not perform automatic repair, retry, remediation, or runtime orchestration.
+
+The first application of the validation contract in v0.7 is development-time validation of Railyard artifacts. The reference implementation ships with `scripts/validate_artifacts.py`, which validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. This foundation ticket provides the Validation Contract schema, the Validation Report schema, and fixture shape validation only. It does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration.
+
+### Extension Boundary
+
+The v0.7 foundation deliberately excludes business-specific rules, semantic validation across unrelated artifacts, runtime governance, automatic repair, and external artifact ingestion beyond what is strictly necessary for development-time validation. These capabilities may be implemented as new contracts and validator implementations in later work.
+
+### Validator Protocol
+
+The Validator protocol (input slots, output JSON shape, verdict semantics, truth hierarchy, severity/status independence, source-to-derived reconciliation patterns, and missing mapping policy) is defined in `references/validator-protocol.md`. Architects and CI pipelines can copy that document as a dispatch contract for Validator invocations.
+
+### Relationship to Runner Result
+
+The Validation Report is distinct from the Runner result format defined in `references/result-format.md`:
+
+- The Runner result (`runner_status: done/partial/blocked/invalid`) expresses whether a ticket's work is complete from a Runner's perspective.
+- The Validation Report (`overall_verdict: pass/fail/blocked/inconclusive/human_review_required`) expresses whether one or more artifacts satisfy one or more structural or semantic checks.
+- A Runner result may include a Validation Report as structured evidence. The `validation` array in the Runner result can reference validation command outputs.
+
 ## Architecture
 
 ```text

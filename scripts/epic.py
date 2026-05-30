@@ -115,7 +115,7 @@ def parse_epic_doc(path: pathlib.Path, lane: str) -> dict[str, Any]:
         "done_definition_json": json_dumps(done_definition),
         "notes_json": json_dumps(notes),
         "linked_ticket_id": linked_ticket_id or None,
-        "completed_at": None,
+        "completed_at": created_at if status in TERMINAL_STATUSES else None,
         "created_at": created_at,
         "updated_at": iso_now(),
         "lane": lane,
@@ -125,12 +125,16 @@ def parse_epic_doc(path: pathlib.Path, lane: str) -> dict[str, Any]:
 def upsert_epic(conn: sqlite3.Connection, lane: str, row: dict[str, Any], preserve_terminal: bool = True) -> None:
     table = lane_table(lane)
     existing = conn.execute(
-        f"SELECT status, completed_at FROM {table} WHERE epic_id = ?",
+        f"SELECT status, completed_at, created_at FROM {table} WHERE epic_id = ?",
         (row["epic_id"],),
     ).fetchone()
-    if existing and preserve_terminal and existing[0] in TERMINAL_STATUSES and row["status"] not in TERMINAL_STATUSES:
-        row["status"] = existing[0]
-        row["completed_at"] = existing[1]
+    if existing:
+        row["created_at"] = existing[2]
+        if existing[0] in TERMINAL_STATUSES and row["status"] in TERMINAL_STATUSES:
+            row["completed_at"] = existing[1] or row["completed_at"]
+        if preserve_terminal and existing[0] in TERMINAL_STATUSES and row["status"] not in TERMINAL_STATUSES:
+            row["status"] = existing[0]
+            row["completed_at"] = existing[1]
 
     columns = [
         "epic_id",
@@ -239,6 +243,60 @@ def command_show(conn: sqlite3.Connection, lane: str, epic_id: str) -> dict[str,
     return parse_row(row, dependency_snapshot(conn, lane))
 
 
+def command_create(conn: sqlite3.Connection, lane: str, epic_id: str, title: str, status: str, priority: str, source: str, summary: str) -> dict[str, Any]:
+    table = lane_table(lane)
+    conn.row_factory = sqlite3.Row
+    existing = conn.execute(
+        f"SELECT epic_id FROM {table} WHERE epic_id = ?",
+        (epic_id,),
+    ).fetchone()
+    if existing is not None:
+        print(f"error: epic {epic_id} already exists in {lane} lane -- use 'upsert' to update", file=sys.stderr)
+        return {"status": "error", "error": f"epic {epic_id} already exists"}
+    now = iso_now()
+    row = {
+        "epic_id": epic_id,
+        "title": title,
+        "status": status,
+        "priority": priority,
+        "source": source,
+        "summary": summary or title,
+        "blocked_by_epic_ids_json": json_dumps([]),
+        "blocked_by_external_json": json_dumps([]),
+        "preferred_entrypoints_json": json_dumps([]),
+        "done_definition_json": json_dumps([]),
+        "notes_json": json_dumps([]),
+        "linked_ticket_id": None,
+        "completed_at": now if status in TERMINAL_STATUSES else None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    columns = [
+        "epic_id",
+        "title",
+        "status",
+        "priority",
+        "source",
+        "summary",
+        "blocked_by_epic_ids_json",
+        "blocked_by_external_json",
+        "preferred_entrypoints_json",
+        "done_definition_json",
+        "notes_json",
+        "linked_ticket_id",
+        "completed_at",
+        "created_at",
+        "updated_at",
+    ]
+    placeholders = ", ".join(":" + column for column in columns)
+    conn.execute(
+        f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({placeholders})",
+        {column: row.get(column) for column in columns},
+    )
+    conn.commit()
+    return command_show(conn, lane, epic_id)
+
+
 def command_upsert(conn: sqlite3.Connection, lane: str, epic_id: str, title: str, status: str, priority: str, source: str, summary: str) -> dict[str, Any]:
     now = iso_now()
     row = {
@@ -284,6 +342,13 @@ def parse_args() -> argparse.Namespace:
     show_parser.add_argument("--epic-id", required=True)
     subparsers.add_parser("list-open", help="List unresolved epics.")
     subparsers.add_parser("next-open", help="Return the next unresolved epic.")
+    create_parser = subparsers.add_parser("create", help="Create a new epic (rejects if epic_id already exists).")
+    create_parser.add_argument("--epic-id", required=True)
+    create_parser.add_argument("--title", required=True)
+    create_parser.add_argument("--status", default="queued")
+    create_parser.add_argument("--priority", default="medium")
+    create_parser.add_argument("--source", default="helper")
+    create_parser.add_argument("--summary", default="")
     upsert_parser = subparsers.add_parser("upsert", help="Create or update an epic row directly.")
     upsert_parser.add_argument("--epic-id", required=True)
     upsert_parser.add_argument("--title", required=True)
@@ -311,6 +376,11 @@ def main() -> int:
         elif args.command == "next-open":
             rows = sorted_open_rows(conn, args.lane)
             payload = rows[0] if rows else None
+        elif args.command == "create":
+            payload = command_create(conn, args.lane, args.epic_id, args.title, args.status, args.priority, args.source, args.summary)
+            if payload.get("status") == "error":
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
+                return 1
         elif args.command == "upsert":
             payload = command_upsert(conn, args.lane, args.epic_id, args.title, args.status, args.priority, args.source, args.summary)
         else:

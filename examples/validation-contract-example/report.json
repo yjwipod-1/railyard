@@ -1,0 +1,48 @@
+{
+  "contract_id": "v0.7-artifact-schema",
+  "contract_version": "0.7.0",
+  "results": [
+    {
+      "artifact_path": "examples/validation-contract-example/contract.json",
+      "artifact_kind": "validation_contract",
+      "overall_verdict": "pass",
+      "findings": [
+        {
+          "rule_id": "has-contract-id",
+          "severity": "error",
+          "status": "pass",
+          "message": "contract_id is present and non-empty.",
+          "evidence": "v0.7-artifact-schema"
+        },
+        {
+          "rule_id": "has-version",
+          "severity": "error",
+          "status": "pass",
+          "message": "version is present and non-empty.",
+          "evidence": "0.7.0"
+        },
+        {
+          "rule_id": "has-description",
+          "severity": "error",
+          "status": "pass",
+          "message": "description is present and non-empty.",
+          "evidence": "Generic structural validation for Railyard workflow artifacts..."
+        },
+        {
+          "rule_id": "has-rules",
+          "severity": "error",
+          "status": "pass",
+          "message": "rules field is present and contains 5 entries.",
+          "evidence": "5"
+        },
+        {
+          "rule_id": "rules-are-objects",
+          "severity": "error",
+          "status": "pass",
+          "message": "rules[0].rule_id is present and non-empty.",
+          "evidence": "has-contract-id"
+        }
+      ]
+    }
+  ]
+}

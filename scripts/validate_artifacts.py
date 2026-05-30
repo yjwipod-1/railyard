@@ -15,6 +15,9 @@ VALID_LANES = {"domain", "system"}
 VALID_PRIORITIES = {"high", "medium", "low"}
 VALID_EPIC_STATUSES = {"queued", "in_progress", "partial", "blocked", "done", "superseded"}
 VALID_RUNNER_STATUSES = {"done", "partial", "blocked", "invalid"}
+VALID_OVERALL_VERDICTS = {"pass", "fail", "blocked", "inconclusive", "human_review_required"}
+VALID_FINDING_STATUSES = {"pass", "fail", "not_applicable", "blocked", "inconclusive"}
+VALID_FINDING_SEVERITIES = {"error", "warn", "info"}
 VALID_BLOCKER_CATEGORIES = {
     "permission_denied",
     "command_failed",
@@ -22,6 +25,17 @@ VALID_BLOCKER_CATEGORIES = {
     "authorization_required",
     "environment_issue",
     "unresolved_dependency",
+}
+VALID_VALIDATION_SCOPES = {"extract_only", "transform_only", "ingest_to_db"}
+VALID_MISSING_MAPPING_POLICIES = {"inconclusive", "fail", "human_review_required"}
+FIELD_MAPPING_ROOT_FIELDS = {
+    "contract_id", "version", "applies_to", "validation_scope",
+    "field_mappings", "derived_field", "source_path",
+}
+FIELD_MAPPING_OBJECT_FIELDS = {"source_path", "derived_path", "transform"}
+FIELD_MAPPING_FIXTURE_FIELDS = {
+    "fixture_id", "description", "source_artifact",
+    "derived_artifact", "field_mapping_contract", "expected_validation",
 }
 
 TICKET_REQUIRED_FIELDS = {"ticket_id", "epic_id", "task_mode", "task_type", "priority"}
@@ -132,6 +146,155 @@ def validate_epic(path: pathlib.Path) -> None:
         raise ValidationError(f"missing required sections: {', '.join(section_missing)}")
 
 
+def validate_report(path: pathlib.Path) -> None:
+    """Validate a Validation Report artifact against the V0.7 report schema."""
+    payload = load_json(path)
+    if not isinstance(payload, dict):
+        raise ValidationError("validation report JSON must be an object")
+    required = {"contract_id", "contract_version", "results"}
+    missing = missing_fields(payload, required)
+    if missing:
+        raise ValidationError(f"validation report missing required fields: {', '.join(missing)}")
+    for key in ("contract_id", "contract_version"):
+        require_string(payload, key)
+    results = payload.get("results")
+    if not isinstance(results, list) or not results:
+        raise ValidationError("validation report results must be a non-empty array")
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            raise ValidationError(f"results[{index}] must be an object")
+        for field in ("artifact_path", "artifact_kind"):
+            if field not in result or not isinstance(result[field], str) or not result[field].strip():
+                raise ValidationError(f"results[{index}].{field} must be a non-empty string")
+        if "overall_verdict" not in result:
+            raise ValidationError(f"results[{index}].overall_verdict is required")
+        if "findings" not in result:
+            raise ValidationError(f"results[{index}].findings is required")
+        overall = result.get("overall_verdict")
+        if overall not in VALID_OVERALL_VERDICTS:
+            raise ValidationError(
+                f"results[{index}].overall_verdict must be one of {sorted(VALID_OVERALL_VERDICTS)}, got {overall!r}"
+            )
+        findings = result.get("findings")
+        if not isinstance(findings, list) or not findings:
+            raise ValidationError(f"results[{index}].findings must be a non-empty array")
+        # Check for duplicate finding rule_ids within this result
+        finding_rule_ids = [f.get("rule_id") for f in findings if isinstance(f, dict) and "rule_id" in f]
+        if len(finding_rule_ids) != len(set(finding_rule_ids)):
+            raise ValidationError(
+                f"results[{index}].findings contains duplicate rule_id values"
+            )
+        for fidx, finding in enumerate(findings):
+            if not isinstance(finding, dict):
+                raise ValidationError(f"results[{index}].findings[{fidx}] must be an object")
+            for ff in ("rule_id", "severity", "status", "message"):
+                require_string(finding, ff)
+            if finding["severity"] not in VALID_FINDING_SEVERITIES:
+                raise ValidationError(
+                    f"results[{index}].findings[{fidx}].severity must be one of {sorted(VALID_FINDING_SEVERITIES)}, got {finding['severity']!r}"
+                )
+            if finding["status"] not in VALID_FINDING_STATUSES:
+                raise ValidationError(
+                    f"results[{index}].findings[{fidx}].status must be one of {sorted(VALID_FINDING_STATUSES)}, got {finding['status']!r}"
+                )
+        # Internal consistency checks for overall_verdict vs findings
+        validate_report_consistency(result, index)
+
+
+def validate_report_consistency(result: dict[str, Any], index: int) -> None:
+    """Validate internal consistency between overall_verdict and findings."""
+    overall = result.get("overall_verdict")
+    findings = result.get("findings", [])
+
+    has_fail_severity = any(
+        f.get("severity") == "error" and f.get("status") == "fail" for f in findings
+    )
+    has_blocked = any(f.get("status") == "blocked" for f in findings)
+    has_inconclusive = any(f.get("status") == "inconclusive" for f in findings)
+    has_error_fail = any(
+        f.get("severity") == "error" and f.get("status") == "fail" for f in findings
+    )
+    has_pass_or_not_applicable = any(
+        f.get("status") in ("pass", "not_applicable") for f in findings
+    )
+
+    if overall == "pass":
+        if has_error_fail or has_blocked or has_inconclusive:
+            raise ValidationError(
+                f"results[{index}].overall_verdict=pass but found findings with status fail/blocked/inconclusive"
+            )
+    elif overall == "fail":
+        if not has_fail_severity:
+            raise ValidationError(
+                f"results[{index}].overall_verdict=fail requires at least one severity=error AND status=fail finding"
+            )
+    elif overall == "blocked":
+        if not has_blocked:
+            raise ValidationError(
+                f"results[{index}].overall_verdict=blocked requires at least one status=blocked finding"
+            )
+    elif overall == "inconclusive":
+        if not has_inconclusive:
+            raise ValidationError(
+                f"results[{index}].overall_verdict=inconclusive requires at least one status=inconclusive finding"
+            )
+    elif overall == "human_review_required":
+        review_reason = result.get("review_reason", "")
+        if not isinstance(review_reason, str) or not review_reason.strip():
+            raise ValidationError(
+                f"results[{index}].overall_verdict=human_review_required requires non-empty review_reason"
+            )
+
+
+def validate_contract(path: pathlib.Path) -> None:
+    """Validate a Validation Contract artifact against the V0.7 contract schema."""
+    payload = load_json(path)
+    if not isinstance(payload, dict):
+        raise ValidationError("validation contract JSON must be an object")
+    required = {"contract_id", "version", "description", "applies_to", "rules"}
+    missing = missing_fields(payload, required)
+    if missing:
+        raise ValidationError(f"validation contract missing required fields: {', '.join(missing)}")
+    for key in ("contract_id", "version", "description"):
+        require_string(payload, key)
+    applies_to = payload.get("applies_to")
+    if not isinstance(applies_to, list) or not applies_to:
+        raise ValidationError("applies_to must be a non-empty array")
+    if not all(isinstance(item, str) and item.strip() for item in applies_to):
+        raise ValidationError("applies_to must be an array of non-empty strings")
+    rules = payload.get("rules")
+    if not isinstance(rules, list) or not rules:
+        raise ValidationError("validation contract rules must be a non-empty array")
+    for ridx, rule in enumerate(rules):
+        if not isinstance(rule, dict):
+            raise ValidationError(f"rules[{ridx}] must be an object")
+        rule_required = {"rule_id", "description", "severity", "check"}
+        rule_missing = missing_fields(rule, rule_required)
+        if rule_missing:
+            raise ValidationError(
+                f"rules[{ridx}] missing required fields: {', '.join(rule_missing)}"
+            )
+        require_string(rule, "rule_id")
+        require_string(rule, "description")
+        if rule["severity"] not in VALID_FINDING_SEVERITIES:
+            raise ValidationError(
+                f"rules[{ridx}].severity must be one of {sorted(VALID_FINDING_SEVERITIES)}, got {rule['severity']!r}"
+            )
+        check = rule.get("check")
+        if not isinstance(check, dict):
+            raise ValidationError(f"rules[{ridx}].check must be an object")
+        if "type" not in check or not isinstance(check["type"], str) or not check["type"].strip():
+            raise ValidationError(
+                f"rules[{ridx}].check.type must be a non-empty string"
+            )
+    # Check for duplicate rule_id values across rules
+    rule_ids = [rule.get("rule_id") for rule in rules if isinstance(rule, dict) and "rule_id" in rule]
+    if len(rule_ids) != len(set(rule_ids)):
+        raise ValidationError(
+            "validation contract rules contain duplicate rule_id values"
+        )
+
+
 def validate_result(path: pathlib.Path) -> None:
     payload = load_json(path)
     if not isinstance(payload, dict):
@@ -237,6 +400,216 @@ def validate_queue(path: pathlib.Path) -> None:
                 require_string_list(item, key)
 
 
+def validate_field_mapping_contract_shape(data: dict[str, Any]) -> None:
+    """Validate a field mapping contract JSON against the v0.7 shape definition."""
+    if not isinstance(data, dict):
+        raise ValidationError("field mapping contract must be an object")
+
+    missing = missing_fields(data, FIELD_MAPPING_ROOT_FIELDS)
+    if missing:
+        raise ValidationError(f"field mapping contract missing required fields: {', '.join(missing)}")
+
+    # Validate applies_to is a valid string
+    applies_to = data.get("applies_to")
+    if not isinstance(applies_to, str) or not applies_to.strip():
+        raise ValidationError("applies_to must be a non-empty string")
+
+    # Validate validation_scope enum
+    validation_scope = data.get("validation_scope")
+    if validation_scope not in VALID_VALIDATION_SCOPES:
+        raise ValidationError(
+            f"validation_scope must be one of {sorted(VALID_VALIDATION_SCOPES)}, got {validation_scope!r}"
+        )
+
+    # Validate missing_mapping_policy enum (optional, default is inconclusive)
+    missing_policy = data.get("missing_mapping_policy")
+    if missing_policy is not None and missing_policy not in VALID_MISSING_MAPPING_POLICIES:
+        raise ValidationError(
+            f"missing_mapping_policy must be one of {sorted(VALID_MISSING_MAPPING_POLICIES)}, got {missing_policy!r}"
+        )
+
+    # Validate warnings_as_errors boolean (optional, default is false)
+    warnings_as_errors = data.get("warnings_as_errors")
+    if warnings_as_errors is not None and not isinstance(warnings_as_errors, bool):
+        raise ValidationError("warnings_as_errors must be a boolean or null")
+
+    # Validate field_mappings array
+    field_mappings = data.get("field_mappings")
+    if not isinstance(field_mappings, list) or not field_mappings:
+        raise ValidationError("field_mappings must be a non-empty array")
+
+    for fidx, mapping in enumerate(field_mappings):
+        if not isinstance(mapping, dict):
+            raise ValidationError(f"field_mappings[{fidx}] must be an object")
+        missing = missing_fields(mapping, FIELD_MAPPING_OBJECT_FIELDS)
+        if missing:
+            raise ValidationError(
+                f"field_mappings[{fidx}] missing required fields: {', '.join(missing)}"
+            )
+        require_string(mapping, "transform")
+        require_string(mapping, "source_path")
+        require_string(mapping, "derived_path")
+        # validate optional fields
+        if "required" in mapping and not isinstance(mapping["required"], bool):
+            raise ValidationError(f"field_mappings[{fidx}].required must be a boolean")
+        if "preserve_sign" in mapping and not isinstance(mapping["preserve_sign"], bool):
+            raise ValidationError(f"field_mappings[{fidx}].preserve_sign must be a boolean")
+
+    # Validate derived_field object
+    derived_field = data.get("derived_field")
+    if not isinstance(derived_field, dict):
+        raise ValidationError("derived_field must be an object")
+    require_string(derived_field, "derived_path")
+    # source_path and expected_transform are optional for unmapped derived fields
+    # (e.g., missing_mapping_policy=fail scenario where no source exists)
+
+
+def validate_field_mapping_fixture(data: dict[str, Any]) -> None:
+    """Validate a field mapping contract fixture against the v0.7 fixture schema."""
+    if not isinstance(data, dict):
+        raise ValidationError("fixture must be an object")
+
+    missing = missing_fields(data, FIELD_MAPPING_FIXTURE_FIELDS)
+    if missing:
+        raise ValidationError(f"fixture missing required fields: {', '.join(missing)}")
+
+    # Validate source_artifact
+    source_artifact = data.get("source_artifact")
+    if not isinstance(source_artifact, dict):
+        raise ValidationError("source_artifact must be an object")
+    if "artifact_kind" not in source_artifact or source_artifact.get("artifact_kind") != "source":
+        raise ValidationError("source_artifact.artifact_kind must be 'source'")
+
+    # Validate derived_artifact
+    derived_artifact = data.get("derived_artifact")
+    if not isinstance(derived_artifact, dict):
+        raise ValidationError("derived_artifact must be an object")
+    if "artifact_kind" not in derived_artifact or derived_artifact.get("artifact_kind") != "derived":
+        raise ValidationError("derived_artifact.artifact_kind must be 'derived'")
+
+    # Validate field_mapping_contract shape
+    contract = data.get("field_mapping_contract")
+    if not isinstance(contract, dict):
+        raise ValidationError("field_mapping_contract must be an object")
+    validate_field_mapping_contract_shape(contract)
+
+    # Validate expected_validation
+    expected_validation = data.get("expected_validation")
+    if not isinstance(expected_validation, dict):
+        raise ValidationError("expected_validation must be an object")
+    if "overall_verdict" not in expected_validation:
+        raise ValidationError("expected_validation must contain overall_verdict")
+    verdict = expected_validation["overall_verdict"]
+    if verdict not in VALID_OVERALL_VERDICTS:
+        raise ValidationError(
+            f"expected_validation.overall_verdict must be one of {sorted(VALID_OVERALL_VERDICTS)}, got {verdict!r}"
+        )
+
+
+def validate_example_validator_input_func(data: dict[str, Any]) -> None:
+    """Validate a Validator usage example input JSON for structural integrity.
+
+    Ensures the input references real artifacts (source/derived/contract) and
+    does not incorrectly reference its own validation-report.json output as an
+    input artifact.
+    """
+    if not isinstance(data, dict):
+        raise ValidationError("example validator input must be an object")
+
+    # artifacts must be a non-empty list of objects with path and kind
+    artifacts = data.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise ValidationError("artifacts must be a non-empty array")
+    for idx, artifact in enumerate(artifacts):
+        if not isinstance(artifact, dict):
+            raise ValidationError(f"artifacts[{idx}] must be an object")
+        if "path" not in artifact or not isinstance(artifact["path"], str) or not artifact["path"].strip():
+            raise ValidationError(f"artifacts[{idx}].path must be a non-empty string")
+        if "kind" not in artifact or not isinstance(artifact["kind"], str) or not artifact["kind"].strip():
+            raise ValidationError(f"artifacts[{idx}].kind must be a non-empty string")
+        # Sanity: artifact path should end in .json
+        path = artifact["path"]
+        if not path.endswith(".json"):
+            raise ValidationError(f"artifacts[{idx}].path must end with .json, got {path!r}")
+
+    # validation_contract must be an object (even if minimal)
+    validation_contract = data.get("validation_contract")
+    if not isinstance(validation_contract, dict):
+        raise ValidationError("validation_contract must be an object")
+
+    # Sanity check: artifacts must NOT reference validation-report.json as
+    # source or derived. This catches the common mistake of treating the
+    # validator input/output pair as source/derived.
+    for artifact in artifacts:
+        artifact_path = artifact["path"]
+        artifact_kind = artifact["kind"]
+        basename = pathlib.Path(artifact_path).name
+        if basename == "validation-report.json" and artifact_kind in ("source", "derived"):
+            raise ValidationError(
+                f"artifacts entry with path={artifact_path!r} has kind={artifact_kind!r}; "
+                "validation-report.json must not be used as source or derived artifact "
+                "(it is the Validator output, not the input data)"
+            )
+
+    # Evidence pack is optional but should be an object if present
+    evidence_pack = data.get("evidence_pack")
+    if evidence_pack is not None and not isinstance(evidence_pack, dict):
+        raise ValidationError("evidence_pack must be an object or null")
+
+
+def validate_example_validator_report_func(data: dict[str, Any]) -> None:
+    """Validate a Validator usage example report JSON for structural integrity.
+
+    Reuses the same contract_version and results validation as the standard
+    report validator, with a lighter set of checks.
+    """
+    if not isinstance(data, dict):
+        raise ValidationError("example validator report must be an object")
+
+    required = {"contract_id", "contract_version", "results"}
+    missing = missing_fields(data, required)
+    if missing:
+        raise ValidationError(f"example validator report missing required fields: {', '.join(missing)}")
+    for key in ("contract_id", "contract_version"):
+        require_string(data, key)
+
+    results = data.get("results")
+    if not isinstance(results, list) or not results:
+        raise ValidationError("results must be a non-empty array")
+
+    for index, result in enumerate(results):
+        if not isinstance(result, dict):
+            raise ValidationError(f"results[{index}] must be an object")
+        for field in ("artifact_path", "artifact_kind"):
+            if field not in result or not isinstance(result[field], str) or not result[field].strip():
+                raise ValidationError(f"results[{index}].{field} must be a non-empty string")
+        if "overall_verdict" not in result:
+            raise ValidationError(f"results[{index}].overall_verdict is required")
+        if "findings" not in result:
+            raise ValidationError(f"results[{index}].findings is required")
+        overall = result.get("overall_verdict")
+        if overall not in VALID_OVERALL_VERDICTS:
+            raise ValidationError(
+                f"results[{index}].overall_verdict must be one of {sorted(VALID_OVERALL_VERDICTS)}, got {overall!r}"
+            )
+        findings = result.get("findings")
+        if not isinstance(findings, list) or not findings:
+            raise ValidationError(f"results[{index}].findings must be a non-empty array")
+        for fidx, finding in enumerate(findings):
+            if not isinstance(finding, dict):
+                raise ValidationError(f"results[{index}].findings[{fidx}] must be an object")
+            for ff in ("rule_id", "severity", "status", "message"):
+                require_string(finding, ff)
+            if finding["severity"] not in VALID_FINDING_SEVERITIES:
+                raise ValidationError(
+                    f"results[{index}].findings[{fidx}].severity must be one of {sorted(VALID_FINDING_SEVERITIES)}, got {finding['severity']!r}"
+                )
+            if finding["status"] not in VALID_FINDING_STATUSES:
+                raise ValidationError(
+                    f"results[{index}].findings[{fidx}].status must be one of {sorted(VALID_FINDING_STATUSES)}, got {finding['status']!r}"
+                )
+
+
 def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Path]]:
     artifacts: list[tuple[str, pathlib.Path]] = []
     for lane in sorted(VALID_LANES):
@@ -252,15 +625,58 @@ def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Pat
     examples = project_root / "examples"
     if examples.exists():
         artifacts.extend(("queue", path) for path in sorted(examples.glob("**/queue.json")))
+    # Also validate Validation Report and Contract JSON files under examples
+    if examples.exists():
+        artifacts.extend(("report", path) for path in sorted(examples.glob("**/report.json")))
+    if examples.exists():
+        artifacts.extend(("contract", path) for path in sorted(examples.glob("**/contract.json")))
+    # Validate field mapping contract fixtures under examples
+    if examples.exists():
+        fixture_dir = examples / "field_mapping_contract_fixtures"
+        if fixture_dir.exists():
+            artifacts.extend(("fixture", path) for path in sorted(fixture_dir.glob("fixture-*.json")))
+    # Validate Validator usage example inputs and reports under examples
+    if examples.exists():
+        for item in sorted(examples.iterdir()):
+            if not item.is_dir():
+                continue
+            # Collect validator-input.json files (example Validator dispatch inputs)
+            vi_input = item / "validator-input.json"
+            if vi_input.exists():
+                artifacts.append(("example-validator-input", vi_input))
+            planner_input = item / "planner-validator-input.json"
+            if planner_input.exists():
+                artifacts.append(("example-validator-input", planner_input))
+            # Collect validation-report.json files (example Validator outputs)
+            vi_report = item / "validation-report.json"
+            if vi_report.exists():
+                artifacts.append(("example-validator-report", vi_report))
     return artifacts
 
 
 def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
+    def validate_fixture(path: pathlib.Path) -> None:
+        payload = load_json(path)
+        validate_field_mapping_fixture(payload)
+
+    def validate_example_validator_input(path: pathlib.Path) -> None:
+        payload = load_json(path)
+        validate_example_validator_input_func(payload)
+
+    def validate_example_validator_report(path: pathlib.Path) -> None:
+        payload = load_json(path)
+        validate_example_validator_report_func(payload)
+
     validators = {
         "ticket": validate_ticket,
         "epic": validate_epic,
         "result": validate_result,
         "queue": validate_queue,
+        "report": validate_report,
+        "contract": validate_contract,
+        "fixture": validate_fixture,
+        "example-validator-input": validate_example_validator_input,
+        "example-validator-report": validate_example_validator_report,
     }
     checked: list[dict[str, str]] = []
     errors: list[dict[str, str]] = []

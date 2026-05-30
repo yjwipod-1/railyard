@@ -1,0 +1,54 @@
+{
+  "contract_id": "v0.7-artifact-schema",
+  "version": "0.7.0",
+  "description": "Generic structural validation for Railyard workflow artifacts. This contract checks that required fields are present and well-formed for the validation_contract artifact kind.",
+  "applies_to": ["validation_contract"],
+  "rules": [
+    {
+      "rule_id": "has-contract-id",
+      "description": "A contract must have a non-empty contract_id.",
+      "severity": "error",
+      "check": {
+        "type": "non_empty",
+        "path": "contract_id"
+      }
+    },
+    {
+      "rule_id": "has-version",
+      "description": "A contract must have a non-empty version.",
+      "severity": "error",
+      "check": {
+        "type": "non_empty",
+        "path": "version"
+      }
+    },
+    {
+      "rule_id": "has-description",
+      "description": "A contract must have a non-empty description.",
+      "severity": "error",
+      "check": {
+        "type": "non_empty",
+        "path": "description"
+      }
+    },
+    {
+      "rule_id": "has-rules",
+      "description": "A contract must define at least one rule.",
+      "severity": "error",
+      "check": {
+        "type": "type_check",
+        "path": "rules",
+        "expected": "array"
+      }
+    },
+    {
+      "rule_id": "rules-are-objects",
+      "description": "Each rule must have a non-empty rule_id.",
+      "severity": "error",
+      "check": {
+        "type": "non_empty",
+        "path": "rules[0].rule_id"
+      }
+    }
+  ]
+}

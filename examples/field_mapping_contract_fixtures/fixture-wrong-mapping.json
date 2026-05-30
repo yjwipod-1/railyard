@@ -1,0 +1,65 @@
+{
+  "fixture_id": "fixture-wrong-mapping",
+  "description": "Derived field is mapped to the wrong source field or type. Expected: fail.",
+  "source_artifact": {
+    "artifact_kind": "source",
+    "source_path": "examples/field_mapping_contract_fixtures/source_wrong.json",
+    "data": {
+      "record_id": "r-003",
+      "label_field": "alpha",
+      "numeric_field": -5
+    },
+    "source_header": ["record_id", "label_field", "numeric_field"]
+  },
+  "derived_artifact": {
+    "artifact_kind": "derived",
+    "actual_output": {
+      "record_id": "r-003",
+      "derived_value": -5,
+      "derived_label": "alpha"
+    }
+  },
+  "field_mapping_contract": {
+    "contract_id": "field-mapping-wrong",
+    "version": "0.1.0",
+    "applies_to": "mapping",
+    "validation_scope": "transform_only",
+    "record_selector": null,
+    "source_path": "examples/field_mapping_contract_fixtures/source_wrong.json",
+    "source_description": "Generic source artifact for wrong mapping fixture",
+    "field_mappings": [
+      {
+        "source_path": "record_id",
+        "derived_path": "record_id",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "numeric_field",
+        "derived_path": "derived_label",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "label_field",
+        "derived_path": "derived_value",
+        "transform": "to_numeric",
+        "required": true,
+        "preserve_sign": false
+      }
+    ],
+    "derived_field": {
+      "derived_path": "derived_value",
+      "source_path": "label_field",
+      "expected_transform": "to_numeric"
+    },
+    "warnings_as_errors": false,
+    "missing_mapping_policy": "fail"
+  },
+  "expected_validation": {
+    "overall_verdict": "fail",
+    "reason": "Derived field 'derived_label' is mapped to source 'numeric_field' (wrong semantic type). Source-to-derived mapping is semantically incorrect."
+  }
+}

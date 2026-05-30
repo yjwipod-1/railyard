@@ -1,0 +1,14 @@
+{
+  "epic_id": "EPIC-002",
+  "title": "Prepare release candidate",
+  "description": "Prepare a release candidate with implementation updates, documentation updates, validation evidence, and public release notes.",
+  "scoped_tickets": ["TICKET-101", "TICKET-102", "TICKET-103"],
+  "done_definition": [
+    "All scoped tickets completed",
+    "Runner results present",
+    "Architect reviews completed",
+    "Required validation commands passed",
+    "Public documentation and release notes cover user-visible changes",
+    "No unresolved blockers or untracked follow-ups"
+  ]
+}

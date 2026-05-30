@@ -1,0 +1,56 @@
+{
+  "fixture_id": "fixture-missing-mapping",
+  "description": "Derived field has no mapping to an independent source field. Expected: fail or human_review_required depending on risk_level.",
+  "source_artifact": {
+    "artifact_kind": "source",
+    "source_path": "examples/field_mapping_contract_fixtures/source_missing.json",
+    "data": {
+      "record_id": "r-002",
+      "source_value": 10
+    },
+    "source_header": ["record_id", "source_value"]
+  },
+  "derived_artifact": {
+    "artifact_kind": "derived",
+    "actual_output": {
+      "record_id": "r-002",
+      "derived_value": 10,
+      "computed_flag": true
+    }
+  },
+  "field_mapping_contract": {
+    "contract_id": "field-mapping-missing",
+    "version": "0.1.0",
+    "applies_to": "mapping",
+    "validation_scope": "transform_only",
+    "record_selector": null,
+    "source_path": "examples/field_mapping_contract_fixtures/source_missing.json",
+    "source_description": "Generic source artifact for missing mapping fixture",
+    "field_mappings": [
+      {
+        "source_path": "record_id",
+        "derived_path": "record_id",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "source_value",
+        "derived_path": "derived_value",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": true
+      }
+    ],
+    "derived_field": {
+      "derived_path": "computed_flag",
+      "expected_transform": "unknown"
+    },
+    "warnings_as_errors": false,
+    "missing_mapping_policy": "fail"
+  },
+  "expected_validation": {
+    "overall_verdict": "fail",
+    "reason": "Derived field 'computed_flag' has no mapping to an independent source field. missing_mapping_policy=fail triggers failure."
+  }
+}

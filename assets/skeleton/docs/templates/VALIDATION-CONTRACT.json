@@ -1,0 +1,18 @@
+{
+  "contract_id": "",
+  "version": "0.7.0",
+  "description": "",
+  "applies_to": [],
+  "rules": [
+    {
+      "rule_id": "",
+      "description": "",
+      "severity": "error",
+      "check": {
+        "type": "",
+        "path": "",
+        "expected": ""
+      }
+    }
+  ]
+}

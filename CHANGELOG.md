@@ -10,6 +10,21 @@ All notable public-facing changes to Railyard are summarized here.
 - Updated MCP probe, artifact validation, result templates, and examples to make missing role protocol reads visible before Architect review.
 - Hardened Architect review guidance so prompt text does not replace required protocol reads, rejected tickets continue through Runner redispatch when authorized, and blocked platform spawn authorization is reported explicitly.
 
+## Unreleased / v0.7
+
+### validation contract foundation
+
+- Added v0.7 validation contract foundation to README.md, SKILL.md, CHANGELOG.md, references/validation-contract.md, references/result-format.md.
+- Validation contract defines generic, development-time-first contract/report model without business rules or runtime orchestration.
+- Added `validate_contract()` function to `scripts/validate_artifacts.py` for contract.json shape validation.
+- Added internal consistency checks to `validate_report()`: overall_verdict cross-validation against findings (pass/fail/blocked/inconclusive/human_review_required semantics).
+- Updated overall_verdict values to pass/fail/blocked/inconclusive/human_review_required; removed warn from overall verdict.
+- Updated finding status to pass/fail/not_applicable/blocked/inconclusive; finding severity to error/warn/info.
+- The reference implementation provides deterministic shape validation for Railyard artifacts including tickets, epics, result files, queue examples, validation contracts, and validation reports.
+- The Validator is read-only by default: it inspects artifacts and produces reports without modifying them, creating tickets, or executing lifecycle transitions.
+- Schema and shape validation only. Does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration.
+- Future queued validation work may extend the same generic contract model.
+
 ## Unreleased / v0.5
 
 - Added a platform dispatch contract that separates Railyard workflow roles from host-platform agent type names.
@@ -28,14 +43,13 @@ All notable public-facing changes to Railyard are summarized here.
 - Added a public MCP-lite smoke example for disposable workflow validation.
 - Added `scripts/validate_artifacts.py` for deterministic workflow artifact and example queue validation.
 - Added GitHub Actions validation for compile checks, artifact validation, and MCP-lite smoke checks.
-- Ignored `.claude/` local agent configuration so machine-local tool settings stay out of public releases.
 - Added this changelog as part of release discipline and adoption hardening.
 
 ## v0.6
 
 Railyard v0.6 introduces enhanced execution observability through execution profiles and a standardized failure taxonomy.
 
-### execution profile, confidence, evidence, and failure taxonomy (SYSTEM-018)
+### execution profile, confidence, evidence, and failure taxonomy
 
 - Added execution profile hints (`fast`, `strong`, `local`) as advisory routing hints for dispatch adapters. These are not automatic model routing.
 - Added structured `confidence` field (`high`, `medium`, `low`) to Runner result JSON.
@@ -43,22 +57,22 @@ Railyard v0.6 introduces enhanced execution observability through execution prof
 - Added failure taxonomy for blocked result reporting: `permission_denied`, `command_failed`, `sandbox_boundary`, `authorization_required`, `environment_issue`, `unresolved_dependency`.
 - Updated SKILL.md and README.md with execution profile, confidence, evidence, and failure taxonomy documentation.
 
-### result payload validation (SYSTEM-019)
+### result payload validation
 
 - Added validation for `confidence` and `evidence` fields in runner result JSON contract.
 - `mark-runner-result` now validates these fields before handing the ticket to Architect review.
 
-### runner dispatch payload v4 (SYSTEM-020)
+### runner dispatch payload v4
 
 - Updated `architect.py dispatch-next-runner` to include `profile_hints` in spawn-ready Runner dispatch payloads.
 - Profile hints flow through the dispatch contract to platform dispatch adapters.
 
-### MCP validation and probe coverage (SYSTEM-021)
+### MCP validation and probe coverage
 
 - Extended MCP-lite probe to validate v0.6 result fields: `confidence`, `evidence`, and `protocol_reads`.
 - Probe runs against a copied workflow database to preserve the live database during validation.
 
-### blocked result example (SYSTEM-022)
+### blocked result example
 
 - Added `examples/blocked-result-example/` demonstrating the failure taxonomy in practice.
 
