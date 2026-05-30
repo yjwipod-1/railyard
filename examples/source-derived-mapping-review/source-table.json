@@ -1,0 +1,22 @@
+{
+  "artifact_kind": "source_table",
+  "description": "Generic quarterly source row with column-style source locations.",
+  "columns": {
+    "A": "record_key",
+    "B": "prior_metric",
+    "J": "current_metric",
+    "M": "sample_count",
+    "O": "quarter_change_pct",
+    "P": "year_change_pct"
+  },
+  "records": [
+    {
+      "A": "record-031",
+      "B": 1242.0,
+      "J": 1199.0,
+      "M": 23,
+      "O": -7.6,
+      "P": -3.5
+    }
+  ]
+}

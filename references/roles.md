@@ -54,6 +54,161 @@ Default limits:
 - do not copy generated ticket, epic, or outbox files into documentation directories unless the ticket explicitly asks for documentation fixtures
 - do not work around permission denial; if blocked by a permission boundary, record `runner_result=blocked` using the failure taxonomy in `SKILL.md`
 
+## Validator Role Boundary
+
+The Validator is a read-only contract executor.
+
+- It can be invoked by Architect review, Planner closure/release review, or CI pipelines.
+- It does not own implementation, review decisions, or epic closure.
+- It does not execute automatic repair, retry, routing, or runtime orchestration.
+- It produces a Validation Report; it does not modify artifacts or the system.
+- See `references/validator-protocol.md` for the complete protocol including input slots, output schema, verdict semantics, truth hierarchy, and severity/status independence.
+
+Runner validation remains normal unit, smoke, fixture, and artifact testing; it does not require a separate Validator role unless a project explicitly defines that extension.
+
+## Validator Dispatch Failure Boundary
+
+Architect and Planner sessions may dispatch the Validator as a separate workflow role, but they must not silently collapse into the Validator role when dispatch fails.
+
+- If Validator subagent dispatch is unavailable, blocked, or produces no retrievable result, the Architect or Planner reports the dispatch failure and emits the exact spawn-ready Validator prompt and payload.
+- The Architect or Planner must then stop the Validator step until a Human or external Validator session returns a report.
+- The Architect or Planner must not create temporary validation scripts, ad hoc validators, direct shell validators, or replacement tooling to simulate an independent Validator.
+- The Architect or Planner must not label self-run checks as a Validator report.
+- Role collapse is allowed only when the ticket or Human explicitly authorizes it. In that case the output must be labeled as a role-collapsed check, not as an independent Validator report.
+
+## Architect-to-Validator Responsibility
+
+The Architect owns the decision to dispatch the Validator and the construction of Validator input.
+
+### Architect dispatch decision
+
+The Architect MUST dispatch the Validator when a ticket involves:
+
+- data transform (extract, transform, load, data shape change)
+- ingest / migration (external data ingestion, schema migration)
+- source-to-derived artifacts (any generated artifact produced from source data)
+- generated artifacts with measurable constraints (structural, numeric, content constraints)
+- high-risk implementation tickets (incorrect output causes data loss or inconsistency)
+- acceptance that depends on semantic or structural correctness beyond command success
+- derived authoritative data used by later workflow steps
+
+### Architect-constructed Validator input
+
+The Architect constructs the Validator input with these fields:
+
+- `artifacts`: source artifacts, candidate implementation, candidate output, relevant docs
+- `validation_contract`: explicit contract if present; otherwise Architect-generated generic contract pattern derived from ticket acceptance criteria
+- `acceptance_criteria`: ticket AC translated into concrete, checkable criteria
+- `evidence_pack`: raw source values, headers, schemas, command outputs, logs
+- `risk_level`: low, medium, or high based on ticket risk assessment
+- `allowed_read_only_commands`: explicit read-only command list
+- `truth_hierarchy`: reference `references/validator-protocol.md` Section 5; candidate output must never be the truth source
+
+### Source-to-derived rules
+
+For tickets involving source-to-derived output, the Architect MUST:
+
+- Include the source-to-derived reconciliation pattern from `references/validator-protocol.md` Section 7
+- Ensure candidate output is never the truth source
+- Require every derived field to have an independent source mapping or declared transformation
+- Apply missing mapping policy of `fail` or `human_review_required` for high-risk tasks
+- Not accept high-risk source-to-derived tickets when Validator returns `inconclusive`, `blocked`, or `human_review_required` without Human decision
+
+### Validator result -> Architect review decision mapping
+
+| Validator verdict | Architect action |
+|---|---|
+| `pass` | Accept as evidence; Architect still reviews scope/diff |
+| `fail` | Reject or redispatch Runner with focused remediation prompt |
+| `blocked` | Collect missing evidence; do not accept |
+| `inconclusive` | For high-risk tickets, do not accept; escalate or provide missing evidence |
+| `human_review_required` | Stop and request Human decision |
+| `warn` + `fail` (no `warnings_as_errors`) | Record as non-blocking warning; Architect decides impact |
+| `warn` + `fail` (`warnings_as_errors` = true) | Treat as error-level; affects overall verdict |
+| `error` + `fail` | Cannot accept |
+
+### Vague AC handling
+
+The Architect must not pass vague natural-language acceptance criteria directly to the Validator. If AC is vague, the Architect must translate it into concrete validation input or mark validation as `inconclusive` / `human_review_required`.
+
+### Dispatch template
+
+The Architect uses the copyable dispatch template defined in `references/startup-sequence.md` Section 7.5. This template fills artifacts, validation_contract / generated_contract_pattern, acceptance_criteria, evidence_pack, risk_level, and allowed_read_only_commands, and references `references/validator-protocol.md` for the full protocol.
+
+## Planner-to-Validator Responsibility
+
+The Planner may invoke the Validator as a read-only quality gate before epic closure or release readiness decisions. The Validator produces a Validation Report that serves as Planner evidence; the Planner retains all closure authority.
+
+### Planner-side Validator trigger conditions
+
+**The Planner MUST invoke the Validator when:**
+
+- release readiness decision
+- high-risk epic closure
+- cross-ticket consistency risk across multiple tickets
+- public artifact hygiene risk (README, CHANGELOG, SKILL, examples)
+- workflow / role / protocol contract changes (roles.md, lifecycle.md, validator-protocol.md, startup-sequence.md)
+
+**The Planner MAY invoke the Validator when:**
+
+- normal epic closure (when useful for evidence)
+
+**The Planner should NOT invoke the Validator when:**
+
+- typo fix or small docs edit
+- isolated low-risk ticket with no cross-ticket impact
+- no checkable artifact or evidence exists
+
+### Planner-constructed Validator input
+
+The Planner constructs the Validator input with these slots:
+
+| Slot | Description |
+|---|---|
+| `epic_scope` | Epic scope definition and done definition |
+| `ticket_state_table` | Current state of all scoped tickets (status, runner_result, review_result) |
+| `runner_results` | Runner result JSONs from completed tickets |
+| `architect_review_results` | Architect review results and review focus notes |
+| `changed_files_summary` | Summary of changed files since last review |
+| `validation_command_outputs` | Output from `python -m compileall`, `python scripts/validate_artifacts.py`, etc. |
+| `public_hygiene_scan` | Evidence from public artifact scan (README, CHANGELOG, SKILL, examples) |
+| `unresolved_blockers` | Any unresolved blockers or follow-ups |
+
+### Planner-to-Validator verdict-to-action mapping
+
+| Validator `overall_verdict` | Planner action |
+|---|---|
+| `pass` | May close epic or proceed release after Planner judgment |
+| `fail` | Open follow-up ticket or block closure |
+| `blocked` | Collect missing evidence before deciding |
+| `inconclusive` | Request more evidence; do not close high-risk epic |
+| `human_review_required` | Stop; await Human decision |
+
+### Validator report effect
+
+- The Validator report is **Planner evidence only**, NOT closure authority.
+- The Validator report does NOT close epic, record lifecycle, or replace Planner judgment.
+- The Planner still closes epic through the epic helper.
+- The Validator report informs but does not dictate the decision.
+
+### Scope exclusions (NOT in scope)
+
+- NO Runner-side Validator self-check role.
+- NO runtime orchestration.
+- NO automatic repair or remediation.
+- NO model routing or automatic dispatch.
+- NO business-specific rules or content policy checks.
+
+### Boundary vs Architect-side Validator
+
+| Dimension | Architect-side Validator | Planner-side Validator |
+|---|---|---|
+| Who dispatches | Architect (per-ticket) | Planner (pre-closure) |
+| When | During Architect review | Before epic/release closure |
+| Scope | Single ticket artifact | Cross-ticket, epic-level, public hygiene |
+| Output use | Review decision (accept/reject) | Closure decision (close/block) |
+| Verdict effect | Maps to Architect review result | Maps to Planner closure evidence |
+
 ## Default Closed-Loop Ownership
 
 The Architect owns a ticket from scoping through review disposition when the Architect dispatches Runner execution.

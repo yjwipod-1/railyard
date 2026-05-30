@@ -1,0 +1,7 @@
+{
+  "epic_id": "EPIC-001",
+  "title": "Deliver core ticket processing pipeline",
+  "description": "Implement the end-to-end ticket processing pipeline including extraction, transformation, and delivery.",
+  "scoped_tickets": ["TICKET-001", "TICKET-002"],
+  "done_definition": "All scoped tickets completed, runner results present, architect reviews completed, no open blockers"
+}

@@ -1,0 +1,33 @@
+{
+  "contract_id": "source-to-derived-reconciliation",
+  "version": "0.7.0",
+  "description": "Defines the mapping rules between source and derived datasets for reconciliation.",
+  "applies_to": "data-transformation",
+  "validation_scope": "transform_only",
+  "field_mappings": [
+    {
+      "source_path": "record_id",
+      "derived_path": "record_id",
+      "transform": "identity",
+      "required": true
+    },
+    {
+      "source_path": "source_value",
+      "derived_path": "derived_value",
+      "transform": "multiply_by_2",
+      "required": true
+    },
+    {
+      "source_path": "category",
+      "derived_path": "category",
+      "transform": "identity",
+      "required": true
+    }
+  ],
+  "derived_field": {
+    "derived_path": "derived_value",
+    "expected_transform": "multiply_by_2"
+  },
+  "missing_mapping_policy": "fail",
+  "warnings_as_errors": false
+}

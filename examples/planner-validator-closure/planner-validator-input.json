@@ -1,0 +1,83 @@
+{
+  "artifacts": [
+    { "path": "examples/planner-validator-closure/epic-summary.json", "kind": "evidence" },
+    { "path": "examples/planner-validator-closure/ticket-state-table.json", "kind": "evidence" }
+  ],
+  "validation_contract": {
+    "contract_id": "epic-closure-readiness",
+    "version": "0.7.0",
+    "rules": [
+      {
+        "rule_id": "all-tickets-done",
+        "severity": "error",
+        "check": {
+          "type": "enum_value",
+          "path": "ticket_state_table[*].status",
+          "expected": "done"
+        }
+      },
+      {
+        "rule_id": "runner-results-exist",
+        "severity": "error",
+        "check": {
+          "type": "non_empty",
+          "path": "runner_results"
+        }
+      },
+      {
+        "rule_id": "architect-reviews-exist",
+        "severity": "warn",
+        "check": {
+          "type": "non_empty",
+          "path": "architect_review_results"
+        }
+      }
+    ]
+  },
+  "acceptance_criteria": null,
+  "evidence_pack": {
+    "epic_scope": "EPIC-001 scope: deliver core ticket processing pipeline",
+    "done_definition": "All scoped tickets completed, runner results present, architect reviews completed, no open blockers",
+    "ticket_state_table": [
+      {
+        "ticket_id": "TICKET-001",
+        "status": "done",
+        "runner_result": "done",
+        "review_result": "accepted"
+      },
+      {
+        "ticket_id": "TICKET-002",
+        "status": "done",
+        "runner_result": "done",
+        "review_result": "accepted"
+      }
+    ],
+    "runner_results": [
+      { "ticket_id": "TICKET-001", "runner_status": "done" },
+      { "ticket_id": "TICKET-002", "runner_status": "done" }
+    ],
+    "architect_review_results": [
+      { "ticket_id": "TICKET-001", "decision": "accepted" },
+      { "ticket_id": "TICKET-002", "decision": "accepted" }
+    ],
+    "changed_files_summary": [
+      { "file": "src/pipeline.py", "kind": "changed" },
+      { "file": "tests/test_pipeline.py", "kind": "changed" }
+    ],
+    "validation_command_outputs": [
+      "python -m compileall src/ --quiet",
+      "python scripts/validate_artifacts.py --project-root ."
+    ],
+    "public_hygiene_scan": [
+      { "file": "README.md", "status": "present" },
+      { "file": "CHANGELOG.md", "status": "present" }
+    ],
+    "unresolved_blockers": []
+  },
+  "risk_level": "high",
+  "allowed_read_only_commands": [
+    "cat",
+    "head",
+    "python -c 'import json; print(\"ok\")'"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "records": [
+    { "record_id": "A001", "source_value": 10, "category": "alpha" },
+    { "record_id": "A002", "source_value": 20, "category": "beta" },
+    { "record_id": "A003", "source_value": 30, "category": "alpha" }
+  ],
+  "_meta": {
+    "origin": "example source dataset",
+    "record_count": 3
+  }
+}

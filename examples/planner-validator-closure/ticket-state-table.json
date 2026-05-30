@@ -1,0 +1,19 @@
+{
+  "tickets": [
+    {
+      "ticket_id": "TICKET-001",
+      "status": "done",
+      "runner_result": "done",
+      "architect_review": "accepted"
+    },
+    {
+      "ticket_id": "TICKET-002",
+      "status": "done",
+      "runner_result": "done",
+      "architect_review": "accepted"
+    }
+  ],
+  "total": 2,
+  "done_count": 2,
+  "open_blockers": []
+}

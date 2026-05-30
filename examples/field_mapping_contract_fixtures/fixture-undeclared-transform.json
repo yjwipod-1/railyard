@@ -1,0 +1,56 @@
+{
+  "fixture_id": "fixture-undeclared-transform",
+  "description": "A transformation is applied that is not declared in the field mapping contract. Expected: warn-level finding, pass overall (unless warnings_as_errors=true).",
+  "source_artifact": {
+    "artifact_kind": "source",
+    "source_path": "examples/field_mapping_contract_fixtures/source_undeclared.json",
+    "data": {
+      "record_id": "r-005",
+      "source_value": 50
+    },
+    "source_header": ["record_id", "source_value"]
+  },
+  "derived_artifact": {
+    "artifact_kind": "derived",
+    "actual_output": {
+      "record_id": "r-005",
+      "derived_value": 100
+    }
+  },
+  "field_mapping_contract": {
+    "contract_id": "field-mapping-undeclared",
+    "version": "0.1.0",
+    "applies_to": "mapping",
+    "validation_scope": "transform_only",
+    "record_selector": null,
+    "source_path": "examples/field_mapping_contract_fixtures/source_undeclared.json",
+    "source_description": "Generic source artifact for undeclared transform fixture",
+    "field_mappings": [
+      {
+        "source_path": "record_id",
+        "derived_path": "record_id",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      },
+      {
+        "source_path": "source_value",
+        "derived_path": "derived_value",
+        "transform": "identity",
+        "required": true,
+        "preserve_sign": false
+      }
+    ],
+    "derived_field": {
+      "derived_path": "derived_value",
+      "source_path": "source_value",
+      "expected_transform": "identity"
+    },
+    "warnings_as_errors": false,
+    "missing_mapping_policy": "fail"
+  },
+  "expected_validation": {
+    "overall_verdict": "pass",
+    "reason": "Mapping exists for derived_value, but the actual transform (multiply by 2) does not match the declared transform (identity). This triggers a warning-level finding under declared_transform_only, but overall_verdict stays pass because warnings_as_errors=false and no error-level findings."
+  }
+}

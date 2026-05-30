@@ -1,0 +1,53 @@
+{
+  "contract_id": "generic-quarterly-mapping-contract",
+  "version": "0.7.0",
+  "validation_scope": "extract_only",
+  "record_selector": {
+    "source_path": "records[0].A",
+    "expected": "record-031"
+  },
+  "missing_mapping_policy": "fail",
+  "warnings_as_errors": false,
+  "field_mappings": [
+    {
+      "derived_field": "record_key",
+      "source_location": "A",
+      "source_description": "Stable source record key",
+      "expected_transform": "identity",
+      "required": true,
+      "preserve_sign": false
+    },
+    {
+      "derived_field": "current_metric",
+      "source_location": "J",
+      "source_description": "Current period metric",
+      "expected_transform": "parse_number_preserve_sign",
+      "required": true,
+      "preserve_sign": false
+    },
+    {
+      "derived_field": "sample_count",
+      "source_location": "M",
+      "source_description": "Count of observations",
+      "expected_transform": "parse_integer",
+      "required": true,
+      "preserve_sign": false
+    },
+    {
+      "derived_field": "quarter_change_pct",
+      "source_location": "O",
+      "source_description": "Quarter change percentage",
+      "expected_transform": "parse_number_preserve_sign",
+      "required": true,
+      "preserve_sign": true
+    },
+    {
+      "derived_field": "year_change_pct",
+      "source_location": "P",
+      "source_description": "Year change percentage",
+      "expected_transform": "parse_number_preserve_sign",
+      "required": true,
+      "preserve_sign": true
+    }
+  ]
+}

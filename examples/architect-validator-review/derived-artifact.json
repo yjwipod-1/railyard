@@ -1,0 +1,10 @@
+{
+  "records": [
+    { "record_id": "A001", "derived_value": 20, "category": "alpha" },
+    { "record_id": "A003", "derived_value": 60, "category": "alpha" }
+  ],
+  "_meta": {
+    "origin": "example derived dataset",
+    "record_count": 2
+  }
+}

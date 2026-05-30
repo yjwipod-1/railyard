@@ -190,6 +190,65 @@ The retry limit does not authorize bypassing helper scripts, direct SQLite edits
 
 Restricted-runner mode is a platform permission fallback for environments where a Runner can edit source files but must not write Control workflow state or Control outbox files. The Architect owns the Control lifecycle, including claim, result marking, review, and outbox writes. The Runner edits only allowed source files, runs validation, removes any allowed temporary probe state it created, and returns exact JSON-compatible result content for the Architect to record.
 
+## Validator Boundary
+
+The Validation Report is optional review evidence. It does not replace Architect review.
+
+- The Validator is read-only: it inspects artifacts and produces reports.
+- The Validator does not modify artifacts, create tickets, close epics, or execute lifecycle transitions.
+- Architect review decisions remain unchanged.
+- Planner epic/release closure decisions remain unchanged.
+
+### Validator dispatch failure boundary
+
+Validator evidence must come from a Validator role execution or an explicitly authorized role-collapsed check.
+
+If Validator dispatch is unavailable, blocked, or produces no retrievable output, the Architect or Planner must:
+
+1. Report the dispatch failure.
+2. Emit the exact spawn-ready Validator prompt and payload.
+3. Stop the Validator step until a Human or external Validator session returns a report.
+
+The Architect or Planner must not create temporary validation scripts, ad hoc validators, direct shell validators, or replacement tooling to simulate an independent Validator. They must not label self-run checks as a Validator report. Explicit Human-authorized role collapse is the only exception, and the output must be labeled as role-collapsed evidence.
+
+### Validator report effect on Architect review
+
+The Architect uses the Validation Report as structured evidence when deciding the review result. The `overall_verdict` from the Validation Report maps to the Architect's review decision as follows:
+
+| Validation Report `overall_verdict` | Architect review action |
+|---|---|
+| `pass` | Accept as supporting evidence; Architect still reviews scope/diff independently. |
+| `fail` | Reject ticket (`review_result=reject`) or redispatch Runner with focused remediation prompt. |
+| `blocked` | Do not accept; collect missing evidence, permission, or artifact. |
+| `inconclusive` | For high-risk tickets, do not accept; provide missing contract/evidence or escalate. |
+| `human_review_required` | Stop and request Human decision before recording review result. |
+| `warn` + `fail` (no `warnings_as_errors`) | Record as non-blocking warning. Architect decides whether it affects acceptance based on risk and ticket acceptance criteria. |
+| `warn` + `fail` (`warnings_as_errors` = true) | Treat as error-level finding; affects overall verdict. |
+| `error` + `fail` | Cannot accept; must reject or redispatch. |
+
+**Source-to-derived rule:** The candidate output must never be the truth source for expected values. Every derived field must have an independent source mapping or declared transformation. For high-risk tasks, missing mapping policy should be `fail` or `human_review_required`, not silent pass. See `references/validator-protocol.md` Sections 5, 6, and 7 for truth hierarchy, severity/status independence, and source-to-derived reconciliation.
+
+**Vague acceptance criteria:** The Architect must not pass vague natural-language acceptance criteria directly to the Validator. If acceptance criteria are vague (e.g., "validate that implementation correctly transforms source artifact" without mapping or evidence expectations), the Architect must translate them into concrete validation input or mark validation as `inconclusive` / `human_review_required`.
+
+### Validator report effect on Planner closure
+
+The Planner uses the Validation Report as structured evidence when deciding epic closure or release readiness. The `overall_verdict` from the Validation Report maps to the Planner's decision as follows:
+
+| Validator `overall_verdict` | Planner action |
+|---|---|
+| `pass` | May close epic or proceed release after Planner judgment |
+| `fail` | Open follow-up ticket or block closure |
+| `blocked` | Collect missing evidence before deciding |
+| `inconclusive` | Request more evidence; do not close high-risk epic |
+| `human_review_required` | Stop; await Human decision |
+
+**The Validator report is Planner evidence only, NOT closure authority.**
+The Validator report does NOT close epic, record lifecycle, or replace Planner judgment.
+The Planner still closes epic through the epic helper.
+The Validator report informs but does not dictate the decision.
+
+**Scope exclusions:** The Planner-side Validator does NOT handle Runner-side Validator self-check, runtime orchestration, automatic repair or remediation, model routing or automatic dispatch, or business-specific rules.
+
 ## MCP-lite Lifecycle Boundary
 
 The optional MCP-lite server is a stdio adapter over helper-backed lifecycle behavior. It does not change the workflow state model.

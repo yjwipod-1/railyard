@@ -99,6 +99,34 @@ Human-required blockers must include:
 - `required_human_action`
 - `recommended_next_action`
 
+## v0.7 Validation Contract Foundation
+
+Railyard v0.7 adds a generic, development-time-first validation contract foundation. It defines how a Validation Contract is applied to artifacts and produces a Validation Report, without embedding project-specific business rules and without runtime orchestration.
+
+The foundation defines three artifacts:
+
+- **Validation Contract**: a declarative specification with `contract_id`, `version`, `description`, `applies_to`, and `rules`.
+- **Validation Report**: structured output with `contract_id`, `contract_version`, and per-artifact `results` including `overall_verdict` and `findings`.
+- **Validator**: a read-only component that applies contracts and produces reports; it does not perform automatic repair, retry, remediation, or runtime orchestration.
+
+The reference implementation in `scripts/validate_artifacts.py` validates artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. This foundation provides the Validation Contract schema, Validation Report schema, and fixture shape validation only. It does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration.
+
+### Validation Report verdicts and findings
+
+Overall verdict values: `pass`, `fail`, `blocked`, `inconclusive`, `human_review_required`.
+Finding severity values: `error`, `warn`, `info`.
+Finding status values: `pass`, `fail`, `not_applicable`, `blocked`, `inconclusive`.
+
+Internal consistency rules:
+- `overall_verdict=pass` means no finding with `severity=error` AND `status=fail`, no `status=blocked`, and no `status=inconclusive`.
+- `overall_verdict=pass` allows findings with `severity=warn` AND `status=fail`.
+- `overall_verdict=fail` means at least one `severity=error` AND `status=fail` finding.
+- `overall_verdict=blocked` means at least one `status=blocked` finding.
+- `overall_verdict=inconclusive` means at least one `status=inconclusive` finding.
+- `overall_verdict=human_review_required` means a non-empty `review_reason` is present.
+
+Future external or runtime-adjacent validation is acknowledged as an extension, not implemented in this foundation ticket; later queued validation work may extend the same contract model.
+
 ## Non-Goals
 
 - Railyard is not an automated error recovery system.
@@ -155,3 +183,4 @@ python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-DEMO-001
 - Epic document format: `references/epic-format.md`
 - Ticket document format: `references/ticket-format.md`
 - Result file format: `references/result-format.md`
+- Validator protocol: `references/validator-protocol.md`
