@@ -239,10 +239,16 @@ def validate_report_consistency(result: dict[str, Any], index: int) -> None:
                 f"results[{index}].overall_verdict=inconclusive requires at least one status=inconclusive finding"
             )
     elif overall == "human_review_required":
-        review_reason = result.get("review_reason", "")
-        if not isinstance(review_reason, str) or not review_reason.strip():
+        has_review_context = (
+            has_inconclusive
+            or has_blocked
+            or any(f.get("status") == "fail" for f in findings)
+            or bool(result.get("missing_evidence"))
+            or bool(str(result.get("notes", "")).strip())
+        )
+        if not has_review_context:
             raise ValidationError(
-                f"results[{index}].overall_verdict=human_review_required requires non-empty review_reason"
+                f"results[{index}].overall_verdict=human_review_required requires findings, missing_evidence, or notes explaining the manual review need"
             )
 
 

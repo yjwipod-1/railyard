@@ -128,7 +128,7 @@ Human-required blockers use a standard shape in the result notes or blocker deta
 ```json
 {
   "category": "authorization_required",
-  "ticket_id": "SYSTEM-001",
+  "ticket_id": "TICKET-EXAMPLE-001",
   "lane": "system",
   "intended_operation": "install required dependency",
   "commands_attempted": ["python -m pip install -r requirements-mcp.txt"],
@@ -196,7 +196,12 @@ The foundation defines three artifacts:
 - **Validation Report**: the structured output produced when a Validation Contract is applied to one or more artifacts. It includes `contract_id`, `contract_version`, and `results` with per-artifact `overall_verdict` (`pass`, `fail`, `blocked`, `inconclusive`, `human_review_required`) and `findings`.
 - **Validator**: the component that applies a Validation Contract to artifacts and produces a Validation Report. The Validator is read-only by default; it does not perform automatic repair, retry, remediation, or runtime orchestration.
 
-The first application of the validation contract in v0.7 is development-time validation of Railyard artifacts. The reference implementation ships with `scripts/validate_artifacts.py`, which validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. This foundation ticket provides the Validation Contract schema, the Validation Report schema, and fixture shape validation only. It does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration.
+The first application of the validation contract in v0.7 is development-time validation of Railyard artifacts. The repository ships two reference scripts:
+
+- `scripts/validate_artifacts.py` validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks.
+- `scripts/validator.py` is a minimal executable Validator for source-to-derived field-mapping checks. It reads a Validator input JSON, loads only the referenced artifacts, applies the declared field mapping contract, and emits a Validation Report JSON.
+
+The executable Validator currently covers source artifact, derived artifact, field mapping contract, required field mappings, `identity`, `multiply_by_2`, `parse_integer`, `parse_number_preserve_sign`, `missing_mapping_policy`, and `warnings_as_errors`. It does not implement runtime orchestration, workflow lifecycle writes, automatic repair, model routing, or business-specific rules.
 
 ### Extension Boundary
 
@@ -204,7 +209,16 @@ The v0.7 foundation deliberately excludes business-specific rules, semantic vali
 
 ### Validator Protocol
 
-The Validator protocol (input slots, output JSON shape, verdict semantics, truth hierarchy, severity/status independence, source-to-derived reconciliation patterns, and missing mapping policy) is defined in `references/validator-protocol.md`. Architects and CI pipelines can copy that document as a dispatch contract for Validator invocations.
+The Validator protocol (input slots, output JSON shape, verdict semantics, truth hierarchy, severity/status independence, source-to-derived reconciliation patterns, and missing mapping policy) is defined in `references/validator-protocol.md`. Architect, Planner, and CI workflows can use that document as the dispatch contract for Validator invocations.
+
+Run the development-time reference implementation with:
+
+```powershell
+python scripts\validator.py --input examples\source-derived-mapping-review\validator-input.json
+python scripts\validator.py --input examples\source-derived-mapping-review\validator-input.json --output report.json
+```
+
+Planner closure and release-readiness examples are accepted as input shape examples. The minimal script reports those as `human_review_required` until a dedicated Planner-side readiness contract is implemented.
 
 ### Relationship to Runner Result
 
@@ -213,6 +227,30 @@ The Validation Report is distinct from the Runner result format defined in `refe
 - The Runner result (`runner_status: done/partial/blocked/invalid`) expresses whether a ticket's work is complete from a Runner's perspective.
 - The Validation Report (`overall_verdict: pass/fail/blocked/inconclusive/human_review_required`) expresses whether one or more artifacts satisfy one or more structural or semantic checks.
 - A Runner result may include a Validation Report as structured evidence. The `validation` array in the Runner result can reference validation command outputs.
+
+## v0.7 Validator Role
+
+The Validator is a read-only verification role that applies a Validation Contract to artifacts and produces a Validation Report. It is dispatched by two roles at different stages of the workflow: the Architect dispatches the Validator during ticket review, and the Planner dispatches the Validator before epic or release closure.
+
+The Validator report is evidence, not lifecycle authority. It does not modify artifacts, record lifecycle transitions, close epics, or replace Architect review and Planner judgment. The Architect decides accept or reject based on the report plus scope and diff review. The Planner decides epic closure based on the report plus the full ticket state table. The Validator informs; it does not decide.
+
+The minimum dispatch payload includes: source artifacts, candidate implementation, and relevant documentation; a validation contract or done definition derived from ticket acceptance criteria; an evidence pack with raw source values, headers, schemas, and command outputs; a risk level (low, medium, or high); a read-only command allowance listing commands the Validator is authorized to execute; and an output schema requirement mandating a single JSON object conforming to the Validation Report shape.
+
+| Role | Nature | Can decide lifecycle? | Can modify? | Output |
+|---|---|---|---|---|
+| Runner | execution | no | yes, scoped source/work artifacts | Runner Result |
+| Validator | read-only verification | no | no | Validation Report |
+| Architect | lane owner / reviewer | yes, ticket review within lane | yes, workflow-scoped | Review Result / Runner dispatch |
+| Planner | cross-lane coordinator | yes, epic closure and direction | yes, planning-level | Epic closure / direction |
+
+### Validator Examples
+
+Reference examples for Validator dispatch and review:
+
+- [Architect Validator Review](examples/architect-validator-review/) - Architect dispatches the Validator during ticket review, receives a Validation Report, and maps the verdict to an accept/reject decision.
+- [Source-Derived Mapping Review](examples/source-derived-mapping-review/) - Validator applies a field-mapping contract to source-to-derived artifacts and reports reconciliation findings.
+- [Planner Validator Closure](examples/planner-validator-closure/) - Planner invokes the Validator before epic closure; the report serves as evidence while the Planner retains closure authority.
+- [Planner Validator Release Review](examples/planner-validator-release-review/) - Planner uses the Validator for release readiness, scanning public artifacts and cross-ticket consistency.
 
 ## Architecture
 

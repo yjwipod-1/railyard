@@ -165,7 +165,7 @@ Minimal valid output:
 | `fail` | At least one `severity=error` AND `status=fail` finding exists. |
 | `blocked` | At least one finding has `status=blocked` and the check could not run. |
 | `inconclusive` | At least one finding has `status=inconclusive` and evidence is insufficient. |
-| `human_review_required` | Findings exist that require manual review before a verdict can be assigned. A non-empty `review_reason` SHOULD be provided. |
+| `human_review_required` | Findings exist that require manual review before a verdict can be assigned. The reason SHOULD be present in `findings`, `missing_evidence`, or `notes`. |
 
 **Important:** `warn` is NOT an overall verdict value. Warnings are expressed
 via finding `severity=warn` combined with a `status`.
@@ -251,11 +251,12 @@ overall_verdict = fail
 overall_verdict = blocked
     IF no error/fail findings but any finding has status=blocked
 
-overall_verdict = inconclusive
-    IF no error/fail and no blocked findings but any finding has status=inconclusive
-
 overall_verdict = human_review_required
-    IF contract requires human review for current findings
+    IF no error/fail and no blocked findings exist, and contract or findings require human review
+
+overall_verdict = inconclusive
+    IF no error/fail, no blocked findings, and no human_review_required trigger exists,
+    but any finding has status=inconclusive
 
 overall_verdict = pass
     IF no error/fail, no blocked, no inconclusive findings, and no human_review_required trigger
@@ -362,7 +363,7 @@ applies one of the following policies:
 |---|---|
 | `inconclusive` | The field is marked `status=inconclusive`. The overall verdict is `inconclusive` if no other evidence resolves it. |
 | `fail` | The field is marked `status=fail`. If `risk_level=high` or the field is critical, the overall verdict is `fail`. |
-| `human_review_required` | The field is flagged for manual review. The Validator sets `overall_verdict=human_review_required` and provides a `review_reason`. |
+| `human_review_required` | The field is flagged for manual review. The Validator sets `overall_verdict=human_review_required` and records the reason in `findings`, `missing_evidence`, or `notes`. |
 
 **Recommendation for high-risk tasks:** For high-risk source-to-derived
 transformations (e.g., data migration, financial data transforms), recommend
@@ -492,6 +493,23 @@ Validator input:
 Validator output:
   See Section 7.3 for the expected JSON shape.
 ```
+
+### Development-time reference implementation
+
+The repository includes a minimal executable reference for source-to-derived
+field-mapping validation:
+
+```powershell
+python scripts\validator.py --input <validator-input.json> [--output <report.json>]
+```
+
+This script reads only the input JSON and referenced artifacts, applies the
+field mapping contract, and emits a Validation Report JSON. It supports
+`identity`, `multiply_by_2`, `parse_integer`,
+`parse_number_preserve_sign`, `missing_mapping_policy`, and
+`warnings_as_errors`. It does not perform workflow lifecycle writes,
+automatic repair, runtime orchestration, model routing, or business-specific
+rules.
 
 ## 10. Planner-Side Validator Input Slots
 

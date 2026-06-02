@@ -298,12 +298,18 @@ The Validation Report is distinct from the Runner result format defined in `refe
 
 The generic validation contract itself does not prescribe a JSON Schema or any specific validation engine. It defines the data model (Contract, Report, Finding) and the rule evaluation semantics. Implementations may use JSON Schema, custom checks, or any other mechanism as long as the Contract and Report shapes are preserved.
 
-A minimal reference implementation ships with `scripts/validate_artifacts.py`, which validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. This foundation ticket provides the Validation Contract schema, the Validation Report schema, and fixture shape validation only. It does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration. External artifact validation and runtime orchestration are not implemented in this foundation ticket; later queued validation work may extend the same contract model.
+Two development-time reference scripts ship with this foundation:
+
+- `scripts/validate_artifacts.py` validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks.
+- `scripts/validator.py` is a minimal executable Validator for source-to-derived field-mapping validation. It accepts `python scripts\validator.py --input <validator-input.json> [--output <report.json>]`, reads only the input JSON and referenced artifacts, and emits a Validation Report JSON.
+
+The executable Validator supports source artifact, derived artifact, field mapping contract, required field mappings, `identity`, `multiply_by_2`, `parse_integer`, `parse_number_preserve_sign`, `missing_mapping_policy`, and `warnings_as_errors`. It does not implement external runtime orchestration, workflow lifecycle writes, automatic repair, model routing, or business-specific rules. Planner closure and release-readiness inputs may be reported as `human_review_required` until a dedicated Planner-side readiness implementation exists.
 
 ## See Also
 
 - `references/result-format.md` - Runner result JSON format.
 - `references/lifecycle.md` - Lifecycle state transitions and boundaries.
 - `references/roles.md` - Role boundaries including Architect and Planner decision ownership.
-- `scripts/validate_artifacts.py` - Reference validator implementation.
+- `scripts/validate_artifacts.py` - Artifact shape validator.
+- `scripts/validator.py` - Minimal source-to-derived Validator reference implementation.
 - `assets/skeleton/docs/templates/VALIDATION-CONTRACT.json` - Generic contract template.

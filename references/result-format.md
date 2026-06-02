@@ -99,7 +99,7 @@ When `runner_status` is `blocked` because Human action is required, include a st
 ```json
 {
   "category": "authorization_required",
-  "ticket_id": "SYSTEM-001",
+  "ticket_id": "TICKET-EXAMPLE-001",
   "lane": "system",
   "intended_operation": "run validation requiring network access",
   "commands_attempted": ["python scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db --project-root ."],
