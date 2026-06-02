@@ -109,7 +109,19 @@ The foundation defines three artifacts:
 - **Validation Report**: structured output with `contract_id`, `contract_version`, and per-artifact `results` including `overall_verdict` and `findings`.
 - **Validator**: a read-only component that applies contracts and produces reports; it does not perform automatic repair, retry, remediation, or runtime orchestration.
 
-The reference implementation in `scripts/validate_artifacts.py` validates artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. This foundation provides the Validation Contract schema, Validation Report schema, and fixture shape validation only. It does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration.
+The repository includes two development-time reference scripts:
+
+- `scripts/validate_artifacts.py` validates artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks.
+- `scripts/validator.py` runs a minimal executable Validator for source-to-derived field-mapping checks and emits the Validator Protocol report shape.
+
+`scripts/validator.py` supports source and derived JSON artifacts, a field mapping contract, required field mappings, `identity`, `multiply_by_2`, `parse_integer`, `parse_number_preserve_sign`, `missing_mapping_policy`, and `warnings_as_errors`. It is read-only with respect to input artifacts and workflow state. It does not implement automatic repair, runtime orchestration, model routing, lifecycle writes, or business-specific rules.
+
+Run it with:
+
+```powershell
+python scripts\validator.py --input examples\source-derived-mapping-review\validator-input.json
+python scripts\validator.py --input examples\source-derived-mapping-review\validator-input.json --output report.json
+```
 
 ### Validation Report verdicts and findings
 
@@ -123,7 +135,7 @@ Internal consistency rules:
 - `overall_verdict=fail` means at least one `severity=error` AND `status=fail` finding.
 - `overall_verdict=blocked` means at least one `status=blocked` finding.
 - `overall_verdict=inconclusive` means at least one `status=inconclusive` finding.
-- `overall_verdict=human_review_required` means a non-empty `review_reason` is present.
+- `overall_verdict=human_review_required` means the findings, missing evidence, or notes identify an issue that requires manual review before a verdict can be assigned.
 
 Future external or runtime-adjacent validation is acknowledged as an extension, not implemented in this foundation ticket; later queued validation work may extend the same contract model.
 

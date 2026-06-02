@@ -22,7 +22,8 @@ All notable public-facing changes to Railyard are summarized here.
 - Updated finding status to pass/fail/not_applicable/blocked/inconclusive; finding severity to error/warn/info.
 - The reference implementation provides deterministic shape validation for Railyard artifacts including tickets, epics, result files, queue examples, validation contracts, and validation reports.
 - The Validator is read-only by default: it inspects artifacts and produces reports without modifying them, creating tickets, or executing lifecycle transitions.
-- Schema and shape validation only. Does not implement rule execution, rule-driven report generation, external artifact invocation, automatic repair, or runtime orchestration.
+- Added `scripts/validator.py` as a minimal executable source-to-derived Validator reference implementation with CLI input/output, field-mapping validation, supported generic transforms, missing mapping policy, and warning escalation semantics.
+- `scripts/validate_artifacts.py` remains schema and shape validation only; `scripts/validator.py` provides the bounded source-to-derived rule execution described above. Neither script implements external runtime orchestration, automatic repair, model routing, lifecycle writes, or business-specific rules.
 - Future queued validation work may extend the same generic contract model.
 
 ## Unreleased / v0.5
