@@ -169,6 +169,8 @@ Validation Contracts MAY include these optional generic knobs:
 
 For generic source-to-derived reconciliation patterns (field mapping requirements, source value preservation, record identity, missing mapping policy), see `references/validator-protocol.md` Section 7. This pattern is designed to be generic across data transforms, ingestion, migration, generated artifacts, and constrained output validation.
 
+For the canonical catalog of all deterministic validation primitives, including source replay, field mapping, value/sign preservation, formula recompute, record/key reconciliation, availability handling, claim grounding, and publish gate aggregation, see `references/validation-primitive-registry.md`.
+
 ### Field Mapping Contract Shape
 
 The field mapping contract is a generic framework-level contract shape for source-to-derived field reconciliation. It is not tied to any specific data format, domain, or business logic.
@@ -300,10 +302,60 @@ The generic validation contract itself does not prescribe a JSON Schema or any s
 
 Two development-time reference scripts ship with this foundation:
 
-- `scripts/validate_artifacts.py` validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks.
+- `scripts/validate_artifacts.py` validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. It does not execute an independent Validator role and cannot satisfy a ticket's required Validator gate.
 - `scripts/validator.py` is a minimal executable Validator for source-to-derived field-mapping validation. It accepts `python scripts\validator.py --input <validator-input.json> [--output <report.json>]`, reads only the input JSON and referenced artifacts, and emits a Validation Report JSON.
 
 The executable Validator supports source artifact, derived artifact, field mapping contract, required field mappings, `identity`, `multiply_by_2`, `parse_integer`, `parse_number_preserve_sign`, `missing_mapping_policy`, and `warnings_as_errors`. It does not implement external runtime orchestration, workflow lifecycle writes, automatic repair, model routing, or business-specific rules. Planner closure and release-readiness inputs may be reported as `human_review_required` until a dedicated Planner-side readiness implementation exists.
+
+## Contract Ownership, Placement, and Handoff
+
+A Validation Contract moves through the workflow in defined stages. Each role has explicit responsibilities; no role silently redefines the contract produced by another role.
+
+### Ownership by Role
+
+| Role | Responsibility |
+|---|---|
+| **Human** | Defines unacceptable risk categories and business failure types that drive contract requirements. Approves or rejects contract adequacy when escalated. |
+| **Planner** | Defines epic-level contract intent, done definition, cross-ticket dependency, and closure criteria. Contract intent lives in the Epic. |
+| **Architect** | Translates Planner intent into an executable Validation Contract, schema, ticket acceptance criteria, and Validator dispatch payload. Executable contract lives in the Ticket or a ticket-scoped artifact. |
+| **Runner** | Implements against the contract. Does not redefine, weaken, or bypass the contract. Reports contract inadequacy as a blocker rather than silently working around it. |
+| **Validator** | Checks artifacts against the contract as given. Produces a Validation Report only. Does not modify the contract, write lifecycle state, or close epics. |
+
+### Contract Placement
+
+- **Contract intent** belongs in the Epic. The Planner records what the contract must achieve at the epic level: done definition, closure criteria, cross-ticket consistency requirements, and unacceptable failure modes.
+- **Executable contract** belongs in the Ticket or a ticket-scoped artifact. The Architect produces the concrete rules, field mappings, check logic, and dispatch payload that the Validator applies.
+- A ticket's `validator_contract_source` metadata field references the contract or acceptance criteria the Validator must apply.
+- The separation ensures the Planner can express intent without prescribing implementation, and the Architect can produce precise checks without redefining epic-level goals.
+
+### Insufficient or Missing Contract
+
+When a Validation Contract is missing, incomplete, or too vague to produce a deterministic verdict, no role must silently pass the check. The handling is split across two phases.
+
+**Phase 1 -- Architect pre-dispatch gate.**
+Before dispatching the Validator, the Architect verifies that a sufficient executable contract exists at the ticket level.
+
+- **Missing contract**: The Architect does not dispatch the Validator. The Architect stops and requests the contract before proceeding.
+- **Incomplete contract** (e.g., rules cover some fields but not all required fields): The Architect does not dispatch the Validator for uncovered scope. The Architect escalates or provides the missing rules before dispatch.
+- **Vague contract** (e.g., natural-language intent without checkable rules): The Architect translates intent into concrete, checkable rules before dispatch. If the intent cannot be translated into deterministic checks, the Architect does not dispatch the Validator and escalates to the Human for contract clarification.
+
+**Phase 2 -- Validator post-dispatch report.**
+After receiving the dispatch payload, if the Validator determines that the contract is missing, insufficient, or too vague to produce a deterministic verdict for some or all scope, the Validator returns `inconclusive`, `blocked`, or `human_review_required` with `missing_evidence` describing the gap. The Validator must not return a hard `pass` for uncovered scope.
+
+**Runner observes missing contract.**
+If the Runner receives a ticket whose contract is missing or insufficient to guide implementation, the Runner reports `blocked` with the blocker category `unresolved_dependency` rather than silently proceeding without a contract or inventing one.
+
+In all cases, a hard `pass` is forbidden when the contract is insufficient to determine correctness.
+
+### Handoff Sequence
+
+1. **Human** declares unacceptable risk and failure types at the project or epic level.
+2. **Planner** encodes contract intent, done definition, and closure criteria in the Epic.
+3. **Architect** produces the executable contract, attaches it to the ticket or ticket-scoped artifact, and constructs the Validator dispatch payload referencing it.
+4. **Runner** implements against the executable contract and references it in the result.
+5. **Validator** applies the contract as given and returns a Validation Report.
+6. **Architect** reviews the Runner result and Validator report against the ticket acceptance criteria.
+7. **Planner** reviews closure readiness against the epic-level contract intent and done definition.
 
 ## See Also
 

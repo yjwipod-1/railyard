@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-value-transform-pass",
+  "primitive_id": "value_transform_correctness",
+  "rule_id": "value_transform_correctness",
+  "registry_section": "4.3",
+  "expected_verdict": "pass",
+  "expected_decisive_findings": [
+    {"rule_id": "value_transform_correctness", "status": "pass", "severity": "error"}
+  ]
+}

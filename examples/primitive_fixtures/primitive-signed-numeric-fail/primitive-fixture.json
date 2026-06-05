@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-signed-numeric-fail",
+  "primitive_id": "signed_numeric_preservation",
+  "rule_id": "signed_numeric_preservation",
+  "registry_section": "4.2",
+  "expected_verdict": "fail",
+  "expected_decisive_findings": [
+    {"rule_id": "signed_numeric_preservation", "status": "fail", "severity": "error"}
+  ]
+}

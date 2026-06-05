@@ -12,6 +12,7 @@ Typical responsibilities:
 - inspect open epics
 - decide whether new work belongs to an existing epic
 - create or revise a ticket
+- record the ticket's explicit Validator gate decision before publishing it
 - dispatch or assign Runner work when execution is ready
 - review runner output
 - provide closure-readiness evidence for epics, but must not close epics by default (this is a Planner responsibility)
@@ -27,6 +28,26 @@ Default limits:
 - do not personally implement rejected Runner fixes unless the Human explicitly changes the current role boundary
 - after reject, redispatch Runner automatically when an execution-capable path exists, current authorization allows it, and the same-kind failure limit has not been reached
 - stop and report a blocker when redispatch needs Human authorization, no safe Runner path exists, or three same-kind failures have occurred
+- do not accept a Validator-required ticket without an independent Validator role report that permits acceptance under the ticket's declared failure behavior
+
+### Planner And Architect Ticket Drafting Gate
+
+The role that drafts or publishes a ticket, whether Planner or Architect, owns
+the Validator gate decision before Runner dispatch.
+
+- Every new ticket must set `validator_required` to `true` or `false` and explain
+  the decision in `validator_gate_reason`.
+- Historical tickets missing both fields remain valid and usable. The missing
+  metadata is a legacy unknown state, not a no-gate decision.
+- The drafter must consider a Validator gate for data transform, ingest,
+  migration, source-to-derived artifacts, generated artifacts with measurable
+  constraints, high-risk implementation, and derived authoritative data.
+- A Validator-required ticket must record risk level, contract or acceptance
+  criteria source, expected artifacts, evidence pack, and failure behavior.
+- The metadata must be sufficient for the Architect to construct the Validator
+  dispatch without inventing missing criteria during review.
+- The drafter does not satisfy the gate by running `scripts/validate_artifacts.py`,
+  Runner verification scripts, or self-review.
 
 ### `runner`
 
@@ -66,6 +87,43 @@ The Validator is a read-only contract executor.
 
 Runner validation remains normal unit, smoke, fixture, and artifact testing; it does not require a separate Validator role unless a project explicitly defines that extension.
 
+`scripts/validate_artifacts.py` is artifact-shape validation only. It may confirm
+that a ticket declares complete Validator gate metadata, but it does not execute
+the independent Validator role and cannot satisfy a required gate.
+
+## Validation Contract Ownership by Role
+
+A Validation Contract is authored by one role and consumed by others. No role silently redefines a contract produced by another role. For the full contract placement and handoff protocol, see `references/validation-contract.md`.
+
+### Human
+
+- Defines unacceptable risk categories and business failure types that drive contract requirements.
+- Approves or rejects contract adequacy when the Architect or Planner escalates insufficient or ambiguous contract intent.
+
+### Planner
+
+- Defines epic-level contract intent: done definition, cross-ticket dependency, closure criteria, and unacceptable failure modes.
+- Contract intent lives in the Epic document or epic-scoped metadata.
+- Does not produce the executable contract; that is Architect work.
+
+### Architect
+
+- Translates Planner contract intent into an executable Validation Contract with concrete rules, field mappings, schemas, ticket acceptance criteria, and Validator dispatch payload.
+- Executable contract lives in the Ticket or a ticket-scoped artifact referenced by `validator_contract_source`.
+- Constructs the Validator dispatch input without weakening the declared gate.
+- When a contract is missing, incomplete, or vague, the Architect stops and escalates rather than passing the check.
+
+### Runner
+
+- Implements against the contract as given. Does not redefine, weaken, or bypass the contract.
+- Reports contract inadequacy (missing, inapplicable, or contradictory) as a `blocked` result with `unresolved_dependency` rather than silently working around it.
+
+### Validator
+
+- Applies the contract as given and produces a Validation Report only.
+- Does not modify the contract, write lifecycle state, close epics, or make acceptance decisions.
+- When the contract is insufficient to produce a deterministic verdict, returns `inconclusive` or `human_review_required` with `missing_evidence`, never a hard `pass`.
+
 ## Validator Dispatch Failure Boundary
 
 Architect and Planner sessions may dispatch the Validator as a separate workflow role, but they must not silently collapse into the Validator role when dispatch fails.
@@ -78,7 +136,9 @@ Architect and Planner sessions may dispatch the Validator as a separate workflow
 
 ## Architect-to-Validator Responsibility
 
-The Architect owns the decision to dispatch the Validator and the construction of Validator input.
+The ticket drafter owns the gate decision and required dispatch metadata. The
+Architect owns Validator dispatch, verifies the ticket metadata is sufficient,
+and constructs the Validator input without weakening the declared gate.
 
 ### Architect dispatch decision
 
@@ -91,6 +151,18 @@ The Architect MUST dispatch the Validator when a ticket involves:
 - high-risk implementation tickets (incorrect output causes data loss or inconsistency)
 - acceptance that depends on semantic or structural correctness beyond command success
 - derived authoritative data used by later workflow steps
+
+If the ticket declares `validator_required: true`, the Architect MUST dispatch
+the Validator before acceptance even when Runner verification and artifact
+shape validation pass. If dispatch is unavailable, the Architect stops and
+returns the exact spawn-ready Validator prompt and payload instead of accepting
+or substituting self-review.
+
+For `accept` or `accept_with_changes`, the Architect supplies a verifiable
+independent Validator report reference record. The helper verifies the record,
+the referenced report SHA-256, the Validator Protocol report shape, and a
+permitting `pass` verdict. `fail`, `blocked`, `inconclusive`, and
+`human_review_required` do not permit acceptance.
 
 ### Architect-constructed Validator input
 

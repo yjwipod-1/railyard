@@ -28,6 +28,14 @@ VALID_BLOCKER_CATEGORIES = {
 }
 VALID_VALIDATION_SCOPES = {"extract_only", "transform_only", "ingest_to_db"}
 VALID_MISSING_MAPPING_POLICIES = {"inconclusive", "fail", "human_review_required"}
+VALID_VALIDATOR_RISK_LEVELS = {"low", "medium", "high"}
+VALIDATOR_REQUIRED_METADATA_FIELDS = {
+    "validator_risk_level",
+    "validator_contract_source",
+    "validator_expected_artifacts",
+    "validator_evidence_pack",
+    "validator_failure_behavior",
+}
 FIELD_MAPPING_ROOT_FIELDS = {
     "contract_id", "version", "applies_to", "validation_scope",
     "field_mappings", "derived_field", "source_path",
@@ -37,8 +45,34 @@ FIELD_MAPPING_FIXTURE_FIELDS = {
     "fixture_id", "description", "source_artifact",
     "derived_artifact", "field_mapping_contract", "expected_validation",
 }
+PRIMITIVE_FIXTURE_REQUIRED_FIELDS = {
+    "fixture_id", "primitive_id", "rule_id",
+    "registry_section", "expected_verdict", "expected_decisive_findings",
+}
+PRIMITIVE_FIXTURE_REQUIRED_DIR_FILES = {
+    "primitive-fixture.json",
+    "validator-input.json",
+    "source.json",
+    "derived.json",
+    "mapping-contract.json",
+}
+VALID_PRIMITIVE_IDS = {
+    "source_availability",
+    "field_mapping_required",
+    "value_transform_correctness",
+    "signed_numeric_preservation",
+    "record_identity_preservation",
+    "unmapped_field_availability",
+}
+PRIMITIVE_FIXTURE_ARTIFACT_TYPES = {"source", "derived", "contract"}
 
-TICKET_REQUIRED_FIELDS = {"ticket_id", "epic_id", "task_mode", "task_type", "priority"}
+TICKET_REQUIRED_FIELDS = {
+    "ticket_id",
+    "epic_id",
+    "task_mode",
+    "task_type",
+    "priority",
+}
 TICKET_REQUIRED_SECTIONS = ("Task", "Scope", "Acceptance Checks")
 EPIC_REQUIRED_FIELDS = {"epic_id", "lane", "status", "priority"}
 EPIC_REQUIRED_SECTIONS = ("Summary", "Done Definition")
@@ -120,6 +154,29 @@ def validate_ticket(path: pathlib.Path) -> None:
     priority = frontmatter["priority"].lower()
     if priority not in VALID_PRIORITIES:
         raise ValidationError(f"invalid priority {priority!r}")
+    has_validator_required = "validator_required" in frontmatter
+    has_validator_gate_reason = "validator_gate_reason" in frontmatter
+    if not has_validator_required and not has_validator_gate_reason:
+        return
+    gate_missing = missing_fields(frontmatter, {"validator_required", "validator_gate_reason"})
+    if gate_missing:
+        raise ValidationError(
+            "partial Validator gate metadata missing required fields: " + ", ".join(gate_missing)
+        )
+    validator_required = frontmatter["validator_required"].lower()
+    if validator_required not in {"true", "false"}:
+        raise ValidationError("validator_required must be true or false")
+    if validator_required == "true":
+        gate_missing = missing_fields(frontmatter, VALIDATOR_REQUIRED_METADATA_FIELDS)
+        if gate_missing:
+            raise ValidationError(
+                "validator_required=true missing gate metadata: " + ", ".join(gate_missing)
+            )
+        risk_level = frontmatter["validator_risk_level"].lower()
+        if risk_level not in VALID_VALIDATOR_RISK_LEVELS:
+            raise ValidationError(
+                f"invalid validator_risk_level {risk_level!r}; expected one of {sorted(VALID_VALIDATOR_RISK_LEVELS)}"
+            )
 
 
 def validate_epic(path: pathlib.Path) -> None:
@@ -616,6 +673,139 @@ def validate_example_validator_report_func(data: dict[str, Any]) -> None:
                 )
 
 
+def validate_primitive_fixture(
+    data: dict[str, Any],
+    fixture_dir: pathlib.Path,
+    project_root: pathlib.Path,
+) -> None:
+    """Validate a primitive fixture metadata JSON against the v0.7.2 shape.
+
+    Validates:
+      - Required JSON fields are present
+      - primitive_id == rule_id
+      - expected_decisive_findings[*].rule_id == primitive_id
+      - expected_verdict is a valid verdict
+      - Directory contains all required files (or documented absence)
+      - validator-input.json artifact paths resolve relative to project_root
+    """
+    if not isinstance(data, dict):
+        raise ValidationError("primitive fixture must be an object")
+
+    missing = missing_fields(data, PRIMITIVE_FIXTURE_REQUIRED_FIELDS)
+    if missing:
+        raise ValidationError(f"primitive fixture missing required fields: {', '.join(missing)}")
+
+    require_string(data, "fixture_id")
+    require_string(data, "primitive_id")
+    require_string(data, "rule_id")
+    require_string(data, "registry_section")
+
+    primitive_id = data["primitive_id"]
+    if primitive_id not in VALID_PRIMITIVE_IDS:
+        raise ValidationError(
+            f"primitive_id must be one of {sorted(VALID_PRIMITIVE_IDS)}, got {primitive_id!r}"
+        )
+
+    rule_id = data["rule_id"]
+    if rule_id != primitive_id:
+        raise ValidationError(
+            f"rule_id {rule_id!r} must equal primitive_id {primitive_id!r}"
+        )
+
+    verdict = data["expected_verdict"]
+    if verdict not in VALID_OVERALL_VERDICTS:
+        raise ValidationError(
+            f"expected_verdict must be one of {sorted(VALID_OVERALL_VERDICTS)}, got {verdict!r}"
+        )
+
+    findings = data["expected_decisive_findings"]
+    if not isinstance(findings, list) or not findings:
+        raise ValidationError("expected_decisive_findings must be a non-empty array")
+    for fidx, finding in enumerate(findings):
+        if not isinstance(finding, dict):
+            raise ValidationError(f"expected_decisive_findings[{fidx}] must be an object")
+        require_string(finding, "rule_id")
+        require_string(finding, "status")
+        finding_rule_id = finding["rule_id"]
+        if finding_rule_id != primitive_id:
+            raise ValidationError(
+                f"expected_decisive_findings[{fidx}].rule_id {finding_rule_id!r} "
+                f"must equal primitive_id {primitive_id!r}"
+            )
+        if finding["status"] not in VALID_FINDING_STATUSES and finding["status"] != "absent":
+            raise ValidationError(
+                f"expected_decisive_findings[{fidx}].status must be one of "
+                f"{sorted(VALID_FINDING_STATUSES)} or 'absent', got {finding['status']!r}"
+            )
+        if "severity" in finding:
+            if finding["severity"] not in VALID_FINDING_SEVERITIES:
+                raise ValidationError(
+                    f"expected_decisive_findings[{fidx}].severity must be one of "
+                    f"{sorted(VALID_FINDING_SEVERITIES)}, got {finding['severity']!r}"
+                )
+
+    # -- Directory completeness --
+    intentionally_missing = set(data.get("intentionally_missing_artifacts", []))
+    invalid_types = intentionally_missing - PRIMITIVE_FIXTURE_ARTIFACT_TYPES
+    if invalid_types:
+        raise ValidationError(
+            f"intentionally_missing_artifacts contains invalid types: {sorted(invalid_types)}"
+        )
+
+    file_type_map = {
+        "source": "source.json",
+        "derived": "derived.json",
+        "contract": "mapping-contract.json",
+    }
+    for art_type, filename in file_type_map.items():
+        expected_path = fixture_dir / filename
+        present = expected_path.exists()
+        if art_type in intentionally_missing:
+            if present:
+                raise ValidationError(
+                    f"Artifact {filename} exists but is declared intentionally_missing"
+                )
+        else:
+            if not present:
+                raise ValidationError(
+                    f"Required artifact {filename} is missing "
+                    f"and not listed in intentionally_missing_artifacts"
+                )
+
+    # -- validator-input.json must exist at fixture_dir --
+    vi_path = fixture_dir / "validator-input.json"
+    if not vi_path.exists():
+        raise ValidationError(f"validator-input.json not found at {vi_path}")
+
+    # -- validator-input.json artifact paths must resolve --
+    try:
+        vi_data = json.loads(vi_path.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"validator-input.json is invalid JSON: {exc}") from exc
+
+    if not isinstance(vi_data, dict):
+        raise ValidationError("validator-input.json must be a JSON object")
+
+    artifacts = vi_data.get("artifacts")
+    if not isinstance(artifacts, list):
+        raise ValidationError("validator-input.json artifacts must be an array")
+
+    for idx, entry in enumerate(artifacts):
+        if not isinstance(entry, dict):
+            raise ValidationError(f"validator-input.json artifacts[{idx}] must be an object")
+        path_val = entry.get("path")
+        if not isinstance(path_val, str) or not path_val.strip():
+            raise ValidationError(
+                f"validator-input.json artifacts[{idx}].path must be a non-empty string"
+            )
+        resolved = (project_root / path_val).resolve()
+        if not resolved.exists():
+            raise ValidationError(
+                f"validator-input.json artifacts[{idx}].path {path_val!r} "
+                f"does not resolve to an existing file (resolved: {resolved})"
+            )
+
+
 def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Path]]:
     artifacts: list[tuple[str, pathlib.Path]] = []
     for lane in sorted(VALID_LANES):
@@ -631,6 +821,8 @@ def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Pat
     examples = project_root / "examples"
     if examples.exists():
         artifacts.extend(("queue", path) for path in sorted(examples.glob("**/queue.json")))
+        artifacts.extend(("ticket", path) for path in sorted(examples.glob("**/DOMAIN-*.md")))
+        artifacts.extend(("ticket", path) for path in sorted(examples.glob("**/SYSTEM-*.md")))
     # Also validate Validation Report and Contract JSON files under examples
     if examples.exists():
         artifacts.extend(("report", path) for path in sorted(examples.glob("**/report.json")))
@@ -641,6 +833,14 @@ def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Pat
         fixture_dir = examples / "field_mapping_contract_fixtures"
         if fixture_dir.exists():
             artifacts.extend(("fixture", path) for path in sorted(fixture_dir.glob("fixture-*.json")))
+    # Validate primitive fixture metadata under examples
+    if examples.exists():
+        primitive_fixture_dir = examples / "primitive_fixtures"
+        if primitive_fixture_dir.exists():
+            artifacts.extend(
+                ("primitive-fixture", path)
+                for path in sorted(primitive_fixture_dir.glob("**/primitive-fixture.json"))
+            )
     # Validate Validator usage example inputs and reports under examples
     if examples.exists():
         for item in sorted(examples.iterdir()):
@@ -673,6 +873,11 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         payload = load_json(path)
         validate_example_validator_report_func(payload)
 
+    def validate_primitive_fixture_func(path: pathlib.Path) -> None:
+        payload = load_json(path)
+        fixture_dir = path.parent
+        validate_primitive_fixture(payload, fixture_dir, project_root)
+
     validators = {
         "ticket": validate_ticket,
         "epic": validate_epic,
@@ -683,6 +888,7 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         "fixture": validate_fixture,
         "example-validator-input": validate_example_validator_input,
         "example-validator-report": validate_example_validator_report,
+        "primitive-fixture": validate_primitive_fixture_func,
     }
     checked: list[dict[str, str]] = []
     errors: list[dict[str, str]] = []
@@ -699,6 +905,8 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
 
     return {
         "status": "ok" if not errors else "failed",
+        "validation_kind": "artifact_shape",
+        "independent_validator_evidence": False,
         "project_root": str(project_root),
         "counts": counts,
         "checked": checked,
@@ -707,7 +915,7 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate Railyard workflow artifacts and example queues.")
+    parser = argparse.ArgumentParser(description="Validate Railyard workflow artifact shapes and example queues.")
     parser.add_argument("--project-root", default=str(ROOT), help="Repository or disposable project root to validate.")
     return parser.parse_args()
 

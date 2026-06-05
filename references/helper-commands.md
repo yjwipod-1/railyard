@@ -24,7 +24,7 @@ python railyard/scripts/epic.py --lane system upsert --epic-id SYSTEM-E001 --tit
 ```powershell
 python railyard/scripts/ticket.py --lane domain sync-mailbox
 python railyard/scripts/ticket.py --lane domain sync-mailbox --reset-lifecycle
-python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define MVP spec" --task "Create docs/mvp_spec.md from the project brief." --scope "Create docs/mvp_spec.md" --acceptance-check "MVP scope and exclusions are explicit"
+python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define MVP spec" --task "Create docs/mvp_spec.md from the project brief." --scope "Create docs/mvp_spec.md" --acceptance-check "MVP scope and exclusions are explicit" --validator-not-required --validator-gate-reason "Documentation-only ticket with no independent semantic gate."
 python railyard/scripts/ticket.py --lane domain next --actor runner
 python railyard/scripts/ticket.py --lane domain list --status running --next-actor runner
 python railyard/scripts/ticket.py --lane domain show --ticket-id DOMAIN-001
@@ -33,6 +33,7 @@ python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM
 python railyard/scripts/ticket.py --lane domain mark-runner-result --ticket-id DOMAIN-001 --runner-result done --outbox-path docs/domain/outbox/DOMAIN-001.result.json
 python railyard/scripts/ticket.py --lane domain start-review --ticket-id DOMAIN-001 --claimed-by domain-architect
 python railyard/scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
+python railyard/scripts/ticket.py --lane system mark-review-result --ticket-id SYSTEM-001 --review-result accept --validator-report-record evidence/SYSTEM-001.validator-record.json
 python railyard/scripts/ticket.py --lane domain events --ticket-id DOMAIN-001
 ```
 

@@ -18,7 +18,6 @@ This creates the project-local workflow surface:
 
 ```text
 .github/agents/
-.workflow/workflow.db
 docs/domain/epics/
 docs/domain/inbox/
 docs/domain/outbox/
@@ -28,13 +27,39 @@ docs/system/outbox/
 docs/templates/
 ```
 
+By default, workflow authority state stays inside the Railyard installation:
+
+```text
+railyard/.workflow/workflow.db
+railyard/.railyard-workflow.json
+```
+
+`.railyard-workflow.json` is the local workflow authority record. It records the
+resolved project root, workflow root, and workflow database used by this
+Railyard installation. It is generated local state and is not committed.
+
+On a cold start with no authority record and no existing workflow database,
+`init_workflow.py` creates `railyard/.workflow/workflow.db` and records it. On
+an existing project with no authority record, initialization scans the target
+project and Railyard installation for valid `.workflow/workflow.db` candidates.
+If any are found, initialization must ask the Human which database is
+authoritative and record that selection. It must not silently create a second
+workflow database. Non-interactive migrations must pass an explicit
+`--db-path`.
+
+Every Planner, Architect, and Runner session must check
+`railyard/.railyard-workflow.json` before using workflow helpers. Use the
+recorded workflow database path explicitly with helper commands. If the record
+is missing, run `init_workflow.py` to perform cold-start initialization or
+legacy database discovery before continuing.
+
 The `.github/agents/` directory contains default Railyard agent profiles for platforms that support VS Code / GitHub Copilot-style custom agents. Platforms that do not read this directory can still use the same profile text as prompt material.
 
 ## 2. Confirm The Schema
 
 ```powershell
-python railyard/scripts/workflow_schema.py ensure --db .workflow/workflow.db
-python railyard/scripts/workflow_schema.py tables --db .workflow/workflow.db
+python railyard/scripts/workflow_schema.py ensure --db railyard/.workflow/workflow.db
+python railyard/scripts/workflow_schema.py tables --db railyard/.workflow/workflow.db
 ```
 
 Expected tables:
@@ -74,6 +99,8 @@ Failure to read these files before claim or edits is a violation of the Railyard
 
 ## 5. Create Or Sync Epics
 
+The Planner records contract intent, done definition, closure criteria, and unacceptable failure modes in each Epic. Contract intent at the epic level drives the Architect's executable contract and Validator dispatch at the ticket level. See `references/validation-contract.md` for the full ownership and handoff protocol.
+
 Use one of these paths.
 
 Direct helper upsert:
@@ -99,7 +126,38 @@ python railyard/scripts/epic.py --lane system next-open
 
 ## 6. Create Tickets
 
-Architects create ticket Markdown files in:
+The Planner or Architect that drafts or publishes a ticket must decide whether
+independent Validator evidence is required before Architect acceptance.
+
+Every new ticket records:
+
+- `validator_required`: `true` or `false`
+- `validator_gate_reason`: rationale for the decision
+
+Tickets involving data transform, ingest, migration, source-to-derived
+artifacts, generated artifacts with measurable constraints, high-risk
+implementation, or derived authoritative data require Validator gate
+consideration.
+
+When `validator_required: true`, the ticket also records:
+
+- `validator_risk_level`
+- `validator_contract_source`
+- `validator_expected_artifacts`
+- `validator_evidence_pack`
+- `validator_failure_behavior`
+
+These fields must give the Architect enough information to dispatch the
+Validator before acceptance without inventing missing criteria during review.
+See `references/ticket-format.md` for the metadata contract.
+
+Historical tickets with neither `validator_required` nor
+`validator_gate_reason` remain readable, syncable, dispatchable, and valid
+under artifact-shape validation. This legacy missing state is not
+`validator_required: false` and must not be rewritten or recorded as a no-gate
+decision.
+
+Ticket Markdown files live in:
 
 ```text
 docs/domain/inbox/
@@ -119,11 +177,22 @@ python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox
 python railyard/scripts/ticket.py --lane system --project-root . sync-mailbox
 ```
 
-Architects may also draft tickets directly through the helper:
+Tickets may also be drafted directly through the helper. The helper requires an
+explicit Validator gate decision:
 
 ```powershell
-python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md."
+python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md." --validator-not-required --validator-gate-reason "Low-risk documentation-only ticket."
 ```
+
+For a required gate, use `--validator-required` with
+`--validator-risk-level`, `--validator-contract-source`,
+`--validator-expected-artifact`, `--validator-evidence-item`, and
+`--validator-failure-behavior`.
+
+`scripts/validate_artifacts.py` can verify the ticket artifact shape and gate
+metadata shape. It cannot satisfy an independent Validator evidence
+requirement. Runner verification commands and Architect self-review also cannot
+satisfy that requirement.
 
 ## 7. Architect Dispatch
 
@@ -189,7 +258,12 @@ Same-kind failures count toward the three-attempt limit even when the exact comm
 
 ## 7.5. Architect-to-Validator Dispatch
 
-The Architect decides whether to dispatch the Validator before or during Architect review. The Validator is a read-only quality gate that inspects artifacts and produces a Validation Report; it does not modify the system, make lifecycle decisions, or perform remediation. See `references/validator-protocol.md` for the complete protocol.
+The ticket drafter records whether Validator evidence is required. Before or
+during Architect review, the Architect verifies that decision and dispatches
+the Validator when required. The Validator is a read-only quality gate that
+inspects artifacts and produces a Validation Report; it does not modify the
+system, make lifecycle decisions, or perform remediation. See
+`references/validator-protocol.md` for the complete protocol.
 
 ### When to dispatch the Validator
 
@@ -204,6 +278,11 @@ The Architect MUST dispatch the Validator when the ticket involves any of the fo
 - **Derived authoritative data**: implementation creates derived data or content used by later steps.
 
 If the Architect is unsure whether the ticket warrants Validator dispatch, the Architect should dispatch the Validator with `risk_level=medium` and let the Validator report determine whether findings are material.
+
+A ticket with `validator_required: true` must not be accepted based only on
+`scripts/validate_artifacts.py`, Runner verification scripts, or Architect
+self-review. Those checks remain useful evidence, but they do not execute the
+independent Validator role.
 
 ### Validator dispatch failure boundary
 
@@ -226,7 +305,7 @@ Explicit Human-authorized role collapse is the only exception. If role collapse 
 
 ### Architect-constructed Validator input
 
-When dispatching the Validator, the Architect MUST construct the following input:
+When dispatching the Validator, the Architect MUST construct the following input. Before constructing the input, the Architect verifies that a sufficient executable contract exists at the ticket level. If the contract is missing, incomplete, or too vague, the Architect stops and escalates rather than dispatching the Validator with a fabricated contract.
 
 | Slot | Description |
 |---|---|
@@ -519,7 +598,13 @@ Architect records review:
 
 ```powershell
 python railyard/scripts/ticket.py --lane domain mark-review-result --ticket-id DOMAIN-001 --review-result accept
+python railyard/scripts/ticket.py --lane system mark-review-result --ticket-id SYSTEM-001 --review-result accept --validator-report-record evidence/SYSTEM-001.validator-record.json
 ```
+
+The second form is required for `accept` or `accept_with_changes` when the
+ticket declares `validator_required: true`. The referenced report must verify
+and have `overall_verdict: pass`. Non-passing Validator verdicts reject
+acceptance. `reject` and `redesign` remain allowed without Validator evidence.
 
 Architect review is mandatory in the default protocol. A Runner result of `done` means the Runner claims completion; it does not mean the ticket is accepted. Acceptance exists only after `mark-review-result` records `accept` or `accept_with_changes`.
 

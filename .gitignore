@@ -21,6 +21,7 @@ ENV/
 
 # Generated workflow state
 .workflow/
+/.railyard-workflow.json
 *.db
 *.db-shm
 *.db-wal

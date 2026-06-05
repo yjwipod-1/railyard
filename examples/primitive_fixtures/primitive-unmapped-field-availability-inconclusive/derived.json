@@ -1,0 +1,5 @@
+{
+  "records": [
+    {"record_id": "rec-001", "value": 100, "label": "alpha", "extra_info": "unmapped"}
+  ]
+}

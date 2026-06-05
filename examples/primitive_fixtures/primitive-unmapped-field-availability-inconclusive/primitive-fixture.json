@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-unmapped-field-availability-inconclusive",
+  "primitive_id": "unmapped_field_availability",
+  "rule_id": "unmapped_field_availability",
+  "registry_section": "7.1",
+  "expected_verdict": "inconclusive",
+  "expected_decisive_findings": [
+    {"rule_id": "unmapped_field_availability", "status": "inconclusive", "severity": "warn"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-source-availability-pass",
+  "primitive_id": "source_availability",
+  "rule_id": "source_availability",
+  "registry_section": "7.3",
+  "expected_verdict": "pass",
+  "expected_decisive_findings": [
+    {"rule_id": "source_availability", "status": "absent", "note": "no blocked finding emitted when all sources are readable"}
+  ]
+}

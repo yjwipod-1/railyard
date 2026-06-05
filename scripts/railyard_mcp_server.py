@@ -133,6 +133,30 @@ def normalize_lifecycle_row(lane: str, row: dict[str, Any]) -> dict[str, Any]:
     return {"lane": lane, "ticket": normalize_ticket(row)}
 
 
+def apply_mark_review_result(
+    config: ServerConfig,
+    lane: str,
+    ticket_id: str,
+    review_result: str,
+    supersedes_ticket_id: str = "",
+    validator_report_record: str = "",
+) -> dict[str, Any]:
+    resolved_lane = resolve_lane(lane)
+    resolved_ticket_id = require_value(ticket_id, "ticket_id")
+    normalized_review_result = require_value(review_result, "review_result")
+    with open_write_connection(config.db_path) as conn:
+        row = ticket_helper.command_mark_review_result(
+            conn,
+            resolved_lane,
+            resolved_ticket_id,
+            normalized_review_result,
+            supersedes_ticket_id.strip() or None,
+            project_root=config.project_root,
+            validator_report_record_path=validator_report_record.strip() or None,
+        )
+    return normalize_lifecycle_row(resolved_lane, row)
+
+
 def resolve_result_path(project_root: pathlib.Path, row: dict[str, Any], outbox_path: str) -> pathlib.Path:
     result_hint = outbox_path.strip() or str(row.get("outbox_path") or "")
     if not result_hint:
@@ -390,19 +414,16 @@ def create_server(config: ServerConfig) -> Any:
         ticket_id: str,
         review_result: str,
         supersedes_ticket_id: str = "",
+        validator_report_record: str = "",
     ) -> dict[str, Any]:
-        resolved_lane = resolve_lane(lane)
-        resolved_ticket_id = require_value(ticket_id, "ticket_id")
-        normalized_review_result = require_value(review_result, "review_result")
-        with open_write_connection(config.db_path) as conn:
-            row = ticket_helper.command_mark_review_result(
-                conn,
-                resolved_lane,
-                resolved_ticket_id,
-                normalized_review_result,
-                supersedes_ticket_id.strip() or None,
-            )
-        return normalize_lifecycle_row(resolved_lane, row)
+        return apply_mark_review_result(
+            config,
+            lane,
+            ticket_id,
+            review_result,
+            supersedes_ticket_id,
+            validator_report_record,
+        )
 
     @server.tool(name="validate_result_payload")
     def validate_result_payload(

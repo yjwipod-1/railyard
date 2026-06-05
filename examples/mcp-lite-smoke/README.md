@@ -55,7 +55,9 @@ python scripts/ticket.py --lane system --db "$project/.workflow/workflow.db" --p
   --scope "Write the runner result JSON to docs/system/outbox/SYSTEM-DEMO-001.result.json." `
   --acceptance-check "MCP-lite claim, result validation, runner result, review start, and review result transitions all complete." `
   --constraint "Do not use raw SQL." `
-  --constraint "Do not write probe or scratch files inside .workflow/."
+  --constraint "Do not write probe or scratch files inside .workflow/." `
+  --validator-not-required `
+  --validator-gate-reason "Lifecycle smoke ticket with no derived authoritative artifact."
 ```
 
 Start the MCP-lite server for the disposable project:

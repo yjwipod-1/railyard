@@ -198,7 +198,7 @@ The foundation defines three artifacts:
 
 The first application of the validation contract in v0.7 is development-time validation of Railyard artifacts. The repository ships two reference scripts:
 
-- `scripts/validate_artifacts.py` validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks.
+- `scripts/validate_artifacts.py` validates Railyard artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. It is not independent Validator role evidence and cannot satisfy a required Validator gate.
 - `scripts/validator.py` is a minimal executable Validator for source-to-derived field-mapping checks. It reads a Validator input JSON, loads only the referenced artifacts, applies the declared field mapping contract, and emits a Validation Report JSON.
 
 The executable Validator currently covers source artifact, derived artifact, field mapping contract, required field mappings, `identity`, `multiply_by_2`, `parse_integer`, `parse_number_preserve_sign`, `missing_mapping_policy`, and `warnings_as_errors`. It does not implement runtime orchestration, workflow lifecycle writes, automatic repair, model routing, or business-specific rules.
@@ -234,7 +234,54 @@ The Validator is a read-only verification role that applies a Validation Contrac
 
 The Validator report is evidence, not lifecycle authority. It does not modify artifacts, record lifecycle transitions, close epics, or replace Architect review and Planner judgment. The Architect decides accept or reject based on the report plus scope and diff review. The Planner decides epic closure based on the report plus the full ticket state table. The Validator informs; it does not decide.
 
+### Validation Contract Ownership
+
+The Validation Contract follows defined ownership across the workflow:
+
+- **Human** defines unacceptable risk and failure types.
+- **Planner** records contract intent, done definition, and closure criteria at the epic level.
+- **Architect** translates intent into an executable contract at the ticket level.
+- **Runner** implements against the contract; does not redefine it.
+- **Validator** checks artifacts against the contract; does not modify it.
+
+Contract intent lives in the Epic. The executable contract lives in the Ticket or a ticket-scoped artifact. When a contract is missing or insufficient, the workflow must not silently pass; it escalates as `inconclusive`, `human_review_required`, or `blocked`. See `references/validation-contract.md` for the full ownership and handoff protocol.
+
 The minimum dispatch payload includes: source artifacts, candidate implementation, and relevant documentation; a validation contract or done definition derived from ticket acceptance criteria; an evidence pack with raw source values, headers, schemas, and command outputs; a risk level (low, medium, or high); a read-only command allowance listing commands the Validator is authorized to execute; and an output schema requirement mandating a single JSON object conforming to the Validation Report shape.
+
+### Ticket Validator Gate
+
+The Planner or Architect that drafts or publishes a new ticket must explicitly
+record whether independent Validator evidence is required before Architect
+acceptance. New tickets carry `validator_required` and
+`validator_gate_reason`. Historical tickets missing both fields remain
+readable, syncable, dispatchable, and valid under artifact-shape validation.
+Missing legacy metadata is not an inferred `validator_required: false`
+decision.
+
+Tickets involving data transform, ingest, migration, source-to-derived
+artifacts, generated artifacts with measurable constraints, high-risk
+implementation, or derived authoritative data require Validator gate
+consideration. A required gate also records risk level, contract or acceptance
+criteria source, expected artifacts, evidence pack, and failure behavior.
+
+Artifact-shape validation, independent Validator evidence, and Architect review
+are separate:
+
+- `scripts/validate_artifacts.py` checks artifact and metadata shape only.
+- An independent Validator role applies the declared contract and returns a
+  Validation Report.
+- The Architect reviews Runner and Validator evidence and records the lifecycle
+  decision.
+
+For a required gate, passing artifact-shape validation or Runner verification
+does not permit acceptance. If Validator dispatch is unavailable, the Architect
+stops and returns the exact spawn-ready Validator prompt and payload.
+
+`mark-review-result accept` and `accept_with_changes` require
+`--validator-report-record` for a required gate. The record identifies the
+independent Validator producer, references the Validator Protocol report,
+and binds it with SHA-256. Only a verified `overall_verdict: pass` permits
+acceptance. `reject` and `redesign` remain available without a report.
 
 | Role | Nature | Can decide lifecycle? | Can modify? | Output |
 |---|---|---|---|---|
@@ -560,7 +607,7 @@ python scripts/ticket.py --lane system --project-root . sync-mailbox
 Draft a ticket from the helper:
 
 ```powershell
-python scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md."
+python scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title "Define scope" --task "Write docs/scope.md." --validator-not-required --validator-gate-reason "Low-risk documentation-only ticket."
 ```
 
 Dispatch the next Runner ticket from the Architect helper:
@@ -626,12 +673,13 @@ python scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db --project
 The `examples/` directory contains small, public-safe walkthroughs:
 
 - `examples/mcp-lite-smoke/` shows a disposable MCP-lite workflow that reads and dispatches a ready ticket, claims it as a Runner, validates and records the result, then completes Architect review.
+- `examples/ticket-validator-gates/` shows valid required and not-required ticket Validator gate metadata.
 
 ## Validation And Release Discipline
 
 Railyard includes deterministic validation and release hygiene surfaces for maintainers:
 
-- `scripts/validate_artifacts.py` validates workflow artifact shapes and example queue files.
+- `scripts/validate_artifacts.py` validates workflow artifact shapes and example queue files; it does not produce independent Validator role evidence.
 - `.github/workflows/railyard-validate.yml` runs compile, artifact validation, and MCP-lite smoke checks in GitHub Actions.
 - `CHANGELOG.md` records versioned release notes for public-facing changes.
 

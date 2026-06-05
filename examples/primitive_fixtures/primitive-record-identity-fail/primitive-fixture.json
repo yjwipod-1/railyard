@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-record-identity-fail",
+  "primitive_id": "record_identity_preservation",
+  "rule_id": "record_identity_preservation",
+  "registry_section": "6.1",
+  "expected_verdict": "fail",
+  "expected_decisive_findings": [
+    {"rule_id": "record_identity_preservation", "status": "fail", "severity": "error"}
+  ]
+}

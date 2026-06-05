@@ -17,6 +17,12 @@ a well-defined contract.
 
 Validator evidence is independent only when it is produced by a Validator role execution.
 
+`scripts/validate_artifacts.py` is artifact-shape validation. It may validate
+the presence and structure of ticket gate metadata, Validation Contracts, and
+Validation Reports, but its output is not a Validator role report and cannot
+satisfy a ticket that declares `validator_required: true`. Runner verification
+scripts and caller self-review are also not independent Validator evidence.
+
 If an Architect or Planner cannot dispatch a Validator subagent, or if dispatch appears to start but no Validator output can be retrieved, the caller MUST NOT implement Validator checks inside the caller session. The caller emits the exact spawn-ready Validator prompt and payload, then stops the Validator step until a Human or external Validator session returns a report.
 
 The caller MUST NOT create temporary validation scripts, ad hoc validators, direct shell validators, or replacement tooling to simulate the Validator. The caller MUST NOT label self-run checks as a Validator report.
@@ -45,6 +51,18 @@ a Validation Report. It does not modify the system under inspection.
 - Read artifact files referenced in the input slots.
 - Run read-only commands listed in `allowed_read_only_commands`.
 - Produce a structured Validation Report as its sole output.
+
+### Contract Handling
+
+The Validator receives the Validation Contract from the caller (Architect or Planner). The Validator treats the contract as read-only input.
+
+- The Validator MUST NOT modify, extend, or redefine the contract. The contract is the caller's authoritative specification of what must be checked.
+- The Validator MUST NOT write the contract back to disk, create a new contract artifact, or update the ticket metadata.
+- When the contract is sufficient, the Validator applies every rule and produces findings.
+- When the contract is missing, incomplete, or too vague to produce a deterministic verdict, the Validator MUST NOT return `status=pass` for the uncovered scope. Allowed outcomes are `inconclusive`, `blocked`, or `human_review_required` with `missing_evidence` describing the gap.
+- The Validator MUST NOT invent acceptance criteria, field mappings, or check logic that the caller did not supply. If the caller did not supply enough information, the Validator reports the gap.
+
+For the full ownership and handoff protocol, see `references/validation-contract.md`.
 
 ## 2. Validator Input Slots
 
@@ -107,6 +125,37 @@ Strict value rules:
 - `validated_artifacts` MUST be an array of strings.
 - `commands_run` MUST be an array of strings. Use an empty array when no commands were run.
 - `notes` MUST be a string or null.
+
+### 3.1 Verifiable Validator Report Reference Record
+
+When a ticket declares `validator_required: true`, `mark-review-result accept`
+or `accept_with_changes` receives a JSON reference record with this minimal
+generic contract:
+
+```json
+{
+  "record_type": "railyard.validator_report_reference.v1",
+  "ticket_id": "SYSTEM-001",
+  "validator_role": "validator",
+  "independence": "independent",
+  "producer_identity": "validator-session-001",
+  "report_path": "evidence/SYSTEM-001.validator-report.json",
+  "report_sha256": "<64 hex characters>",
+  "created_at": "2026-01-01T00:00:00+00:00"
+}
+```
+
+The lifecycle helper verifies that the record exists, matches the ticket,
+declares an independent Validator producer, resolves to an existing report,
+matches the report SHA-256, and references a structurally valid Validator
+Protocol report. Only `overall_verdict: pass` permits acceptance.
+`fail`, `blocked`, `inconclusive`, and `human_review_required` reject
+acceptance. The verified record path, report path, SHA-256, producer identity,
+and verdict are preserved in the review workflow event.
+
+Artifact-shape output, Runner verification or result JSON, Architect
+self-review, and role-collapsed evidence do not satisfy this independent record
+contract.
 
 ### Finding object fields
 
@@ -270,6 +319,11 @@ This is a **generic** pattern for reconciling derived artifacts against source
 artifacts. It applies to data transforms, data ingestion, data migration,
 generated artifacts, or constrained output validation.
 
+For the canonical catalog of all deterministic validation primitives across
+source replay, field mapping, value/sign preservation, formula recompute,
+record/key reconciliation, availability handling, claim grounding, and
+publish gate aggregation, see `references/validation-primitive-registry.md`.
+
 ### 7.1 Pattern Rules
 
 Each rule below is generic and can be parameterized by field names, record keys,
@@ -292,7 +346,7 @@ and transformation type.
 - **check**: For each field in the derived artifact, verify that a mapping
   entry exists in the contract or evidence_pack.
 
-#### rule_id: `source_value_preservation`
+#### rule_id: `value_transform_correctness`
 
 - **severity**: `error`
 - **description**: Source values that are declared as preserved must appear
@@ -336,7 +390,7 @@ and transformation type.
 - **check**: Compare the actual transformation logic (from evidence_pack or
   candidate implementation analysis) against the declared transformations.
 
-#### rule_id: `missing_mapping_policy`
+#### rule_id: `unmapped_field_availability`
 
 - **severity**: `warn`
 - **description**: When a derived field has no mapping to an independent
@@ -399,14 +453,14 @@ transformations (e.g., data migration, financial data transforms), recommend
       "evidence": "missing mapping for derived_value"
     },
     {
-      "rule_id": "source_value_preservation",
+      "rule_id": "value_transform_correctness",
       "severity": "error",
       "status": "inconclusive",
-      "message": "Cannot verify source value preservation for 'source_value' because no mapping contract was found.",
+      "message": "Cannot verify value transform correctness for 'source_value' because no mapping contract was found.",
       "evidence": "no mapping contract at contracts/mapping.json"
     },
     {
-      "rule_id": "missing_mapping_policy",
+      "rule_id": "unmapped_field_availability",
       "severity": "warn",
       "status": "inconclusive",
       "message": "Missing mapping for 'derived_value' applied policy 'inconclusive' per contract. For high-risk tasks, consider 'fail' or 'human_review_required'.",

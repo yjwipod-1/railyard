@@ -23,6 +23,10 @@ Use this skill when a project follows a structured operating model with:
 - Treat mailbox files as body surfaces, not as workflow truth, unless the project explicitly says otherwise.
 - Keep review explicit. Runner completion does not equal final acceptance.
 - Prompt text can add constraints, but it does not replace required Railyard role, lifecycle, and startup protocol reads.
+- The Planner or Architect that drafts or publishes a ticket must explicitly decide whether independent Validator evidence is required before Architect acceptance and record that decision in the ticket metadata.
+- Historical tickets with neither `validator_required` nor `validator_gate_reason` remain valid and usable. Their missing metadata is a legacy unknown state, not an inferred `validator_required=false` decision.
+- Tickets involving data transform, ingest, migration, source-to-derived artifacts, generated artifacts with measurable constraints, high-risk implementation, or derived authoritative data require Validator gate consideration.
+- When a ticket requires Validator evidence, Architect acceptance is prohibited until a verifiable independent Validator report reference record resolves to a `pass` report under the ticket's declared failure behavior.
 - Epic closure is a lane-level Planner responsibility. The Planner reviews finalised scoped or linked tickets, accepted review outcomes, the epic done definition, remaining open work, blockers, and dependencies before closure.
 - Architects provide closure-readiness evidence but must not close epics by default; Runners may only provide evidence that an epic is ready for Planner closure.
 - When dispatching execution, prefer `scripts/architect.py dispatch-next-runner` so the Architect receives a spawn-ready Runner prompt.
@@ -109,9 +113,13 @@ The foundation defines three artifacts:
 - **Validation Report**: structured output with `contract_id`, `contract_version`, and per-artifact `results` including `overall_verdict` and `findings`.
 - **Validator**: a read-only component that applies contracts and produces reports; it does not perform automatic repair, retry, remediation, or runtime orchestration.
 
+### Validation Contract Ownership
+
+The Validation Contract follows defined ownership: Human defines unacceptable risk, Planner records contract intent at the epic level, Architect produces the executable contract at the ticket level, Runner implements against the contract, Validator checks against the contract. Contract intent lives in the Epic; the executable contract lives in the Ticket or a ticket-scoped artifact. No role silently redefines a contract produced by another role. When a contract is missing or insufficient, the workflow must not silently pass; it escalates as `inconclusive`, `human_review_required`, or `blocked`. See `references/validation-contract.md` for the full protocol.
+
 The repository includes two development-time reference scripts:
 
-- `scripts/validate_artifacts.py` validates artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks.
+- `scripts/validate_artifacts.py` validates artifact shape (tickets, epics, result files, queue examples, validation contracts, and validation reports) using built-in structural checks. It is not independent Validator role evidence and cannot satisfy a ticket's required Validator gate.
 - `scripts/validator.py` runs a minimal executable Validator for source-to-derived field-mapping checks and emits the Validator Protocol report shape.
 
 `scripts/validator.py` supports source and derived JSON artifacts, a field mapping contract, required field mappings, `identity`, `multiply_by_2`, `parse_integer`, `parse_number_preserve_sign`, `missing_mapping_policy`, and `warnings_as_errors`. It is read-only with respect to input artifacts and workflow state. It does not implement automatic repair, runtime orchestration, model routing, lifecycle writes, or business-specific rules.

@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-unmapped-field-availability-pass",
+  "primitive_id": "unmapped_field_availability",
+  "rule_id": "unmapped_field_availability",
+  "registry_section": "7.1",
+  "expected_verdict": "pass",
+  "expected_decisive_findings": [
+    {"rule_id": "unmapped_field_availability", "status": "not_applicable", "severity": "warn"}
+  ]
+}
