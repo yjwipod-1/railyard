@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import pathlib
 import re
@@ -27,6 +28,19 @@ SUPERSEDED_STATUS = "superseded"
 VALID_RUNNER_RESULTS = {"done", "partial", "blocked", "invalid"}
 VALID_REVIEW_RESULTS = {"accept", "accept_with_changes", "reject", "redesign"}
 VALID_PRIORITIES = {"high", "medium", "low"}
+VALID_VALIDATOR_RISK_LEVELS = {"low", "medium", "high"}
+VALID_VALIDATOR_VERDICTS = {"pass", "fail", "blocked", "inconclusive", "human_review_required"}
+VALID_VALIDATOR_CONFIDENCE = {"high", "medium", "low"}
+VALID_VALIDATOR_FINDING_SEVERITIES = {"error", "warn", "info"}
+VALID_VALIDATOR_FINDING_STATUSES = {"pass", "fail", "not_applicable", "blocked", "inconclusive"}
+VALIDATOR_REPORT_RECORD_TYPE = "railyard.validator_report_reference.v1"
+VALIDATOR_REQUIRED_METADATA_FIELDS = {
+    "validator_risk_level",
+    "validator_contract_source",
+    "validator_expected_artifacts",
+    "validator_evidence_pack",
+    "validator_failure_behavior",
+}
 VALID_BLOCKER_CATEGORIES = {
     "permission_denied",
     "command_failed",
@@ -134,6 +148,231 @@ def frontmatter_value(frontmatter: str, key: str) -> str | None:
     return value or None
 
 
+def frontmatter_has_key(frontmatter: str, key: str) -> bool:
+    return re.search(rf"^{re.escape(key)}:[ \t]*[^\r\n]*$", frontmatter, re.MULTILINE) is not None
+
+
+def validate_validator_gate(frontmatter: str, ticket_id: str) -> bool | None:
+    validator_required = frontmatter_value(frontmatter, "validator_required")
+    validator_gate_reason = frontmatter_value(frontmatter, "validator_gate_reason")
+    has_validator_required = frontmatter_has_key(frontmatter, "validator_required")
+    has_validator_gate_reason = frontmatter_has_key(frontmatter, "validator_gate_reason")
+    if not has_validator_required and not has_validator_gate_reason:
+        return None
+    if validator_required is None:
+        raise ValueError(f"ticket {ticket_id} must explicitly set validator_required to true or false")
+    normalized = validator_required.lower()
+    if normalized not in {"true", "false"}:
+        raise ValueError(f"ticket {ticket_id} validator_required must be true or false")
+    if validator_gate_reason is None:
+        raise ValueError(f"ticket {ticket_id} must include validator_gate_reason")
+    if normalized == "true":
+        missing = sorted(
+            field for field in VALIDATOR_REQUIRED_METADATA_FIELDS
+            if frontmatter_value(frontmatter, field) is None
+        )
+        if missing:
+            raise ValueError(
+                f"ticket {ticket_id} requires Validator evidence but is missing gate metadata: {', '.join(missing)}"
+            )
+        risk_level = str(frontmatter_value(frontmatter, "validator_risk_level")).lower()
+        if risk_level not in VALID_VALIDATOR_RISK_LEVELS:
+            raise ValueError(
+                f"ticket {ticket_id} validator_risk_level must be one of {sorted(VALID_VALIDATOR_RISK_LEVELS)}"
+            )
+    return normalized == "true"
+
+
+def load_ticket_validator_gate(
+    project_root: pathlib.Path,
+    row: dict[str, Any],
+    ticket_id: str,
+) -> dict[str, Any]:
+    inbox_hint = row.get("inbox_path")
+    if not isinstance(inbox_hint, str) or not inbox_hint.strip():
+        raise RuntimeError(f"ticket {ticket_id} has no readable inbox_path for Validator gate enforcement")
+    ticket_path = resolve_project_path(project_root, inbox_hint)
+    if not ticket_path.is_file():
+        raise RuntimeError(f"ticket {ticket_id} inbox file is not readable for Validator gate enforcement: {ticket_path}")
+    frontmatter = extract_frontmatter(read_text(ticket_path))
+    frontmatter_ticket_id = frontmatter_value(frontmatter, "ticket_id")
+    if frontmatter_ticket_id is not None and frontmatter_ticket_id != ticket_id:
+        raise RuntimeError(
+            f"ticket {ticket_id} inbox file declares a different ticket_id: {frontmatter_ticket_id}"
+        )
+    required = validate_validator_gate(frontmatter, ticket_id)
+    if required is None:
+        state = "legacy_missing"
+    elif required:
+        state = "required"
+    else:
+        state = "not_required"
+    return {
+        "state": state,
+        "validator_required": required,
+        "inbox_path": str(ticket_path),
+    }
+
+
+def sha256_file(path: pathlib.Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def require_non_empty_string(payload: dict[str, Any], key: str, label: str) -> str:
+    value = payload.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label}.{key} must be a non-empty string")
+    return value.strip()
+
+
+def validate_independent_validator_report(report: dict[str, Any], ticket_id: str) -> str:
+    required_fields = {
+        "validator_role",
+        "contract_id",
+        "contract_version",
+        "overall_verdict",
+        "confidence",
+        "artifact_summary",
+        "findings",
+        "missing_evidence",
+        "recommended_next_action",
+        "validated_artifacts",
+        "commands_run",
+        "notes",
+    }
+    missing = sorted(required_fields - set(report))
+    if missing:
+        raise ValueError(f"Validator report for {ticket_id} missing required fields: {', '.join(missing)}")
+    if report.get("validator_role") != "validator":
+        raise ValueError(f"Validator report for {ticket_id} validator_role must be 'validator'")
+    require_non_empty_string(report, "contract_id", "validator_report")
+    require_non_empty_string(report, "contract_version", "validator_report")
+    require_non_empty_string(report, "recommended_next_action", "validator_report")
+    verdict = report.get("overall_verdict")
+    if verdict not in VALID_VALIDATOR_VERDICTS:
+        raise ValueError(
+            f"Validator report for {ticket_id} overall_verdict must be one of {sorted(VALID_VALIDATOR_VERDICTS)}"
+        )
+    if report.get("confidence") not in VALID_VALIDATOR_CONFIDENCE:
+        raise ValueError(
+            f"Validator report for {ticket_id} confidence must be one of {sorted(VALID_VALIDATOR_CONFIDENCE)}"
+        )
+    if not isinstance(report.get("artifact_summary"), dict):
+        raise ValueError(f"Validator report for {ticket_id} artifact_summary must be an object")
+    for key in ("findings", "missing_evidence", "validated_artifacts", "commands_run"):
+        if not isinstance(report.get(key), list):
+            raise ValueError(f"Validator report for {ticket_id} {key} must be an array")
+    if not all(isinstance(item, str) and item.strip() for item in report["validated_artifacts"]):
+        raise ValueError(f"Validator report for {ticket_id} validated_artifacts must contain non-empty strings")
+    if not all(isinstance(item, str) and item.strip() for item in report["commands_run"]):
+        raise ValueError(f"Validator report for {ticket_id} commands_run must contain non-empty strings")
+    notes = report.get("notes")
+    if notes is not None and not isinstance(notes, str):
+        raise ValueError(f"Validator report for {ticket_id} notes must be a string or null")
+
+    findings = report["findings"]
+    for index, finding in enumerate(findings):
+        if not isinstance(finding, dict):
+            raise ValueError(f"Validator report for {ticket_id} findings[{index}] must be an object")
+        for key in ("rule_id", "message"):
+            require_non_empty_string(finding, key, f"validator_report.findings[{index}]")
+        if finding.get("severity") not in VALID_VALIDATOR_FINDING_SEVERITIES:
+            raise ValueError(
+                f"Validator report for {ticket_id} findings[{index}].severity must be one of "
+                f"{sorted(VALID_VALIDATOR_FINDING_SEVERITIES)}"
+            )
+        if finding.get("status") not in VALID_VALIDATOR_FINDING_STATUSES:
+            raise ValueError(
+                f"Validator report for {ticket_id} findings[{index}].status must be one of "
+                f"{sorted(VALID_VALIDATOR_FINDING_STATUSES)}"
+            )
+        if "evidence" not in finding or (
+            finding["evidence"] is not None and not isinstance(finding["evidence"], str)
+        ):
+            raise ValueError(
+                f"Validator report for {ticket_id} findings[{index}].evidence must be a string or null"
+            )
+
+    has_error_fail = any(
+        finding.get("severity") == "error" and finding.get("status") == "fail"
+        for finding in findings
+    )
+    has_blocked = any(finding.get("status") == "blocked" for finding in findings)
+    has_inconclusive = any(finding.get("status") == "inconclusive" for finding in findings)
+    if verdict == "pass":
+        if has_error_fail or has_blocked or has_inconclusive:
+            raise ValueError(f"Validator report for {ticket_id} has an inconsistent pass verdict")
+        if not report["validated_artifacts"]:
+            raise ValueError(f"Validator report for {ticket_id} pass verdict requires validated_artifacts")
+    elif verdict == "fail" and not has_error_fail:
+        raise ValueError(f"Validator report for {ticket_id} fail verdict requires an error/fail finding")
+    elif verdict == "blocked" and not has_blocked:
+        raise ValueError(f"Validator report for {ticket_id} blocked verdict requires a blocked finding")
+    elif verdict == "inconclusive" and not has_inconclusive:
+        raise ValueError(f"Validator report for {ticket_id} inconclusive verdict requires an inconclusive finding")
+    return str(verdict)
+
+
+def validate_validator_report_record(
+    project_root: pathlib.Path,
+    ticket_id: str,
+    record_path_value: str,
+) -> dict[str, Any]:
+    record_path = resolve_project_path(project_root, record_path_value)
+    if not record_path.is_file():
+        raise ValueError(f"Validator report reference record does not exist for {ticket_id}: {record_path}")
+    record = read_json(record_path)
+    required_fields = {
+        "record_type",
+        "ticket_id",
+        "validator_role",
+        "independence",
+        "producer_identity",
+        "report_path",
+        "report_sha256",
+        "created_at",
+    }
+    missing = sorted(required_fields - set(record))
+    if missing:
+        raise ValueError(f"Validator report reference record for {ticket_id} missing fields: {', '.join(missing)}")
+    if record.get("record_type") != VALIDATOR_REPORT_RECORD_TYPE:
+        raise ValueError(
+            f"Validator report reference record for {ticket_id} record_type must be {VALIDATOR_REPORT_RECORD_TYPE!r}"
+        )
+    if record.get("ticket_id") != ticket_id:
+        raise ValueError(f"Validator report reference record ticket_id must match {ticket_id}")
+    if record.get("validator_role") != "validator":
+        raise ValueError(f"Validator report reference record for {ticket_id} validator_role must be 'validator'")
+    if record.get("independence") != "independent":
+        raise ValueError(f"Validator report reference record for {ticket_id} independence must be 'independent'")
+    producer_identity = require_non_empty_string(record, "producer_identity", "validator_report_record")
+    report_path_value = require_non_empty_string(record, "report_path", "validator_report_record")
+    expected_hash = require_non_empty_string(record, "report_sha256", "validator_report_record").lower()
+    require_non_empty_string(record, "created_at", "validator_report_record")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        raise ValueError(f"Validator report reference record for {ticket_id} report_sha256 must be a SHA-256 hex digest")
+    report_path = resolve_project_path(project_root, report_path_value)
+    if not report_path.is_file():
+        raise ValueError(f"Referenced Validator report does not exist for {ticket_id}: {report_path}")
+    actual_hash = sha256_file(report_path)
+    if actual_hash != expected_hash:
+        raise ValueError(f"Referenced Validator report SHA-256 mismatch for {ticket_id}")
+    report = read_json(report_path)
+    verdict = validate_independent_validator_report(report, ticket_id)
+    return {
+        "record_path": str(record_path),
+        "record_type": VALIDATOR_REPORT_RECORD_TYPE,
+        "producer_identity": producer_identity,
+        "report_path": str(report_path),
+        "report_sha256": actual_hash,
+        "overall_verdict": verdict,
+    }
+
+
 def infer_summary(ticket_text: str) -> str:
     lines = ticket_text.splitlines()
     for idx, line in enumerate(lines):
@@ -224,6 +463,7 @@ def load_ticket_row(project_root: pathlib.Path, lane: str, ticket_path: pathlib.
     ticket_text = read_text(ticket_path)
     frontmatter = extract_frontmatter(ticket_text)
     ticket_id = frontmatter_value(frontmatter, "ticket_id") or ticket_path.stem
+    validate_validator_gate(frontmatter, ticket_id)
     task_type = frontmatter_value(frontmatter, "task_type") or "change"
     task_mode = frontmatter_value(frontmatter, "task_mode") or "general"
     priority = (frontmatter_value(frontmatter, "priority") or "medium").lower()
@@ -608,7 +848,15 @@ def command_recover_stale(
     return row
 
 
-def command_mark_review_result(conn: sqlite3.Connection, lane: str, ticket_id: str, review_result: str, supersedes_ticket_id: str | None) -> dict[str, Any]:
+def command_mark_review_result(
+    conn: sqlite3.Connection,
+    lane: str,
+    ticket_id: str,
+    review_result: str,
+    supersedes_ticket_id: str | None,
+    project_root: pathlib.Path | None = None,
+    validator_report_record_path: str | None = None,
+) -> dict[str, Any]:
     if review_result not in VALID_REVIEW_RESULTS:
         raise ValueError(f"invalid review_result: {review_result}")
     table = lane_table(lane)
@@ -617,7 +865,27 @@ def command_mark_review_result(conn: sqlite3.Connection, lane: str, ticket_id: s
         raise RuntimeError(f"{table} row not found for {ticket_id}")
     if before.get("status") not in {ARCHITECT_READY_STATUS, ARCHITECT_RUNNING_STATUS} or before.get("next_actor") != "architect":
         raise RuntimeError(f"review result requires status in {[ARCHITECT_READY_STATUS, ARCHITECT_RUNNING_STATUS]} next_actor=architect for {ticket_id}")
+    validator_gate: dict[str, Any] | None = None
+    validator_report: dict[str, Any] | None = None
     if review_result in {"accept", "accept_with_changes"}:
+        resolved_project_root = (project_root or pathlib.Path.cwd()).resolve()
+        validator_gate = load_ticket_validator_gate(resolved_project_root, before, ticket_id)
+        if validator_gate["validator_required"] is True:
+            if not validator_report_record_path:
+                raise RuntimeError(
+                    f"ticket {ticket_id} requires independent Validator evidence before {review_result}; "
+                    "provide --validator-report-record"
+                )
+            validator_report = validate_validator_report_record(
+                resolved_project_root,
+                ticket_id,
+                validator_report_record_path,
+            )
+            if validator_report["overall_verdict"] != "pass":
+                raise RuntimeError(
+                    f"ticket {ticket_id} Validator verdict {validator_report['overall_verdict']!r} "
+                    f"does not permit {review_result}"
+                )
         new_status = FINAL_STATUS
         next_actor = "none"
     elif review_result == "reject":
@@ -648,7 +916,12 @@ def command_mark_review_result(conn: sqlite3.Connection, lane: str, ticket_id: s
         action="mark-review-result",
         from_status=str(before.get("status")),
         to_status=new_status,
-        payload={"review_result": review_result, "supersedes_ticket_id": supersedes_ticket_id},
+        payload={
+            "review_result": review_result,
+            "supersedes_ticket_id": supersedes_ticket_id,
+            "validator_gate": validator_gate,
+            "validator_report": validator_report,
+        },
     )
     conn.commit()
     return row
@@ -685,8 +958,24 @@ def render_ticket_doc(
     constraints: list[str],
     notes: list[str],
     review_focus: list[str],
+    validator_required: bool,
+    validator_gate_reason: str,
+    validator_risk_level: str | None,
+    validator_contract_source: str | None,
+    validator_expected_artifacts: list[str],
+    validator_evidence_pack: list[str],
+    validator_failure_behavior: str | None,
 ) -> str:
     outbox_result_path = f"docs/{lane}/outbox/{ticket_id}.result.json"
+    validator_metadata = [
+        f"validator_required: {str(validator_required).lower()}",
+        f"validator_gate_reason: {validator_gate_reason.strip()}",
+        f"validator_risk_level: {(validator_risk_level or '').strip()}",
+        f"validator_contract_source: {(validator_contract_source or '').strip()}",
+        f"validator_expected_artifacts: {'; '.join(item.strip() for item in validator_expected_artifacts if item.strip())}",
+        f"validator_evidence_pack: {'; '.join(item.strip() for item in validator_evidence_pack if item.strip())}",
+        f"validator_failure_behavior: {(validator_failure_behavior or '').strip()}",
+    ]
     return "\n".join(
         [
             "---",
@@ -698,6 +987,7 @@ def render_ticket_doc(
             f"outbox_result_path: {outbox_result_path}",
             "parent_ticket_id:",
             "supersedes_ticket_id:",
+            *validator_metadata,
             "---",
             "",
             f"# {ticket_id} - {title}",
@@ -746,10 +1036,35 @@ def command_draft(
     constraints: list[str],
     notes: list[str],
     review_focus: list[str],
+    validator_required: bool,
+    validator_gate_reason: str,
+    validator_risk_level: str | None,
+    validator_contract_source: str | None,
+    validator_expected_artifacts: list[str],
+    validator_evidence_pack: list[str],
+    validator_failure_behavior: str | None,
     force: bool,
 ) -> dict[str, Any]:
     if priority not in VALID_PRIORITIES:
         raise ValueError(f"priority must be one of {sorted(VALID_PRIORITIES)}")
+    if not validator_gate_reason.strip():
+        raise ValueError("validator_gate_reason must be non-empty")
+    if validator_required:
+        missing: list[str] = []
+        if validator_risk_level is None:
+            missing.append("validator_risk_level")
+        if validator_contract_source is None or not validator_contract_source.strip():
+            missing.append("validator_contract_source")
+        if not any(item.strip() for item in validator_expected_artifacts):
+            missing.append("validator_expected_artifacts")
+        if not any(item.strip() for item in validator_evidence_pack):
+            missing.append("validator_evidence_pack")
+        if validator_failure_behavior is None or not validator_failure_behavior.strip():
+            missing.append("validator_failure_behavior")
+        if missing:
+            raise ValueError(
+                "validator_required=true requires gate metadata: " + ", ".join(missing)
+            )
     resolved_ticket_id = ticket_id or next_ticket_id(conn, project_root, lane)
     ticket_path = inbox_dir(project_root, lane) / f"{resolved_ticket_id}.md"
     ticket_path.parent.mkdir(parents=True, exist_ok=True)
@@ -774,6 +1089,13 @@ def command_draft(
         constraints=constraints,
         notes=notes,
         review_focus=review_focus,
+        validator_required=validator_required,
+        validator_gate_reason=validator_gate_reason,
+        validator_risk_level=validator_risk_level,
+        validator_contract_source=validator_contract_source,
+        validator_expected_artifacts=validator_expected_artifacts,
+        validator_evidence_pack=validator_evidence_pack,
+        validator_failure_behavior=validator_failure_behavior,
     )
     ticket_path.write_text(ticket_text, encoding="utf-8")
     row = load_ticket_row(project_root, lane, ticket_path)
@@ -793,7 +1115,7 @@ def parse_args() -> argparse.Namespace:
             "Helper commands:\n"
             "  python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox\n"
             "  python railyard/scripts/ticket.py --lane domain --project-root . sync-mailbox --ticket-id DOMAIN-001 --reset-lifecycle\n"
-            "  python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title \"Define scope\" --task \"Write docs/scope.md.\"\n"
+            "  python railyard/scripts/ticket.py --lane domain draft --epic-id DOMAIN-E001 --title \"Define scope\" --task \"Write docs/scope.md.\" --validator-not-required --validator-gate-reason \"Low-risk documentation-only ticket.\"\n"
             "  python railyard/scripts/ticket.py --lane domain next --actor runner\n"
             "  python railyard/scripts/ticket.py --lane system claim --ticket-id SYSTEM-DEMO-001 --actor runner --claimed-by runner-1\n"
             "  python railyard/scripts/ticket.py --lane system recover-stale --ticket-id SYSTEM-DEMO-001 --actor runner --reason \"runner interrupted before outbox\"\n\n"
@@ -828,6 +1150,15 @@ def parse_args() -> argparse.Namespace:
     draft_parser.add_argument("--constraint", action="append", default=[])
     draft_parser.add_argument("--note", action="append", default=[])
     draft_parser.add_argument("--review-focus", action="append", default=[])
+    validator_group = draft_parser.add_mutually_exclusive_group(required=True)
+    validator_group.add_argument("--validator-required", action="store_true", help="Require independent Validator evidence before Architect acceptance.")
+    validator_group.add_argument("--validator-not-required", action="store_true", help="Record that independent Validator evidence is not required.")
+    draft_parser.add_argument("--validator-gate-reason", required=True, help="Reason for the Validator gate decision.")
+    draft_parser.add_argument("--validator-risk-level", choices=tuple(sorted(VALID_VALIDATOR_RISK_LEVELS)))
+    draft_parser.add_argument("--validator-contract-source", default="")
+    draft_parser.add_argument("--validator-expected-artifact", action="append", default=[])
+    draft_parser.add_argument("--validator-evidence-item", action="append", default=[])
+    draft_parser.add_argument("--validator-failure-behavior", default="")
     draft_parser.add_argument("--force", action="store_true")
 
     show_parser = subparsers.add_parser("show", help="Show one ticket row.")
@@ -871,6 +1202,11 @@ def parse_args() -> argparse.Namespace:
     review_parser.add_argument("--ticket-id", required=True)
     review_parser.add_argument("--review-result", choices=tuple(sorted(VALID_REVIEW_RESULTS)), required=True)
     review_parser.add_argument("--supersedes-ticket-id", default="")
+    review_parser.add_argument(
+        "--validator-report-record",
+        default="",
+        help="Path to a hash-bound independent Validator report reference record when the ticket requires the gate.",
+    )
     return parser.parse_args()
 
 
@@ -901,6 +1237,13 @@ def main() -> int:
                 constraints=args.constraint,
                 notes=args.note,
                 review_focus=args.review_focus,
+                validator_required=args.validator_required,
+                validator_gate_reason=args.validator_gate_reason,
+                validator_risk_level=args.validator_risk_level,
+                validator_contract_source=args.validator_contract_source or None,
+                validator_expected_artifacts=args.validator_expected_artifact,
+                validator_evidence_pack=args.validator_evidence_item,
+                validator_failure_behavior=args.validator_failure_behavior or None,
                 force=args.force,
             )
         elif args.command == "show":
@@ -922,7 +1265,15 @@ def main() -> int:
         elif args.command == "recover-stale":
             payload = command_recover_stale(conn, project_root, args.lane, args.ticket_id, args.actor, args.reason, args.dry_run)
         elif args.command == "mark-review-result":
-            payload = command_mark_review_result(conn, args.lane, args.ticket_id, args.review_result, args.supersedes_ticket_id or None)
+            payload = command_mark_review_result(
+                conn,
+                args.lane,
+                args.ticket_id,
+                args.review_result,
+                args.supersedes_ticket_id or None,
+                project_root=project_root,
+                validator_report_record_path=args.validator_report_record or None,
+            )
         else:
             raise RuntimeError(f"Unsupported command: {args.command}")
         print(json.dumps(payload, ensure_ascii=False, indent=2))

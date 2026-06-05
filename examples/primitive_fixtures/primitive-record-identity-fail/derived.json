@@ -1,0 +1,6 @@
+{
+  "records": [
+    {"record_id": "rec-001", "value": 10},
+    {"record_id": "rec-002", "value": 20}
+  ]
+}

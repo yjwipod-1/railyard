@@ -34,7 +34,7 @@
         }
       },
       {
-        "rule_id": "source_value_preservation",
+        "rule_id": "value_transform_correctness",
         "severity": "error",
         "check": {
           "type": "mapped_value_comparison"

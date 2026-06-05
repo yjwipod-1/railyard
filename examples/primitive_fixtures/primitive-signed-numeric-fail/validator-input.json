@@ -1,0 +1,10 @@
+{
+  "artifacts": [
+    {"path": "examples/primitive_fixtures/primitive-signed-numeric-fail/source.json", "kind": "source"},
+    {"path": "examples/primitive_fixtures/primitive-signed-numeric-fail/derived.json", "kind": "derived"},
+    {"path": "examples/primitive_fixtures/primitive-signed-numeric-fail/mapping-contract.json", "kind": "contract"}
+  ],
+  "validation_contract": {},
+  "evidence_pack": {},
+  "risk_level": "medium"
+}

@@ -46,7 +46,7 @@ Valid ticket statuses:
 
 Typical flow:
 
-1. `architect` drafts or syncs the ticket.
+1. Planner or `architect` drafts or syncs the ticket with an explicit Validator gate decision.
 2. ticket becomes `ready` for `runner`
 3. `runner` claims the ticket
 4. ticket becomes `running`
@@ -192,7 +192,11 @@ Restricted-runner mode is a platform permission fallback for environments where 
 
 ## Validator Boundary
 
-The Validation Report is optional review evidence. It does not replace Architect review.
+The Validation Report is optional review evidence only when the ticket does not
+require independent Validator evidence. When the ticket requires independent
+Validator evidence, a permitting independent Validator report is required
+before Architect acceptance. In all cases, the Validation Report does not
+replace Architect review.
 
 - The Validator is read-only: it inspects artifacts and produces reports.
 - The Validator does not modify artifacts, create tickets, close epics, or execute lifecycle transitions.
@@ -249,6 +253,23 @@ The Validator report informs but does not dictate the decision.
 
 **Scope exclusions:** The Planner-side Validator does NOT handle Runner-side Validator self-check, runtime orchestration, automatic repair or remediation, model routing or automatic dispatch, or business-specific rules.
 
+## Validation Contract in Lifecycle
+
+The Validation Contract exists at two levels in the lifecycle and follows defined ownership at each stage.
+
+- **Epic level**: The Planner records contract intent, done definition, closure criteria, and unacceptable failure modes in the Epic. This is the *what* the contract must achieve.
+- **Ticket level**: The Architect produces the executable contract with concrete rules, field mappings, check logic, and Validator dispatch payload. This is the *how* the contract is applied. The executable contract lives in the ticket or a ticket-scoped artifact referenced by `validator_contract_source`.
+
+Lifecycle transition rules involving the contract:
+
+- A ticket must not be dispatched to Runner without sufficient contract intent recorded at the epic level and sufficient executable contract (or acceptance criteria) attached at the ticket level for Validator-required tickets.
+- The Runner must not redefine or weaken the contract during execution. Contract inadequacy is reported as `blocked`.
+- The Validator applies the contract as given. It does not modify the contract or write lifecycle state.
+- Architect review checks the Runner result and Validator report against the ticket-level executable contract.
+- Planner closure checks the finalised ticket results against the epic-level contract intent and done definition.
+
+For the full ownership and handoff protocol, see `references/validation-contract.md` and `references/roles.md`.
+
 ## MCP-lite Lifecycle Boundary
 
 The optional MCP-lite server is a stdio adapter over helper-backed lifecycle behavior. It does not change the workflow state model.
@@ -290,3 +311,30 @@ Review result behavior:
 - `redesign` -> `drafted`, `next_actor=architect`
 
 Runner completion is not acceptance. Acceptance exists only after review is recorded.
+
+## Ticket Validator Gate
+
+Every newly drafted or published ticket must declare `validator_required: true` or
+`false` and a `validator_gate_reason`. Tickets that require Validator evidence
+must also declare risk level, contract or acceptance criteria source, expected
+artifacts, evidence pack, and failure behavior.
+
+Historical tickets with neither gate field remain readable, syncable,
+dispatchable, reviewable, and valid under artifact-shape validation. Missing
+legacy metadata is recorded as a legacy unknown state when review is accepted;
+it is not inferred or recorded as `validator_required: false`.
+
+For `validator_required: true`, Architect acceptance is prohibited until an
+independent Validator role report is available through a verifiable report
+reference record and has `overall_verdict: pass`. The helper verifies the
+record, referenced report SHA-256, report shape, and verdict before recording
+`accept` or `accept_with_changes`. `fail`, `blocked`, `inconclusive`, and
+`human_review_required` reject acceptance. `reject` and `redesign` remain
+allowed without Validator evidence. A passing Runner result, Runner verification
+script, Architect self-review, or `scripts/validate_artifacts.py` output does
+not satisfy this gate.
+
+If Validator dispatch is unavailable or produces no retrievable report, the
+Architect stops the acceptance step and returns the exact spawn-ready Validator
+prompt and payload. The Architect does not substitute self-review or label
+artifact-shape validation as independent Validator evidence.

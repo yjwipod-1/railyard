@@ -1,0 +1,12 @@
+{
+  "contract_id": "primitive-unmapped-inconc",
+  "version": "0.7.2",
+  "applies_to": "primitive-fixture",
+  "validation_scope": "transform_only",
+  "missing_mapping_policy": "inconclusive",
+  "field_mappings": [
+    {"source_path": "record_id", "derived_path": "record_id", "transform": "identity", "required": true},
+    {"source_path": "value", "derived_path": "value", "transform": "identity", "required": true},
+    {"source_path": "label", "derived_path": "label", "transform": "identity", "required": true}
+  ]
+}

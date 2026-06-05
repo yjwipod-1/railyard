@@ -1,0 +1,10 @@
+{
+  "artifacts": [
+    {"path": "examples/primitive_fixtures/primitive-field-mapping-required-pass/source.json", "kind": "source"},
+    {"path": "examples/primitive_fixtures/primitive-field-mapping-required-pass/derived.json", "kind": "derived"},
+    {"path": "examples/primitive_fixtures/primitive-field-mapping-required-pass/mapping-contract.json", "kind": "contract"}
+  ],
+  "validation_contract": {},
+  "evidence_pack": {},
+  "risk_level": "medium"
+}

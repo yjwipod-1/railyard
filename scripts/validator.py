@@ -17,6 +17,31 @@ SUPPORTED_TRANSFORMS = {
     "parse_number_preserve_sign",
 }
 
+# ---------------------------------------------------------------------------
+# Primitive registry alignment (references/validation-primitive-registry.md)
+#
+# The rule_ids below map each executable validator check to its corresponding
+# registry primitive.  "Aligned" means the validator finding rule_id matches
+# the registry's stable rule_id exactly.
+#
+# Aligned with registry primitives:
+#   source_availability            <- registry section 7.3
+#   field_mapping_required         <- registry section 3.1
+#   value_transform_correctness    <- registry section 4.3
+#   signed_numeric_preservation    <- registry section 4.2
+#   record_identity_preservation   <- registry section 6.1
+#   unmapped_field_availability    <- registry section 7.1
+#
+# Validator-specific (no registry primitive counterpart):
+#   artifact_read                  -- I/O infrastructure
+#   candidate_output_not_truth_source -- truth-hierarchy methodology assertion
+#   declared_transform_only        -- validator capability constraint
+#   record_materialization         -- structural prerequisite
+#   unsupported_contract           -- contract-type routing
+#   validator_input                -- input-loading infrastructure
+#   warning_policy                 -- validator meta-policy (warnings_as_errors)
+# ---------------------------------------------------------------------------
+
 
 class ValidatorError(ValueError):
     pass
@@ -315,7 +340,7 @@ def validate_source_to_derived(
     derived_items = [item for item in artifacts.values() if item["kind"] == "derived"]
     if not source_items or not derived_items:
         findings.append(make_finding(
-            "source_derived_artifacts_present",
+            "source_availability",
             "error",
             "blocked",
             "Source-to-derived validation requires one source artifact and one derived artifact.",
@@ -472,7 +497,7 @@ def validate_source_to_derived(
             except Exception as exc:
                 source_mapping_failures += 1
                 findings.append(make_finding(
-                    "source_value_preservation",
+                    "value_transform_correctness",
                     "error",
                     "fail",
                     f"Could not apply transform '{transform}' for derived field '{derived_path}'.",
@@ -482,7 +507,7 @@ def validate_source_to_derived(
             if not same_value(expected_value, derived_value):
                 source_mapping_failures += 1
                 findings.append(make_finding(
-                    "source_value_preservation",
+                    "value_transform_correctness",
                     "error",
                     "fail",
                     f"Derived field '{derived_path}' does not match source field '{source_path}' after '{transform}'.",
@@ -500,7 +525,7 @@ def validate_source_to_derived(
 
     if source_mapping_failures == 0:
         findings.append(make_finding(
-            "source_value_preservation",
+            "value_transform_correctness",
             "error",
             "pass",
             "All required mapped fields matched their source values after declared transforms.",
@@ -543,7 +568,7 @@ def validate_source_to_derived(
             f"unmapped_derived_fields={unmapped_fields}; policy={missing_mapping_policy}; risk_level={risk_level}",
         ))
         findings.append(make_finding(
-            "missing_mapping_policy",
+            "unmapped_field_availability",
             "warn",
             status,
             f"Applied missing_mapping_policy='{missing_mapping_policy}' to unmapped derived fields.",
@@ -563,7 +588,7 @@ def validate_source_to_derived(
             f"derived_fields={sorted(derived_fields)}",
         ))
         findings.append(make_finding(
-            "missing_mapping_policy",
+            "unmapped_field_availability",
             "warn",
             "not_applicable",
             "No unmapped derived fields were found.",

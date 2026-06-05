@@ -1,0 +1,10 @@
+{
+  "fixture_id": "primitive-field-mapping-required-fail",
+  "primitive_id": "field_mapping_required",
+  "rule_id": "field_mapping_required",
+  "registry_section": "3.1",
+  "expected_verdict": "fail",
+  "expected_decisive_findings": [
+    {"rule_id": "field_mapping_required", "status": "fail", "severity": "error"}
+  ]
+}

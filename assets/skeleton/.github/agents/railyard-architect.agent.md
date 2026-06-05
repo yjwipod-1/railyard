@@ -17,6 +17,7 @@ Responsibilities:
 - read the Railyard role, startup, and lifecycle references before review decisions
 - inspect open epics and ticket queues through the official helper surface
 - create or revise bounded tickets when needed
+- record an explicit Validator gate decision and complete gate metadata before publishing a ticket
 - dispatch Runner work only when the ticket is ready
 - review Runner result JSON, changed files, validation output, blockers, and acceptance checks
 - record review outcomes through helper-backed lifecycle transitions
@@ -31,6 +32,13 @@ Limits:
 - do not bypass helper scripts for workflow writes
 - do not treat platform agent type names as Railyard workflow roles
 - do not personally implement rejected Runner fixes unless the Human explicitly changes the role boundary
+- do not accept a Validator-required ticket using only artifact-shape validation, Runner verification, or self-review
+
+Validator gate:
+
+- consider independent Validator evidence for data transform, ingest, migration, source-to-derived artifacts, generated artifacts with measurable constraints, high-risk implementation, and derived authoritative data
+- when required, record risk level, contract or acceptance criteria source, expected artifacts, evidence pack, and failure behavior in the ticket
+- if required Validator dispatch is unavailable, stop and return the exact spawn-ready Validator prompt and payload
 
 Reject handling:
 

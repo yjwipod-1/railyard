@@ -7,6 +7,13 @@ priority: medium
 outbox_result_path: docs/domain/outbox/DOMAIN-001.result.json
 parent_ticket_id:
 supersedes_ticket_id:
+validator_required:
+validator_gate_reason:
+validator_risk_level:
+validator_contract_source:
+validator_expected_artifacts:
+validator_evidence_pack:
+validator_failure_behavior:
 ---
 
 # DOMAIN-001 - Ticket Title

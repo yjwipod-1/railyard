@@ -14,6 +14,10 @@ All notable public-facing changes to Railyard are summarized here.
 
 ### validation contract foundation
 
+- Required every drafted or published ticket to record an explicit Validator gate decision and rationale.
+- Added conditional Validator gate metadata for risk level, contract or acceptance criteria source, expected artifacts, evidence pack, and failure behavior.
+- Hardened ticket drafting, mailbox sync, templates, artifact-shape validation, and examples around the Validator gate metadata contract.
+- Clarified that `scripts/validate_artifacts.py`, Runner verification, and Architect self-review cannot satisfy a required independent Validator evidence gate.
 - Added v0.7 validation contract foundation to README.md, SKILL.md, CHANGELOG.md, references/validation-contract.md, references/result-format.md.
 - Validation contract defines generic, development-time-first contract/report model without business rules or runtime orchestration.
 - Added `validate_contract()` function to `scripts/validate_artifacts.py` for contract.json shape validation.

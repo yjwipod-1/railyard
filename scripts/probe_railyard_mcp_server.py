@@ -35,7 +35,7 @@ EXPECTED_TOOLS = {
     "start_review": {"lane", "ticket_id", "claimed_by"},
     "mark_runner_result": {"lane", "ticket_id", "runner_result", "outbox_path"},
     "recover_stale_ticket": {"lane", "ticket_id", "actor", "reason", "dry_run"},
-    "mark_review_result": {"lane", "ticket_id", "review_result", "supersedes_ticket_id"},
+    "mark_review_result": {"lane", "ticket_id", "review_result", "supersedes_ticket_id", "validator_report_record"},
     "validate_result_payload": {"lane", "ticket_id", "outbox_path", "payload_json", "expected_runner_result"},
     "validate_ticket_state": {"lane", "ticket_id", "expected_status", "expected_actor"},
 }
@@ -234,30 +234,34 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
         "created_at": utc_now(),
     }
     result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    inbox_path = temp_root / "docs/system/inbox/SYSTEM-PROBE-001.md"
-    inbox_path.parent.mkdir(parents=True, exist_ok=True)
-    inbox_path.write_text(
-        "\n".join(
-            [
-                "---",
-                f"ticket_id: {PROBE_TICKET_ID}",
-                f"epic_id: {PROBE_EPIC_ID}",
-                "task_mode: general",
-                "task_type: validation",
-                "priority: high",
-                f"outbox_result_path: {PROBE_RESULT_PATH.as_posix()}",
-                "---",
-                "",
-                f"# {PROBE_TICKET_ID} - MCP probe fixture",
-                "",
-                "## Task",
-                "",
-                "Probe fixture.",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
+    inbox_dir = temp_root / "docs/system/inbox"
+    inbox_dir.mkdir(parents=True, exist_ok=True)
+    for ticket_id in (PROBE_TICKET_ID, PROBE_ARCHITECT_TICKET_ID, PROBE_STALE_TICKET_ID):
+        inbox_path = inbox_dir / f"{ticket_id}.md"
+        inbox_path.write_text(
+            "\n".join(
+                [
+                    "---",
+                    f"ticket_id: {ticket_id}",
+                    f"epic_id: {PROBE_EPIC_ID}",
+                    "task_mode: general",
+                    "task_type: validation",
+                    "priority: high",
+                    f"outbox_result_path: docs/system/outbox/{ticket_id}.result.json",
+                    "validator_required: false",
+                    "validator_gate_reason: Lifecycle probe with no derived authoritative artifact.",
+                    "---",
+                    "",
+                    f"# {ticket_id} - MCP probe fixture",
+                    "",
+                    "## Task",
+                    "",
+                    "Probe fixture.",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
     return temp_root
 
 
