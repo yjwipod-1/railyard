@@ -6,6 +6,41 @@ Railyard is a portable operating scaffold for long-running AI-agent projects. It
 
 This repository is a reference implementation extracted from real project use. It is not an agent runtime, a hosted service, or a Python package. It supplies the workflow structure, SQLite schema, templates, and helper scripts that an agent project can copy into its own workspace.
 
+## Start Using Railyard
+
+Put Railyard in your project workspace, then use your existing planning conversation as the Planner. If you already have a long-running session where you discuss product direction, requirements, tradeoffs, or roadmap decisions, that session is the right place to introduce Railyard.
+
+A session does not need to be permanently bound to a ticket; the ticket id is just the context you give that session. Railyard is designed to decouple lifecycle state from chat history, so users can choose the session scope that fits the work: keep business direction in the Planner, open an Architect session for one epic or one ticket depending on how related the work is, and use a fresh Runner session per ticket when the platform cannot spawn one automatically. This avoids context pollution and unnecessary long-session usage.
+
+Start from your existing requirements or planning session:
+
+```text
+Use this session as the Planner for my project.
+Read SKILL.md and references/roles.md.
+Convert our current project direction into Railyard epics and tickets.
+Then give me the smallest Architect startup prompt for the next ticket or epic.
+```
+
+Use an Architect session when an epic or ticket is ready for lane-level review and dispatch. The easiest path is to ask the Planner for the smallest Architect startup prompt for the current epic or ticket, then paste that prompt into a fresh session. If you are starting manually, use:
+
+```text
+Read SKILL.md, references/roles.md, references/startup-sequence.md, and references/lifecycle.md.
+role=architect
+Work on <epic_id or ticket_id>.
+Dispatch the Runner if your platform supports subagents. If not, return the exact Runner startup prompt.
+```
+
+Use a Runner session only for one ticket. Automatic subagent spawn is preferable when the platform supports it; when it does not, a manual fresh Runner session is the cleanest fallback:
+
+```text
+Read SKILL.md.
+role=runner
+ticket_id=<ticket_id>
+Stay inside the ticket scope, run the required validation, and return the Runner result.
+```
+
+Validator is a read-only role. The Architect or Planner usually dispatches it when the ticket or closure contract requires independent evidence. If your platform cannot spawn a Validator, open a fresh session with the Validator prompt and payload returned by the Architect or Planner.
+
 ## Why Railyard
 
 The name reflects the core idea: work moves through defined tracks, switching points, gates, and review stations. Agents do not freely wander through the whole project. They move through structured lanes.

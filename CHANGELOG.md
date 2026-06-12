@@ -2,6 +2,86 @@
 
 All notable public-facing changes to Railyard are summarized here.
 
+## Unreleased / v0.7.3
+
+### README onboarding
+
+- Added a short "Start Using Railyard" section near the top of the README
+  showing the minimal Planner, Architect, Runner, and Validator session
+  prompts for a project adopting Railyard.
+- Clarified that an existing requirements or planning conversation is the
+  natural Planner session for introducing Railyard.
+- Clarified that a session does not need to be permanently bound to a ticket;
+  passing the ticket id as context is enough unless the platform provides a
+  dedicated binding feature.
+- Added session-scope guidance: Planner keeps business context, Architect can
+  scope to an epic or ticket, and manual Runner fallback can use a fresh session
+  per ticket to avoid context pollution.
+- Documented the preferred Architect entry path: ask the Planner for the
+  smallest Architect startup prompt for the current epic or ticket, then run
+  that prompt in a fresh session.
+
+### Validator verdict handoff and bounded remediation
+
+- Defined the complete Validator verdict handoff tree covering who acts next,
+  acceptance/closure permissions, remediation, evidence, redesign, blocked
+  handling, and Human escalation for every verdict.
+- Documented the no-remediation boundary: Validator produces evidence only;
+  all remediation, fixes, and lifecycle decisions are owned by consumer roles.
+
+### Semantic validation boundary
+
+- Defined the semantic validation boundary distinguishing deterministic
+  checks (structural, field-mapping, value-preservation, formula-recompute,
+  record-key reconciliation) from semantic inference (logical consistency,
+  cross-artifact coherence, domain-level correctness).
+- Established deterministic precedence: a deterministic finding always takes
+  precedence over a conflicting semantic inference.
+- Documented the boundary in references/validation-contract.md with scope,
+  precedence hierarchy, and v0.7.3 non-goals.
+
+### Confidence and Human escalation matrix
+
+- Defined a confidence and Human escalation matrix in
+  references/validator-protocol.md mapping all 15 combinations of confidence
+  level (high/medium/low) and overall verdict to mandatory, recommended, or
+  optional escalation tiers.
+- Documented Architect and Planner obligations per escalation tier.
+
+### Reserved semantic primitive namespace
+
+- Reserved the semantic inference primitive namespace in
+  references/validation-primitive-registry.md for bounded v0.7.4
+  implementation.
+- Reserved entries include semantic_coherence, semantic_contradiction,
+  semantic_completeness, and semantic_plausibility with placeholder check
+  logic and stable rule_ids.
+- No executable semantic Validator behavior, semantic calibration fixtures, or
+  runtime orchestration was added in v0.7.3.
+
+## v0.7.2
+
+### Validator gate and deterministic primitive coverage
+
+- Required every drafted or published ticket to record an explicit Validator gate decision and rationale.
+- Added conditional Validator gate metadata for risk level, contract or acceptance criteria source, expected artifacts, evidence pack, and failure behavior.
+- Hardened ticket drafting, mailbox sync, ticket templates, review enforcement, and examples around the Validator gate metadata contract.
+- Clarified that `scripts/validate_artifacts.py`, Runner verification, and Architect self-review cannot satisfy a required independent Validator evidence gate.
+- Clarified Validation Contract ownership and handoff across Human, Planner, Architect, Runner, and Validator roles.
+- Added a deterministic validation primitive registry and aligned executable `scripts/validator.py` finding rule IDs where coverage exists.
+- Added generic primitive fixtures plus primitive fixture artifact-shape validation.
+- Added executable primitive coverage-status documentation for currently covered and non-covered deterministic checks.
+
+## v0.7.1
+
+### Validator usability and executable reference
+
+- Added a public Validator role entry path in the main README, including who dispatches the Validator, what payload it consumes, and where it fits in Architect review and Planner closure.
+- Added public-safe Validator examples for Architect review, source-to-derived mapping review, Planner closure review, and Planner release-readiness review.
+- Added `scripts/validator.py` as a minimal executable development-time Validator reference for source-to-derived field-mapping checks.
+- Clarified the boundary between artifact-shape validation and executable Validator evidence: `scripts/validate_artifacts.py` validates shape only, while `scripts/validator.py` emits Validation Reports.
+- Documented the current bounded implementation limit: Planner closure and release-readiness inputs are accepted as shape examples, while the minimal executable Validator reports them as `human_review_required` until a dedicated readiness implementation exists.
+
 ## Unreleased / v0.5.1
 
 - Hardened Runner dispatch so spawn-ready prompts require Railyard role/startup protocol reads before claim or edits.
@@ -10,7 +90,7 @@ All notable public-facing changes to Railyard are summarized here.
 - Updated MCP probe, artifact validation, result templates, and examples to make missing role protocol reads visible before Architect review.
 - Hardened Architect review guidance so prompt text does not replace required protocol reads, rejected tickets continue through Runner redispatch when authorized, and blocked platform spawn authorization is reported explicitly.
 
-## Unreleased / v0.7
+## v0.7
 
 ### validation contract foundation
 

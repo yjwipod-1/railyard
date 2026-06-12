@@ -200,8 +200,11 @@ replace Architect review.
 
 - The Validator is read-only: it inspects artifacts and produces reports.
 - The Validator does not modify artifacts, create tickets, close epics, or execute lifecycle transitions.
+- The Validator does not perform remediation, auto-fix, retry, or automated repair for any verdict. Non-pass verdicts (`fail`, `blocked`, `inconclusive`, `human_review_required`) are consumer signals, not Validator action plans.
 - Architect review decisions remain unchanged.
 - Planner epic/release closure decisions remain unchanged.
+- Remediation ownership is role-bound: the Architect owns reject/redesign, the Runner owns fixes, the Planner owns follow-up tickets, and the Human owns escalation decisions. See `references/validator-verdict-handoff-tree.md` Section No-Remediation Boundary for the complete boundary definition.
+- For Validator-required tickets, a non-pass verdict does not authorize the Architect to accept; it requires consumer action (reject, redesign, blocked handling, or escalation) as defined in the verdict handoff tree.
 
 ### Validator dispatch failure boundary
 
@@ -230,6 +233,12 @@ The Architect uses the Validation Report as structured evidence when deciding th
 | `warn` + `fail` (`warnings_as_errors` = true) | Treat as error-level finding; affects overall verdict. |
 | `error` + `fail` | Cannot accept; must reject or redispatch. |
 
+**Canonical handoff reference:** The single authoritative handoff tree covering
+who acts next, acceptance/closure permissions, remediation, evidence,
+redesign, blocked handling, and Human escalation for every verdict is defined
+in `references/validator-verdict-handoff-tree.md`. This table is the
+Architect-specific view derived from that tree.
+
 **Source-to-derived rule:** The candidate output must never be the truth source for expected values. Every derived field must have an independent source mapping or declared transformation. For high-risk tasks, missing mapping policy should be `fail` or `human_review_required`, not silent pass. See `references/validator-protocol.md` Sections 5, 6, and 7 for truth hierarchy, severity/status independence, and source-to-derived reconciliation.
 
 **Vague acceptance criteria:** The Architect must not pass vague natural-language acceptance criteria directly to the Validator. If acceptance criteria are vague (e.g., "validate that implementation correctly transforms source artifact" without mapping or evidence expectations), the Architect must translate them into concrete validation input or mark validation as `inconclusive` / `human_review_required`.
@@ -246,12 +255,70 @@ The Planner uses the Validation Report as structured evidence when deciding epic
 | `inconclusive` | Request more evidence; do not close high-risk epic |
 | `human_review_required` | Stop; await Human decision |
 
+**Canonical handoff reference:** The single authoritative handoff tree covering
+who acts next, acceptance/closure permissions, remediation, evidence,
+redesign, blocked handling, and Human escalation for every verdict is defined
+in `references/validator-verdict-handoff-tree.md`. This table is the
+Planner-specific view derived from that tree.
+
 **The Validator report is Planner evidence only, NOT closure authority.**
 The Validator report does NOT close epic, record lifecycle, or replace Planner judgment.
 The Planner still closes epic through the epic helper.
 The Validator report informs but does not dictate the decision.
 
 **Scope exclusions:** The Planner-side Validator does NOT handle Runner-side Validator self-check, runtime orchestration, automatic repair or remediation, model routing or automatic dispatch, or business-specific rules.
+
+## More-Evidence Handoff
+
+More-evidence requests are expressed using **existing lifecycle actions and
+review results**. They do not introduce new ticket statuses or review results.
+
+### Evidence Gap -> Lifecycle Action Mapping
+
+| Evidence gap | Lifecycle action | Ticket transition | Requesting role | Responding role |
+|---|---|---|---|---|
+| Runner evidence insufficient for current scope | `review_result=reject` | `in_review` -> `ready` | Architect | Runner (resubmit with improved evidence) |
+| Contract or acceptance criteria underspecified | `review_result=redesign` | `in_review` -> `drafted` | Architect | Architect (refine contract) |
+| Runner blocked by external dependency | `runner_result=blocked` | `running` -> `awaiting_review` (blocked) | Runner | Architect or Human (resolve dependency) |
+| Cross-ticket evidence needed for closure | Open follow-up ticket | New ticket drafted | Planner | Runner (produce evidence via new ticket) |
+| Human business judgment required | Human escalation (stop review) | No lifecycle transition; review remains in `in_review` stopped pending Human input | Architect or Planner | Human (provide judgment) |
+
+### Role-Specific Behavior
+
+**Architect:**
+- When the Runner's evidence is insufficient, use `reject` to send the ticket
+  back to `ready`. Do not use `blocked` or `awaiting_review` as a way to
+  request more evidence from the Runner.
+- When the ticket contract or acceptance criteria is the root cause, use
+  `redesign` to return the ticket to `drafted`. The Architect then refines the
+  contract before redispatching.
+- When the gap is an external dependency, record a blocker and stop. Do not
+  accept or reject -- the blocker signals the need for resolution.
+- When Human judgment is needed, stop the review and escalate. Do not continue
+  to accept, reject, or redesign.
+
+**Planner:**
+- When pre-closure evidence is insufficient, open a follow-up ticket rather than
+  modifying existing ticket results or inventing a new lifecycle state.
+- When an external delivery blocks closure, block the epic closure step rather
+  than closing with unresolved gaps.
+- When Human judgment is needed, escalate rather than substituting judgment.
+
+**Runner:**
+- When the Runner cannot produce required evidence due to a missing external
+  artifact, permission, or environment, record `runner_result=blocked`. Do not
+  report `partial` or `done` with a note about missing evidence.
+- When the Runner believes the contract is insufficient, report it as a blocker
+  (`unresolved_dependency`). Do not silently work around the gap.
+
+### Scope Exclusion
+
+This section does not add new lifecycle statuses or review results. More-evidence
+is always expressed through the existing lifecycle: `reject`, `redesign`,
+`blocked`, follow-up ticket, or Human escalation.
+
+For the canonical more-evidence mapping including scenario-specific examples,
+see `references/validator-verdict-handoff-tree.md` Section More-Evidence Mapping.
 
 ## Validation Contract in Lifecycle
 

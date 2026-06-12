@@ -400,6 +400,12 @@ After receiving the Validation Report, the Architect maps the `overall_verdict` 
 | `warn` + `fail` (`warnings_as_errors` = true) | Treat as error-level finding; affects overall verdict. |
 | `error` + `fail` | Cannot accept. |
 
+For the canonical handoff tree covering who acts next, acceptance/closure
+permissions, remediation, evidence, redesign, blocked handling, and Human
+escalation for every verdict, see
+`references/validator-verdict-handoff-tree.md`. This table is the
+Architect-specific view derived from that tree.
+
 ### Vague acceptance criteria handling
 
 The Architect must not pass vague natural-language acceptance criteria directly to the Validator. If AC is vague (e.g., "validate that implementation correctly transforms source artifact into derived artifact" without mapping or evidence expectations), the Architect must:
@@ -472,6 +478,12 @@ Explicit Human-authorized role collapse is the only exception. If role collapse 
 | `blocked` | Collect missing evidence before deciding |
 | `inconclusive` | Request more evidence; do not close high-risk epic |
 | `human_review_required` | Stop; await Human decision |
+
+For the canonical handoff tree covering who acts next, acceptance/closure
+permissions, remediation, evidence, redesign, blocked handling, and Human
+escalation for every verdict, see
+`references/validator-verdict-handoff-tree.md`. This table is the
+Planner-specific view derived from that tree.
 
 ### Validator report effect
 
