@@ -64,6 +64,32 @@ The Validator receives the Validation Contract from the caller (Architect or Pla
 
 For the full ownership and handoff protocol, see `references/validation-contract.md`.
 
+### Remediation Ownership
+
+The Validator produces evidence only. All remediation, fixes, and lifecycle
+decisions are owned by consumer roles. The Validator does not participate in
+any action beyond report production.
+
+| Verdict | Validator action (ends here) | Remediation owner | Consumer action |
+|---|---|---|---|
+| `pass` | Report clean findings | None required | Architect reviews independently; Planner assesses closure |
+| `fail` | Report error findings with evidence | Runner (fix errors); Architect (reject/redispatch) | Architect records `review_result=reject` (Runner fixes) or `review_result=redesign` (approach flawed) |
+| `blocked` | Report blocked findings with gap description | Architect (resolve blocker); Human (grant permission) | Architect collects missing evidence or escalates; Runner does not retry |
+| `inconclusive` | Report inconclusive findings with evidence gaps | Architect (provide contract/evidence); Planner (follow-up) | Architect provides missing evidence or escalates for high-risk tickets |
+| `human_review_required` | Report findings requiring Human judgment | Human (provide judgment) | Architect stops review and escalates; no automated role substitutes |
+
+**Key rules:**
+
+- The Validator does not retry, re-execute, or produce follow-up reports
+  unless explicitly re-dispatched by an authorized consumer.
+- Non-pass verdicts do not authorize automatic repair. A `fail` verdict means
+  someone must fix the errors; it does not mean the Validator should fix them.
+- The `recommended_next_action` field in the Validation Report is advisory.
+  It informs the consumer but does not bind or override consumer judgment.
+- For the complete no-remediation boundary including case-by-case rules and
+  bounded consumer actions, see
+  `references/validator-verdict-handoff-tree.md` Section No-Remediation Boundary.
+
 ## 2. Validator Input Slots
 
 A Validator invocation MUST supply the following input slots.
@@ -218,6 +244,12 @@ Minimal valid output:
 
 **Important:** `warn` is NOT an overall verdict value. Warnings are expressed
 via finding `severity=warn` combined with a `status`.
+
+For the canonical handoff tree mapping each verdict to explicit Architect,
+Planner, Runner, Validator, and Human responsibilities -- including whether
+acceptance is allowed, whether remediation/more evidence/redesign is needed,
+and whether Human escalation is required -- see
+`references/validator-verdict-handoff-tree.md`.
 
 ### 4.2 Candidate Output Must Never Be the Truth Source
 
@@ -590,6 +622,12 @@ The Planner-side Validator is invoked for pre-closure or release readiness asses
 | `inconclusive` | Request more evidence; do not close high-risk epic |
 | `human_review_required` | Stop; await Human decision |
 
+**Canonical handoff reference:** The single authoritative handoff tree covering
+who acts next, acceptance/closure permissions, remediation, evidence,
+redesign, blocked handling, and Human escalation for every verdict is defined
+in `references/validator-verdict-handoff-tree.md`. This table is the
+Planner-specific view derived from that tree.
+
 ### Validator report effect
 
 - The Validator report is **Planner evidence only**, NOT closure authority.
@@ -606,7 +644,96 @@ The Planner-side Validator does NOT handle:
 - Model routing or automatic dispatch
 - Business-specific rules or content policy checks
 
-## 11. Extension Notes
+## 11. Confidence and Human Escalation Matrix
+
+This section defines the mapping from Validator confidence levels and overall
+verdicts to Human escalation actions. The matrix governs when an Architect may
+record acceptance and when a Planner may close an epic based on Validator
+evidence.
+
+### Escalation Tiers
+
+Three escalation tiers determine the required action:
+
+- **Mandatory**: The Architect or Planner MUST stop and escalate to the Human.
+  No acceptance or closure decision may be recorded until the Human provides
+  judgment.
+- **Recommended**: The Architect or Planner SHOULD escalate or seek
+  corroborating evidence. If proceeding without escalation, the decision
+  rationale MUST be documented in the review or closure notes.
+- **Optional**: The Architect or Planner MAY proceed without escalation. Normal
+  review and closure processes apply.
+
+### Confidence Levels
+
+Confidence expresses the Validator's certainty in its findings:
+
+- **high**: Findings are reliable. Source evidence is complete, deterministic
+  checks executed fully, and the truth hierarchy was satisfied. The Validator
+  has sufficient evidence to produce a definitive verdict.
+- **medium**: Findings are indicative but some evidence is incomplete or
+  inferred. Deterministic checks covered the primary scope but secondary scope
+  relied on partial evidence. Corroboration may be needed for critical
+  decisions.
+- **low**: Findings are uncertain. Significant evidence gaps exist,
+  deterministic checks could not execute fully, or the truth hierarchy was
+  violated (e.g., candidate output used as truth source). Human review is
+  expected for any non-pass verdict.
+
+### Confidence and Verdict Escalation Matrix
+
+| confidence | overall_verdict | Escalation tier | Architect action | Planner action |
+|---|---|---|---|---|
+| high | pass | Optional | May accept after independent scope/diff review. | May close epic after Planner judgment. |
+| high | fail | Optional | Reject or redispatch Runner. No escalation needed; deterministic failure is actionable. | Open follow-up ticket or block closure. No escalation needed. |
+| high | blocked | Recommended | Collect missing evidence. If evidence cannot be collected, escalate to Human. | Collect missing evidence before deciding closure. |
+| high | inconclusive | Recommended | Provide missing contract/evidence or escalate for high-risk tickets. | Request more evidence; do not close high-risk epic without escalation. |
+| high | human_review_required | Mandatory | Stop and request Human decision before recording review result. | Stop and await Human decision before closure. |
+| medium | pass | Optional | May accept after independent review. | May close epic after Planner judgment. |
+| medium | fail | Optional | Reject or redispatch. Corroborate failure evidence if the finding is unexpected. | Open follow-up ticket or block closure. Verify failure evidence. |
+| medium | blocked | Recommended | Collect missing evidence. Escalate if evidence cannot be collected or the blockage is critical. | Collect missing evidence. Escalate for high-risk epics. |
+| medium | inconclusive | Recommended | Provide missing contract/evidence. Escalate if the inconclusive scope affects acceptance criteria. | Request more evidence. Do not close high-risk epic without escalation. |
+| medium | human_review_required | Mandatory | Stop and escalate to Human. | Stop and await Human decision. |
+| low | pass | Recommended | May accept, but document rationale for accepting low-confidence evidence. | May close epic, but document rationale. |
+| low | fail | Recommended | Reject or redispatch. Corroborate failure evidence; low-confidence failures may be false positives. | Open follow-up ticket. Verify failure evidence before blocking closure. |
+| low | blocked | Mandatory | Stop and escalate. Low-confidence blocked findings require Human judgment to resolve. | Stop and escalate. Do not close with low-confidence blocked findings. |
+| low | inconclusive | Mandatory | Stop and escalate. Low-confidence inconclusive findings cannot support acceptance. | Stop and escalate. Do not close with low-confidence inconclusive findings. |
+| low | human_review_required | Mandatory | Stop and escalate. | Stop and await Human decision. |
+
+### Matrix Application Rules
+
+1. **Mandatory escalation overrides all other actions.** When the tier is
+   Mandatory, the Architect or Planner must stop and escalate regardless of
+   other evidence.
+2. **Escalation is not acceptance.** Escalating to Human means the decision is
+   deferred to Human judgment. It does not mean acceptance is recorded.
+3. **Recommended escalation with documentation exception.** If the Architect or
+   Planner proceeds without escalation when the tier is Recommended, the
+   review or closure notes must state why escalation was not needed and what
+   corroborating evidence supported the decision.
+4. **Low-confidence pass is not a strong signal.** A `low` confidence `pass`
+   verdict does not mean the artifact is clean; it means the Validator could
+   not find errors but also could not fully verify correctness. The Architect
+   should treat it as inconclusive evidence for critical scope.
+5. **Cross-reference from Architect and Planner tables.** The Architect review
+   decision table (Section 7.5 of `references/startup-sequence.md` and
+   `references/roles.md` Section Architect-to-Validator) and the Planner
+   verdict-to-action table (Section 10 of this document) are authoritative for
+   their respective roles. This escalation matrix supplements those tables by
+   adding the confidence dimension. When this matrix mandates escalation, the
+   Architect or Planner MUST comply even if the base table would permit
+   proceeding.
+
+### Relationship to Semantic Validation
+
+Semantic validation findings (see `references/validation-contract.md` Semantic
+Validation Boundary section) typically produce `medium` or `low` confidence
+because they involve inference rather than deterministic checks. As a result,
+non-pass semantic findings frequently trigger Recommended or Mandatory
+escalation under this matrix. This is expected: semantic findings are
+escalation signals, not deterministic verdicts.
+
+## 12. Extension Notes
 
 - This protocol is generic and not tied to any business domain.
 - Future contracts may add domain-specific rules, but they MUST respect the
@@ -615,3 +742,12 @@ The Planner-side Validator does NOT handle:
 - The Validator protocol extends the Validation Contract foundation defined
   in `references/validation-contract.md` by adding input/output schemas,
   verdict computation rules, and source-to-derived reconciliation patterns.
+- The Confidence and Human Escalation Matrix (Section 11) governs when
+  Human judgment is required based on confidence and verdict. Architect
+  and Planner decision tables in this document and in
+  `references/startup-sequence.md` and `references/roles.md` are supplemented
+  by this matrix.
+- Semantic validation boundary and deterministic precedence rules are defined
+  in `references/validation-contract.md` Semantic Validation Boundary section.
+  Semantic inference findings typically produce medium or low confidence and
+  may trigger escalation under Section 11.

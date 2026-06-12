@@ -606,3 +606,77 @@ aggregate report.
 - This registry does not prescribe runtime orchestration, dispatch logic, or
   lifecycle integration. Those concerns are handled by the Validator protocol
   and the Railyard lifecycle model.
+- Section 11 reserves the Semantic Inference primitive namespace for v0.7.4
+  implementation. Reserved entries contain placeholder check logic and must
+  not be executed by Validator implementations.
+- The semantic validation boundary and deterministic precedence rules that
+  govern semantic primitives are defined in
+  `references/validation-contract.md` Semantic Validation Boundary section.
+
+## 11. Semantic Inference (Reserved)
+
+This section reserves the semantic validation primitive namespace for bounded
+implementation in v0.7.4. Each entry defines the stable rule_id, default
+severity, description, and required inputs, but the check_logic field contains
+a RESERVED placeholder. No executable check logic is provided. Validator
+implementations in v0.7.3 MUST NOT interpret these entries as executable
+primitives.
+
+Semantic inference primitives evaluate logical consistency, cross-artifact
+coherence, domain-level correctness, or meaning-based properties. They operate
+at the artifact level rather than the field level. Under the deterministic
+precedence rule (see `references/validation-contract.md` Semantic Validation
+Boundary), semantic inference findings are advisory or escalation signals and
+must not override deterministic primitive findings.
+
+### 11.1 `semantic_coherence`
+
+- **default_severity**: `error`
+- **description**: Check cross-artifact logical consistency. Related artifacts
+  (e.g., a ticket and its parent epic) must not contain logically conflicting
+  statements about the same concept.
+- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **required_inputs**: `primary_artifact`, `related_artifacts`, `coherence_scope`
+
+Finding examples (illustrative):
+
+- RESERVED: `"Cross-artifact coherence check not yet implemented."`
+
+### 11.2 `semantic_contradiction`
+
+- **default_severity**: `error`
+- **description**: Detect directly contradictory assertions across artifacts.
+  If one artifact states a requirement and another artifact states the opposite,
+  the contradiction must be flagged for resolution.
+- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **required_inputs**: `primary_artifact`, `related_artifacts`, `contradiction_domain`
+
+Finding examples (illustrative):
+
+- RESERVED: `"Contradiction detection not yet implemented."`
+
+### 11.3 `semantic_completeness`
+
+- **default_severity**: `warn`
+- **description**: Verify that required semantic concepts are addressed across
+  the artifact set. If a ticket references a concept that the epic defines as
+  required, the concept must appear in the ticket scope or acceptance criteria.
+- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **required_inputs**: `primary_artifact`, `concept_registry`, `completeness_scope`
+
+Finding examples (illustrative):
+
+- RESERVED: `"Semantic completeness check not yet implemented."`
+
+### 11.4 `semantic_plausibility`
+
+- **default_severity**: `warn`
+- **description**: Flag implausible values, relationships, or assertions that
+  are structurally valid but semantically unlikely. Plausibility is determined
+  by the contract-supplied plausibility rules, not by external model inference.
+- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **required_inputs**: `target_artifact`, `plausibility_rules`, `evidence_pack`
+
+Finding examples (illustrative):
+
+- RESERVED: `"Semantic plausibility check not yet implemented."`

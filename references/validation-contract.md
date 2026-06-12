@@ -280,13 +280,91 @@ The validation contract is designed to be extended. Future versions may accept c
 The v0.7 foundation deliberately excludes the following from scope. These are acknowledged as future extension paths:
 
 - Business-specific rules (e.g., finance field validation, content policy checks, data quality rules).
-- Semantic validation (e.g., checking logical consistency across unrelated artifacts).
 - Runtime governance (e.g., live ticket state validation, API response validation).
 - Automatic repair or remediation (e.g., auto-fixing failed fields).
 - External artifact ingestion beyond what is strictly necessary for development-time artifact validation.
 - Data transformation or enrichment.
 
 When these capabilities are needed, they should be implemented as new contracts and new validator implementations that reference this foundation document for consistency.
+
+## Semantic Validation Boundary
+
+Semantic validation refers to checks that evaluate logical consistency,
+cross-artifact coherence, domain-level correctness, or meaning-based properties
+beyond structural and deterministic field-level constraints. In the Railyard
+framework, semantic validation is distinct from and subordinate to deterministic
+validation.
+
+### Scope
+
+Semantic validation MAY evaluate:
+
+- Logical consistency between related artifacts (e.g., a ticket's acceptance
+  criteria should not contradict its epic's done definition).
+- Cross-artifact coherence (e.g., referenced ticket IDs exist and are in a
+  compatible state).
+- Domain-level plausibility (e.g., numeric values fall within reasonable
+  ranges derived from artifact context).
+- Assertion traceability (e.g., claims in a result file are supported by
+  evidence in referenced artifacts).
+
+### Deterministic Precedence Rule
+
+Deterministic validation always takes precedence over semantic inference.
+When a deterministic check (structural, field-mapping, value-preservation,
+formula-recompute, record-key reconciliation, or any primitive from the
+validation primitive registry) produces a finding that contradicts a semantic
+inference, the deterministic finding prevails. Semantic findings that conflict
+with deterministic results are downgraded to advisory or escalation signals;
+they do not override deterministic verdicts.
+
+The precedence hierarchy is:
+
+1. **Deterministic primitive findings** -- highest authority. Structural
+   checks, field mappings, value comparisons, formula recomputes, record
+   reconciliations, and all primitives in the validation primitive registry.
+2. **Semantic inference findings** -- advisory or escalation signals. May
+   trigger Human escalation but must not reverse a deterministic finding.
+3. **Undefined or inconclusive** -- lowest authority. Neither deterministic
+   nor semantic evidence is available.
+
+### Relationship to Deterministic Primitives
+
+Semantic validation does not replace or modify deterministic primitives.
+Deterministic primitives operate on checkable field-level constraints and
+produce verifiable pass/fail findings. Semantic validation operates on
+artifact-level meaning, coherence, and plausibility, producing advisory
+findings that may escalate to Human judgment.
+
+### v0.7.3 Non-Goals
+
+In v0.7.3, semantic validation is scoped to this boundary definition only:
+
+- No executable semantic Validator behavior is implemented.
+- No semantic calibration fixtures or test data are added.
+- No runtime orchestration or automatic repair based on semantic findings.
+- No changes to `scripts/validator.py` or `scripts/validate_artifacts.py`.
+- No changes to lifecycle transitions, ticket formats, or role definitions.
+- No modifications to the Validator output JSON schema or verdict computation.
+
+Semantic primitives are reserved in the validation primitive registry for
+v0.7.4 implementation. See `references/validation-primitive-registry.md`
+Section 11 for the reserved namespace.
+
+### Human Escalation from Semantic Findings
+
+When semantic validation produces findings that cannot be resolved
+deterministically, the result is `human_review_required` or `inconclusive`
+depending on the severity and confidence of the semantic finding. The
+confidence and escalation matrix in `references/validator-protocol.md`
+Section 11 governs when Human judgment is required.
+
+### See Also
+
+- `references/validator-protocol.md` Section 11 -- Confidence and Human
+  Escalation Matrix.
+- `references/validation-primitive-registry.md` Section 11 -- Semantic
+  Inference reserved namespace.
 
 ## Relationship to Existing Result Format
 

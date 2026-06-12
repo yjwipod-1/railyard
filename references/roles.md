@@ -29,6 +29,8 @@ Default limits:
 - after reject, redispatch Runner automatically when an execution-capable path exists, current authorization allows it, and the same-kind failure limit has not been reached
 - stop and report a blocker when redispatch needs Human authorization, no safe Runner path exists, or three same-kind failures have occurred
 - do not accept a Validator-required ticket without an independent Validator role report that permits acceptance under the ticket's declared failure behavior
+- do not invent a new status or review result to express a more-evidence request; use `reject` (Runner evidence gaps), `redesign` (contract gaps), `blocked` (external dependencies), or stop-and-escalate (Human judgment)
+- do not personally implement Runner evidence fixes when evidence is insufficient; use `reject` so the Runner resubmits with improved evidence
 
 ### Planner And Architect Ticket Drafting Gate
 
@@ -74,6 +76,8 @@ Default limits:
 - do not treat a copied validation database as authoritative workflow state
 - do not copy generated ticket, epic, or outbox files into documentation directories unless the ticket explicitly asks for documentation fixtures
 - do not work around permission denial; if blocked by a permission boundary, record `runner_result=blocked` using the failure taxonomy in `SKILL.md`
+- do not report `done` or `partial` with a note about missing evidence; when evidence cannot be produced, record `runner_result=blocked` with the exact gap
+- do not silently work around an insufficient contract; report it as `blocked` with `unresolved_dependency` instead
 
 ## Validator Role Boundary
 
@@ -105,6 +109,8 @@ A Validation Contract is authored by one role and consumed by others. No role si
 - Defines epic-level contract intent: done definition, cross-ticket dependency, closure criteria, and unacceptable failure modes.
 - Contract intent lives in the Epic document or epic-scoped metadata.
 - Does not produce the executable contract; that is Architect work.
+- When pre-closure evidence is insufficient, opens a follow-up ticket rather than modifying existing ticket results or inventing a new lifecycle state.
+- When Human judgment is needed for closure, escalates rather than substituting judgment.
 
 ### Architect
 
@@ -201,6 +207,14 @@ For tickets involving source-to-derived output, the Architect MUST:
 
 ### Vague AC handling
 
+For the canonical handoff tree covering who acts next, acceptance/closure
+permissions, remediation, evidence, redesign, blocked handling, and Human
+escalation for every verdict, see
+`references/validator-verdict-handoff-tree.md`. This table is the
+Architect-specific view derived from that tree.
+
+### Vague AC handling
+
 The Architect must not pass vague natural-language acceptance criteria directly to the Validator. If AC is vague, the Architect must translate it into concrete validation input or mark validation as `inconclusive` / `human_review_required`.
 
 ### Dispatch template
@@ -272,6 +286,12 @@ The Planner constructs the Validator input with these slots:
 - NO business-specific rules or content policy checks.
 
 ### Boundary vs Architect-side Validator
+
+For the canonical handoff tree covering who acts next, acceptance/closure
+permissions, remediation, evidence, redesign, blocked handling, and Human
+escalation for every verdict, see
+`references/validator-verdict-handoff-tree.md`. The Planner-specific view
+derives from that tree.
 
 | Dimension | Architect-side Validator | Planner-side Validator |
 |---|---|---|
