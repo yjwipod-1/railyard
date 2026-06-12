@@ -11,9 +11,9 @@ This repository is a reference implementation extracted from real project use. I
 Put Railyard in your project workspace, then use your existing planning conversation as the Planner. If you already have a long-running session where you discuss product direction, requirements, tradeoffs, or roadmap decisions, that session is the right place to introduce Railyard.
 
 A session does not need to be permanently bound to a ticket; the ticket id is just the context you give that session. Railyard is designed to decouple lifecycle state from chat history, so users can choose the session scope that fits the work: keep business direction in the Planner, open an Architect session for one epic or one ticket depending on how related the work is, and use a fresh Runner session per ticket when the platform cannot spawn one automatically. This avoids context pollution and unnecessary long-session usage.
-
-Start from your existing requirements or planning session:
 ### Planner
+Start from your existing requirements or planning session:
+
 ```text
 Use this session as the Planner for my project.
 Read SKILL.md and references/roles.md.
