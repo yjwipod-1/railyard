@@ -2,44 +2,193 @@
 
 Agentic workflow with deterministic guardrails.
 
+Chinese quick start: [README.zh-CN.md](README.zh-CN.md)
+
 Railyard is a portable operating scaffold for long-running AI-agent projects. It separates planning, lane ownership, execution, review, and task state so that human-led agent work can survive across sessions, projects, and role boundaries.
 
 This repository is a reference implementation extracted from real project use. It is not an agent runtime, a hosted service, or a Python package. It supplies the workflow structure, SQLite schema, templates, and helper scripts that an agent project can copy into its own workspace.
 
-## Start Using Railyard
+## Quick Start
 
-Put Railyard in your project workspace, then use your existing planning conversation as the Planner. If you already have a long-running session where you discuss product direction, requirements, tradeoffs, or roadmap decisions, that session is the right place to introduce Railyard.
+Railyard has no third-party runtime dependency. It uses Python 3.10+ and the standard-library `sqlite3` module.
 
-A session does not need to be permanently bound to a ticket; the ticket id is just the context you give that session. Railyard is designed to decouple lifecycle state from chat history, so users can choose the session scope that fits the work: keep business direction in the Planner, open an Architect session for one epic or one ticket depending on how related the work is, and use a fresh Runner session per ticket when the platform cannot spawn one automatically. This avoids context pollution and unnecessary long-session usage.
-### Planner
-Start from your existing requirements or planning session:
+### 1. Install Railyard Into Your Project
+
+Copy or clone this repository into your project as a `railyard/` subdirectory:
+
+```bash
+git clone https://github.com/yjwipod-1/railyard.git railyard
+```
+
+Then initialize the workflow surface:
+
+```powershell
+python railyard/scripts/init_workflow.py --project-root .
+```
+
+This creates the workflow database, mailbox directories, and default agent profiles:
+
+```text
+railyard/.workflow/workflow.db      # SQLite workflow truth
+railyard/.railyard-workflow.json    # Local workflow authority record
+.github/agents/                    # Default platform agent profiles
+docs/domain/epics/                 # Domain lane epic documents
+docs/domain/inbox/                 # Domain lane ticket inbox
+docs/domain/outbox/                # Domain lane runner results
+docs/system/epics/                 # System lane epic documents
+docs/system/inbox/                 # System lane ticket inbox
+docs/system/outbox/                # System lane runner results
+docs/templates/                    # Document templates
+```
+
+### 2. Start Your Planner Session
+
+Use your existing planning conversation as the Planner. If you already have a long-running session where you discuss product direction, requirements, tradeoffs, or roadmap decisions, that session is the right place to introduce Railyard.
+
+A session does not need to be permanently bound to a ticket; the ticket id is just the context you give that session. Railyard decouples lifecycle state from chat history, so you can keep business direction in the Planner and open fresh sessions for execution work. This avoids context pollution and unnecessary long-session usage.
+
+Paste this prompt into your planning session:
 
 ```text
 Use this session as the Planner for my project.
-Read SKILL.md and references/roles.md.
+Read railyard/SKILL.md and railyard/references/roles.md.
 Convert our current project direction into Railyard epics and tickets.
 Then give me the smallest Architect startup prompt for the next ticket or epic.
 ```
-### Architect
-Use an Architect session when an epic or ticket is ready for lane-level review and dispatch. The easiest path is to ask the Planner for the smallest Architect startup prompt for the current epic or ticket, then paste that prompt into a fresh session. If you are starting manually, use:
+
+### 3. Dispatch Work as Architect
+
+When an epic or ticket is ready for lane-level review and dispatch, ask the Planner for the smallest Architect startup prompt. It will include the exact epic or ticket id, lane, and ready Runner prompt. Paste that prompt into a fresh session.
+
+If you are starting an Architect session manually:
 
 ```text
-Read SKILL.md, references/roles.md, references/startup-sequence.md, and references/lifecycle.md.
+Read railyard/SKILL.md, railyard/references/roles.md,
+railyard/references/startup-sequence.md, and railyard/references/lifecycle.md.
 role=architect
 Work on <epic_id or ticket_id>.
-Dispatch the Runner if your platform supports subagents. If not, return the exact Runner startup prompt.
+Dispatch the Runner if your platform supports subagents.
+If not, return the exact Runner startup prompt.
 ```
-### Runner
-Use a Runner session only for one ticket. Automatic subagent spawn is preferable when the platform supports it; when it does not, a manual fresh Runner session is the cleanest fallback:
+
+### 4. Run a Ticket (Manual Runner Fallback)
+
+Automatic subagent spawn is preferable when your platform supports it. When it does not, use a fresh Runner session per ticket. This is the cleanest fallback for platforms without subagent capabilities:
 
 ```text
-Read SKILL.md.
+Read railyard/SKILL.md.
 role=runner
 ticket_id=<ticket_id>
-Stay inside the ticket scope, run the required validation, and return the Runner result.
+Stay inside the ticket scope, run the required validation,
+and return the Runner result.
 ```
 
-Validator is a read-only role. The Architect or Planner usually dispatches it when the ticket or closure contract requires independent evidence. If your platform cannot spawn a Validator, open a fresh session with the Validator prompt and payload returned by the Architect or Planner.
+### 5. Validator (When Needed)
+
+Validator is a read-only role. The Architect or Planner dispatches it when a ticket or closure contract requires independent evidence. If your platform cannot spawn a Validator, open a fresh session with the Validator prompt and payload returned by the Architect or Planner.
+
+---
+
+For the full role-based startup sequence, including first epics, ticket execution, review, and E2E smoke checks, read `references/startup-sequence.md`.
+
+## Railyard Dependency vs Project Workflow State
+
+Railyard is used as a dependency checkout -- you clone the repository into your
+project as a `railyard/` subdirectory. It is essential to understand the
+difference between the Railyard dependency and your project's workflow state.
+
+### Railyard Dependency
+
+The `railyard/` directory contains the workflow engine: scripts, reference
+documents, SKILL.md, and project skeleton templates. This directory is
+portable across projects. It is version-controlled and updated from the
+upstream Railyard repository.
+
+### Project Workflow State
+
+Your project's workflow state records planning decisions, task progress, and
+execution results. These artifacts survive across sessions and are not
+committed to the Railyard repository.
+
+| Artifact | Default Location | Description |
+|---|---|---|
+| Workflow database | `railyard/.workflow/workflow.db` | Single source of truth for epics, tickets, claims, reviews, and lifecycle transitions. Not committed. |
+| Workflow authority record | `railyard/.railyard-workflow.json` | Local record of the resolved database path. Sessions read this to discover project state. Not committed. |
+| Epic documents | `docs/domain/epics/`, `docs/system/epics/` | Markdown epic definitions synced into the database. |
+| Ticket inbox files | `docs/domain/inbox/`, `docs/system/inbox/` | Ticket body Markdown files. |
+| Runner result files | `docs/domain/outbox/`, `docs/system/outbox/` | Runner result JSON files. |
+
+### How Sessions Discover Project State
+
+Every session (Planner, Architect, Runner) must locate the authoritative
+workflow database before using any workflow helpers:
+
+1. Read `railyard/.railyard-workflow.json` to find the recorded database path.
+2. Pass the recorded path explicitly to every helper command.
+3. If the authority record is absent, run `init_workflow.py` for cold-start
+   initialization or legacy database discovery before continuing.
+
+See `references/startup-sequence.md` for the full session startup protocol.
+
+### Current Boundary: Local State Inside This Railyard Checkout
+
+By default, `init_workflow.py` creates the workflow database at
+`railyard/.workflow/workflow.db`, inside the Railyard dependency checkout.
+This makes a Railyard installation self-contained, but it also means local
+workflow state lives next to the version-controlled Railyard source files.
+That local state is gitignored and must be preserved when updating or
+re-cloning the `railyard/` directory.
+
+Portable self-contained state architecture -- including update safety,
+backup, migration, and multiple-instance behavior -- is deferred to future
+architecture scope. The current default path is intentionally preserved until
+that work is complete.
+
+If needed today, pass an explicit `--db-path` to `init_workflow.py` to place
+the database outside the `railyard/` directory.
+
+## How It Works
+
+Railyard keeps workflow state in SQLite so chat sessions can be disposable.
+Each role opens a fresh session, reads its instructions, does its work, and
+closes. State survives.
+
+### Role Flow
+
+```text
+Human
+  |  direction, final decisions
+  v
+Planner ........... Validator (read-only evidence)
+  |  epics, lanes         ^
+  v                       |
+Architect .................  dispatched by Architect
+  |  tickets, review           or Planner
+  v
+Runner
+  |  execute one ticket
+
+Results flow back up:  Runner -> Architect -> Planner -> Human
+```
+
+### Role Responsibilities
+
+| Role       | Scope                    | Can decide lifecycle? | Can modify artifacts? |
+|------------|--------------------------|-----------------------|-----------------------|
+| Human      | direction, final call    | yes                   | no (delegates)        |
+| Planner    | epics, cross-lane coord  | epic closure          | yes, planning-level   |
+| Architect  | tickets within one lane  | ticket review         | yes, workflow-scoped  |
+| Runner     | one ticket at a time     | no                    | yes, scoped to ticket |
+| Validator  | read-only verification   | no                    | no                    |
+
+### Ephemeral Sessions, Durable State
+
+| What              | Lifetime                        | Where                  |
+|-------------------|---------------------------------|------------------------|
+| Chat sessions     | disposable -- close when done   | your agent platform    |
+| Epics & tickets   | durable -- survive sessions     | SQLite                 |
+| Results & reviews | durable -- survive sessions     | SQLite + outbox files  |
+| Role instructions | read at session start           | `references/*.md`      |
 
 ## Why Railyard
 
@@ -571,43 +720,6 @@ docs/
 `-- templates/
 ```
 
-## Quick Start
-
-Railyard has no third-party runtime dependency. It uses Python and the standard-library SQLite module.
-
-The optional MCP-lite server requires the dependency listed in `requirements-mcp.txt`.
-
-Requirements:
-
-- Python 3.10 or newer
-- A project directory where workflow state should be created
-
-From a target project, copy or clone this repository into a subdirectory such as `railyard/`, then initialize the workflow:
-
-```powershell
-python railyard/scripts/init_workflow.py --project-root .
-```
-
-This creates:
-
-- `.workflow/workflow.db`
-- `.github/agents/`
-- `docs/domain/epics/`
-- `docs/domain/inbox/`
-- `docs/domain/outbox/`
-- `docs/system/epics/`
-- `docs/system/inbox/`
-- `docs/system/outbox/`
-- `docs/templates/`
-
-If you are running commands from the Railyard repository root itself, use:
-
-```powershell
-python scripts/init_workflow.py --project-root .
-```
-
-For the full role-based startup sequence, including first epics, ticket execution, review, and E2E smoke checks, read `references/startup-sequence.md`.
-
 ## Common Commands
 
 Initialize or verify the schema:
@@ -703,12 +815,45 @@ Probe the MCP-lite surface against a temporary database copy:
 python scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db --project-root .
 ```
 
-## Examples
+## Usage Examples
 
-The `examples/` directory contains small, public-safe walkthroughs:
+Here is the shortest end-to-end path using only fresh sessions and helper scripts. This works on any platform, with or without subagent support.
 
-- `examples/mcp-lite-smoke/` shows a disposable MCP-lite workflow that reads and dispatches a ready ticket, claims it as a Runner, validates and records the result, then completes Architect review.
-- `examples/ticket-validator-gates/` shows valid required and not-required ticket Validator gate metadata.
+**Planner session** - start from your requirements conversation:
+
+```text
+Use this session as the Planner for my project.
+Read railyard/SKILL.md and railyard/references/roles.md.
+Create a Domain lane epic for "Project setup" with one ticket
+called "Create initial configuration".
+Then give me the smallest Architect startup prompt for that ticket.
+```
+
+**Architect session** - paste the prompt from Planner, which will look something like:
+
+```text
+Read railyard/SKILL.md, railyard/references/roles.md,
+railyard/references/startup-sequence.md, railyard/references/lifecycle.md.
+role=architect
+lane=domain
+epic_id=DOMAIN-E001
+ticket_id=DOMAIN-001
+Review the ticket scope and acceptance criteria.
+If ready, dispatch the Runner or return the exact Runner startup prompt.
+```
+
+**Runner session** - paste the prompt from Architect:
+
+```text
+Read railyard/SKILL.md.
+role=runner
+ticket_id=DOMAIN-001
+Create the initial configuration file.
+Run python -m compileall -q railyard/scripts as validation.
+Return the Runner result.
+```
+
+Each session is disposable. The workflow state lives in SQLite, not in any conversation. You can close every session after it produces its output and resume later from the database.
 
 ## Validation And Release Discipline
 
@@ -717,6 +862,16 @@ Railyard includes deterministic validation and release hygiene surfaces for main
 - `scripts/validate_artifacts.py` validates workflow artifact shapes and example queue files; it does not produce independent Validator role evidence.
 - `.github/workflows/railyard-validate.yml` runs compile, artifact validation, and MCP-lite smoke checks in GitHub Actions.
 - `CHANGELOG.md` records versioned release notes for public-facing changes.
+
+For the v0.7.4 semantic validation reference surface, read:
+
+- `references/semantic-validation-contract.md`
+- `references/validation-primitive-registry.md`
+- `examples/semantic_calibration_fixtures/`
+
+The semantic calibration fixtures are reference artifacts only.
+`scripts/validate_artifacts.py` validates their shape; it does not execute
+semantic inference.
 
 When a release adds or changes user-visible capabilities, update both `CHANGELOG.md` and this README. The changelog explains what changed in that release; the README explains what Railyard can do now.
 
@@ -781,6 +936,10 @@ Read these files for the detailed operating contract:
 - `references/ticket-format.md`
 - `references/result-format.md`
 - `references/helper-commands.md`
+- `references/validation-contract.md`
+- `references/validator-protocol.md`
+- `references/validation-primitive-registry.md`
+- `references/semantic-validation-contract.md`
 
 ## Maintenance Checklist
 

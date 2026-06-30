@@ -2,7 +2,43 @@
 
 All notable public-facing changes to Railyard are summarized here.
 
-## Unreleased / v0.7.3
+## Unreleased / v0.7.4
+
+### Adoption quickstart
+
+- Added a README-first onboarding path for new users, including installation,
+  Planner session setup, Architect dispatch, manual Runner fallback, and
+  Validator usage when independent evidence is required.
+- Added a compact role/lifecycle explanation showing disposable chat sessions
+  backed by durable SQLite workflow state.
+- Clarified the current bootstrap boundary: the default workflow database lives
+  at `railyard/.workflow/workflow.db`, with local authority recorded in
+  `railyard/.railyard-workflow.json`.
+- Added `README.zh-CN.md` as a Chinese quick-start document covering what
+  Railyard is, where to place it, initialization, role usage, minimal copyable
+  prompts, state location, common boundaries, and further reading references.
+  A Chinese entry link is placed near the top of the main README.
+- Added public text hygiene validation with an explicit localized-document
+  exception for `README.zh-CN.md`: localized content is not ASCII-only, but it
+  must remain valid UTF-8 without BOM, mojibake, local paths, or private
+  project references.
+
+### Semantic validation contracts and calibration fixtures
+
+- Added `references/semantic-validation-contract.md` defining fixed semantic
+  claim types, evidence states, verdict branches, deterministic precedence, and
+  non-goals for v0.7.4 semantic validation contracts.
+- Updated `references/validation-primitive-registry.md` Section 11 with bounded
+  semantic primitive contract logic for coherence, contradiction,
+  completeness, and plausibility. These are contract-level definitions and do
+  not add executable semantic Validator behavior.
+- Added generic semantic calibration fixtures covering enough evidence, missing
+  evidence, conflicting evidence, and unsupported semantic claims for each
+  semantic primitive.
+- Extended `scripts/validate_artifacts.py` to validate semantic calibration
+  fixture shape as release artifacts.
+
+## v0.7.3
 
 ### README onboarding
 

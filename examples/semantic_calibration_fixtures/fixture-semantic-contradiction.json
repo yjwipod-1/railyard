@@ -1,0 +1,86 @@
+{
+  "contract_id": "semantic-contradiction-calibration",
+  "version": "0.7.4",
+  "applies_to": ["semantic_calibration_fixture"],
+  "description": "Bounded calibration fixture for semantic_contradiction primitive. Exercises contradiction detection across artifacts under the four fixed evidence states.",
+  "claims": [
+    {
+      "claim_id": "contradiction-enough-fail",
+      "claim_type": "contradiction",
+      "description": "Two artifacts make directly contradictory assertions about property P1. Enough evidence is available to detect the contradiction.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A states P1=required and Artifact B states P1=optional for the same scope.",
+      "expected_evidence": [
+        "fixture-artifact-a.json declares P1 as required",
+        "fixture-artifact-b.json declares P1 as optional"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "fail",
+      "expected_status": "fail"
+    },
+    {
+      "claim_id": "contradiction-enough-pass",
+      "claim_type": "contradiction",
+      "description": "No contradiction detected. Both artifacts make compatible assertions about property P2.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B both declare P2=required.",
+      "expected_evidence": [
+        "fixture-artifact-a.json declares P2 as required",
+        "fixture-artifact-b.json declares P2 as required"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "pass",
+      "expected_status": "pass"
+    },
+    {
+      "claim_id": "contradiction-missing",
+      "claim_type": "contradiction",
+      "description": "Contradiction check where one side of the potential contradiction is not available.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-missing.json"],
+      "assertion": "Artifact A and Artifact Missing are contradictory regarding P3.",
+      "expected_evidence": [
+        "fixture-artifact-a.json declares P3=required",
+        "fixture-artifact-missing.json is not available"
+      ],
+      "evidence_state": "missing_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "contradiction-conflicting",
+      "claim_type": "contradiction",
+      "description": "Evidence sources disagree about whether a contradiction exists. One interpretation sees contradiction; another does not.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B are contradictory regarding P4.",
+      "expected_evidence": [
+        "source-1 asserts P4 values are contradictory",
+        "source-2 asserts P4 values are compatible in context"
+      ],
+      "evidence_state": "conflicting_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "contradiction-unsupported",
+      "claim_type": "contradiction",
+      "description": "Contradiction claim about a domain not supported by available evidence. The contradiction claim itself cannot be meaningfully evaluated.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B contradict on undefined property P5.",
+      "expected_evidence": [
+        "Neither artifact defines property P5"
+      ],
+      "evidence_state": "unsupported_semantic_claim",
+      "expected_verdict": "human_review_required",
+      "expected_status": "fail"
+    }
+  ],
+  "contradiction_domain": {
+    "properties": ["P1", "P2", "P3", "P4", "P5"],
+    "scope": "cross_artifact"
+  }
+}
