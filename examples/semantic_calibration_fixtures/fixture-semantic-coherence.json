@@ -1,0 +1,88 @@
+{
+  "contract_id": "semantic-coherence-calibration",
+  "version": "0.7.4",
+  "applies_to": ["semantic_calibration_fixture"],
+  "description": "Bounded calibration fixture for semantic_coherence primitive. Exercises coherence claims across artifact pairs under the four fixed evidence states.",
+  "claims": [
+    {
+      "claim_id": "coherence-enough-pass",
+      "claim_type": "coherence",
+      "description": "Two artifacts make consistent assertions about concept C1. Enough evidence is available to verify coherence.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B assert the same value for concept C1.",
+      "expected_evidence": [
+        "fixture-artifact-a.json contains C1=value_x",
+        "fixture-artifact-b.json contains C1=value_x"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "pass",
+      "expected_status": "pass"
+    },
+    {
+      "claim_id": "coherence-enough-fail",
+      "claim_type": "coherence",
+      "description": "Two artifacts make inconsistent assertions about concept C2. Enough evidence is available to detect the inconsistency.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B assert consistent values for concept C2.",
+      "expected_evidence": [
+        "fixture-artifact-a.json contains C2=value_x",
+        "fixture-artifact-b.json contains C2=value_y"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "fail",
+      "expected_status": "fail"
+    },
+    {
+      "claim_id": "coherence-missing",
+      "claim_type": "coherence",
+      "description": "Cross-artifact coherence claim where the related artifact is not available.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-missing.json"],
+      "assertion": "Artifact A is consistent with Artifact Missing for concept C3.",
+      "expected_evidence": [
+        "fixture-artifact-a.json contains C3=value_x",
+        "fixture-artifact-missing.json is not available"
+      ],
+      "evidence_state": "missing_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "coherence-conflicting",
+      "claim_type": "coherence",
+      "description": "Evidence from two sources disagrees about whether coherence holds. No single source is clearly authoritative.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B are coherent regarding concept C4.",
+      "expected_evidence": [
+        "source-1 claims coherence for C4",
+        "source-2 claims incoherence for C4"
+      ],
+      "evidence_state": "conflicting_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "coherence-unsupported",
+      "claim_type": "coherence",
+      "description": "Coherence claim where the claim scope is not supported by available evidence. No artifact context defines the claimed concept.",
+      "primary_artifact": "fixture-artifact-a.json",
+      "related_artifacts": ["fixture-artifact-b.json"],
+      "assertion": "Artifact A and Artifact B are coherent regarding undefined concept C5.",
+      "expected_evidence": [
+        "Neither artifact defines concept C5"
+      ],
+      "evidence_state": "unsupported_semantic_claim",
+      "expected_verdict": "human_review_required",
+      "expected_status": "fail"
+    }
+  ],
+  "coherence_scope": {
+    "artifact_pairs": [
+      ["fixture-artifact-a.json", "fixture-artifact-b.json"]
+    ],
+    "concept_domains": ["C1", "C2", "C3", "C4", "C5"]
+  }
+}

@@ -336,20 +336,33 @@ produce verifiable pass/fail findings. Semantic validation operates on
 artifact-level meaning, coherence, and plausibility, producing advisory
 findings that may escalate to Human judgment.
 
-### v0.7.3 Non-Goals
+### Version Boundary
 
-In v0.7.3, semantic validation is scoped to this boundary definition only:
+In v0.7.3, semantic validation was scoped to the boundary definition only:
+
+- That release added no calibration fixtures or test data.
+- That release defined no semantic primitive contract logic beyond reserved
+  names.
+
+In v0.7.4, semantic validation adds contract-level primitives and generic
+calibration fixtures:
+
+- `references/semantic-validation-contract.md` defines the contract shape,
+  claim types, evidence states, and verdict branches.
+- `references/validation-primitive-registry.md` Section 11 defines bounded
+  contract logic for semantic coherence, contradiction, completeness, and
+  plausibility.
+- `examples/semantic_calibration_fixtures/` provides generic reference
+  fixtures for each semantic primitive.
+
+The following remain out of scope:
 
 - No executable semantic Validator behavior is implemented.
-- No semantic calibration fixtures or test data are added.
 - No runtime orchestration or automatic repair based on semantic findings.
-- No changes to `scripts/validator.py` or `scripts/validate_artifacts.py`.
+- No executable semantic inference is added to `scripts/validator.py`.
+  `scripts/validate_artifacts.py` may validate semantic fixture shape only.
 - No changes to lifecycle transitions, ticket formats, or role definitions.
 - No modifications to the Validator output JSON schema or verdict computation.
-
-Semantic primitives are reserved in the validation primitive registry for
-v0.7.4 implementation. See `references/validation-primitive-registry.md`
-Section 11 for the reserved namespace.
 
 ### Human Escalation from Semantic Findings
 
@@ -364,7 +377,9 @@ Section 11 governs when Human judgment is required.
 - `references/validator-protocol.md` Section 11 -- Confidence and Human
   Escalation Matrix.
 - `references/validation-primitive-registry.md` Section 11 -- Semantic
-  Inference reserved namespace.
+  Inference primitives.
+- `references/semantic-validation-contract.md` -- Full contract shape with
+  claim types, evidence states, and verdict branches.
 
 ## Relationship to Existing Result Format
 
@@ -437,6 +452,7 @@ In all cases, a hard `pass` is forbidden when the contract is insufficient to de
 
 ## See Also
 
+- `references/semantic-validation-contract.md` - Semantic validation contract shape, claim types, evidence states, and verdict branches.
 - `references/result-format.md` - Runner result JSON format.
 - `references/lifecycle.md` - Lifecycle state transitions and boundaries.
 - `references/roles.md` - Role boundaries including Architect and Planner decision ownership.

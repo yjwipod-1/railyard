@@ -606,21 +606,23 @@ aggregate report.
 - This registry does not prescribe runtime orchestration, dispatch logic, or
   lifecycle integration. Those concerns are handled by the Validator protocol
   and the Railyard lifecycle model.
-- Section 11 reserves the Semantic Inference primitive namespace for v0.7.4
-  implementation. Reserved entries contain placeholder check logic and must
-  not be executed by Validator implementations.
+- Section 11 defines the Semantic Inference primitive namespace for v0.7.4
+  contract authors. Each entry includes bounded contract check logic
+  parameterized by contract-supplied inputs. This registry definition does not
+  imply executable support in `scripts/validator.py`.
 - The semantic validation boundary and deterministic precedence rules that
   govern semantic primitives are defined in
   `references/validation-contract.md` Semantic Validation Boundary section.
 
-## 11. Semantic Inference (Reserved)
+## 11. Semantic Inference
 
-This section reserves the semantic validation primitive namespace for bounded
-implementation in v0.7.4. Each entry defines the stable rule_id, default
-severity, description, and required inputs, but the check_logic field contains
-a RESERVED placeholder. No executable check logic is provided. Validator
-implementations in v0.7.3 MUST NOT interpret these entries as executable
-primitives.
+This section defines the semantic validation primitive namespace. Each entry
+specifies the stable rule_id, default severity, description, bounded contract
+check logic, and required inputs. Semantic inference primitives are advisory or
+escalation signals under the deterministic precedence rule; they must not
+override deterministic primitive findings. The entries are contract-level
+definitions; executable Validator support is explicitly out of scope unless a
+future ticket adds it.
 
 Semantic inference primitives evaluate logical consistency, cross-artifact
 coherence, domain-level correctness, or meaning-based properties. They operate
@@ -635,12 +637,24 @@ must not override deterministic primitive findings.
 - **description**: Check cross-artifact logical consistency. Related artifacts
   (e.g., a ticket and its parent epic) must not contain logically conflicting
   statements about the same concept.
-- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **check_logic**: For each artifact pair declared in `coherence_scope`, compare
+  the relevant assertions across artifacts. If both artifacts make claims about
+  the same concept and those claims are logically inconsistent, the finding is
+  `severity=error, status=fail`. If only one side of the pair is available
+  (evidence state is `missing_evidence`), the finding is `status=inconclusive`.
+  If evidence is present but sources conflict (`conflicting_evidence`), the
+  finding is `status=inconclusive` with escalated severity. If the claim type
+  or scope is not supported (`unsupported_semantic_claim`), the finding is
+  `status=fail` with `overall_verdict=human_review_required`. The deterministic
+  precedence rule applies: deterministic findings override semantic coherence
+  findings for the same artifact, field, or assertion.
 - **required_inputs**: `primary_artifact`, `related_artifacts`, `coherence_scope`
 
-Finding examples (illustrative):
+Finding examples:
 
-- RESERVED: `"Cross-artifact coherence check not yet implemented."`
+- pass: `"Coherence verified: Ticket T-001 acceptance criteria are consistent with Epic E-001 done definition."`
+- fail: `"Coherence violation: Artifact A asserts requirement R1 mandatory; Artifact B asserts R1 optional for the same scope."`
+- inconclusive: `"Cannot verify coherence: related artifact 'epic-002' not available for comparison."`
 
 ### 11.2 `semantic_contradiction`
 
@@ -648,12 +662,26 @@ Finding examples (illustrative):
 - **description**: Detect directly contradictory assertions across artifacts.
   If one artifact states a requirement and another artifact states the opposite,
   the contradiction must be flagged for resolution.
-- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **check_logic**: Scan the primary artifact and related artifacts for directly
+  contradictory assertions within the `contradiction_domain`. A contradiction
+  exists when two artifacts make mutually exclusive claims about the same
+  concept, property, or requirement. If a contradiction is detected, the finding
+  is `severity=error, status=fail`. Both contradictory assertions are recorded
+  in the evidence. If one side of the potential contradiction is unavailable
+  (`missing_evidence`), the finding is `status=inconclusive`. If evidence from
+  different sources disagrees about whether a contradiction exists
+  (`conflicting_evidence`), the finding is `status=inconclusive`. If the claim
+  type or domain is not supported (`unsupported_semantic_claim`), the finding
+  is `status=fail` with `overall_verdict=human_review_required`. The
+  deterministic precedence rule applies: deterministic findings override
+  semantic contradiction findings.
 - **required_inputs**: `primary_artifact`, `related_artifacts`, `contradiction_domain`
 
-Finding examples (illustrative):
+Finding examples:
 
-- RESERVED: `"Contradiction detection not yet implemented."`
+- pass: `"No contradictory assertions detected across the artifact set."`
+- fail: `"Contradiction detected: Artifact A states 'field X is required'; Artifact B states 'field X is optional'."`
+- inconclusive: `"Contradiction check incomplete: related artifact 'config-v2' not available."`
 
 ### 11.3 `semantic_completeness`
 
@@ -661,12 +689,24 @@ Finding examples (illustrative):
 - **description**: Verify that required semantic concepts are addressed across
   the artifact set. If a ticket references a concept that the epic defines as
   required, the concept must appear in the ticket scope or acceptance criteria.
-- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **check_logic**: For each concept declared as required in the `completeness_scope`
+  concept registry, verify that the concept appears in the primary artifact's
+  scope, acceptance criteria, or body. A concept is "addressed" when the primary
+  artifact references it by identifier, description, or structurally scoped
+  section. If a required concept is not addressed, the finding is
+  `severity=warn, status=fail`. If the concept registry is unavailable
+  (`missing_evidence`), the finding is `status=inconclusive`. If multiple
+  concept registries or interpretations conflict (`conflicting_evidence`), the
+  finding is `status=inconclusive`. If the completeness scope or concept
+  registry format is not supported (`unsupported_semantic_claim`), the finding
+  is `status=inconclusive`. The deterministic precedence rule applies.
 - **required_inputs**: `primary_artifact`, `concept_registry`, `completeness_scope`
 
-Finding examples (illustrative):
+Finding examples:
 
-- RESERVED: `"Semantic completeness check not yet implemented."`
+- pass: `"All 5 required concepts from Epic E-001 are addressed in Ticket T-001 scope."`
+- fail: `"Required concept 'error_handling' from Epic E-001 is not addressed in Ticket T-001."`
+- inconclusive: `"Completeness check blocked: concept registry not provided."`
 
 ### 11.4 `semantic_plausibility`
 
@@ -674,9 +714,23 @@ Finding examples (illustrative):
 - **description**: Flag implausible values, relationships, or assertions that
   are structurally valid but semantically unlikely. Plausibility is determined
   by the contract-supplied plausibility rules, not by external model inference.
-- **check_logic**: RESERVED - Implementation deferred to v0.7.4.
+- **check_logic**: For each plausibility rule declared in `plausibility_rules`,
+  evaluate the target artifact's values, relationships, or assertions against
+  the rule's bounded constraints. A plausibility rule defines a bound (range,
+  set, pattern, or relationship constraint) derived from artifact context, not
+  from external model inference. If a value, relationship, or assertion falls
+  outside the declared bounds, the finding is `severity=warn, status=fail`. If
+  the plausibility rules are unavailable (`missing_evidence`), the finding is
+  `status=inconclusive`. If multiple plausibility interpretations conflict
+  (`conflicting_evidence`), the finding is `status=inconclusive`. If the
+  plausibility rule format or scope is not supported
+  (`unsupported_semantic_claim`), the finding is `status=inconclusive`. The
+  deterministic precedence rule applies: deterministic field-level checks
+  (numeric precision, value preservation) override plausibility findings.
 - **required_inputs**: `target_artifact`, `plausibility_rules`, `evidence_pack`
 
-Finding examples (illustrative):
+Finding examples:
 
-- RESERVED: `"Semantic plausibility check not yet implemented."`
+- pass: `"Value 42 falls within plausibility range [0, 100] declared by context."`
+- fail: `"Value 999 exceeds plausibility bound 100 derived from artifact constraints."`
+- inconclusive: `"Plausibility check incomplete: plausibility rules not provided."`

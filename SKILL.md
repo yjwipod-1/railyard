@@ -204,3 +204,6 @@ python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-DEMO-001
 - Ticket document format: `references/ticket-format.md`
 - Result file format: `references/result-format.md`
 - Validator protocol: `references/validator-protocol.md`
+- Validation contract: `references/validation-contract.md`
+- Validation primitive registry: `references/validation-primitive-registry.md`
+- Semantic validation contract: `references/semantic-validation-contract.md`

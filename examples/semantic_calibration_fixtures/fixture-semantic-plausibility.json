@@ -1,0 +1,96 @@
+{
+  "contract_id": "semantic-plausibility-calibration",
+  "version": "0.7.4",
+  "applies_to": ["semantic_calibration_fixture"],
+  "description": "Bounded calibration fixture for semantic_plausibility primitive. Exercises value and relationship plausibility under the four fixed evidence states.",
+  "claims": [
+    {
+      "claim_id": "plausibility-enough-pass",
+      "claim_type": "plausibility",
+      "description": "Value falls within the declared plausibility bound. Enough evidence supports the evaluation.",
+      "primary_artifact": "fixture-artifact-values.json",
+      "assertion": "Value 50 is plausible within declared range [0, 100].",
+      "expected_evidence": [
+        "plausibility_rules declare range [0, 100] for field 'score'",
+        "fixture-artifact-values.json contains score=50"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "pass",
+      "expected_status": "pass"
+    },
+    {
+      "claim_id": "plausibility-enough-fail",
+      "claim_type": "plausibility",
+      "description": "Value exceeds the declared plausibility bound. The check detects the implausible value.",
+      "primary_artifact": "fixture-artifact-values.json",
+      "assertion": "Value 150 is plausible within declared range [0, 100].",
+      "expected_evidence": [
+        "plausibility_rules declare range [0, 100] for field 'score'",
+        "fixture-artifact-values.json contains score=150"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "fail",
+      "expected_status": "fail"
+    },
+    {
+      "claim_id": "plausibility-missing",
+      "claim_type": "plausibility",
+      "description": "Plausibility check where the plausibility rules are not provided. Cannot evaluate.",
+      "primary_artifact": "fixture-artifact-values.json",
+      "assertion": "Value 42 is plausible.",
+      "expected_evidence": [
+        "plausibility_rules are not available"
+      ],
+      "evidence_state": "missing_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "plausibility-conflicting",
+      "claim_type": "plausibility",
+      "description": "Multiple plausibility rules give conflicting bounds for the same field. Cannot determine which bound applies.",
+      "primary_artifact": "fixture-artifact-values.json",
+      "assertion": "Value 75 is plausible.",
+      "expected_evidence": [
+        "plausibility_rules_v1 declares range [0, 100]",
+        "plausibility_rules_v2 declares range [50, 200]"
+      ],
+      "evidence_state": "conflicting_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "plausibility-unsupported",
+      "claim_type": "plausibility",
+      "description": "Plausibility claim with unsupported rule format. The claim cannot be meaningfully evaluated.",
+      "primary_artifact": "fixture-artifact-values.json",
+      "assertion": "Value X is plausible according to an unsupported rule type.",
+      "expected_evidence": [
+        "plausibility_rules use an unsupported format"
+      ],
+      "evidence_state": "unsupported_semantic_claim",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    }
+  ],
+  "plausibility_rules": {
+    "score": {
+      "type": "range",
+      "min": 0,
+      "max": 100,
+      "description": "Score must be between 0 and 100 inclusive."
+    },
+    "ratio": {
+      "type": "range",
+      "min": 0.0,
+      "max": 1.0,
+      "description": "Ratio must be between 0.0 and 1.0 inclusive."
+    },
+    "count": {
+      "type": "range",
+      "min": 1,
+      "max": 1000,
+      "description": "Count must be a positive integer between 1 and 1000."
+    }
+  }
+}

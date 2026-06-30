@@ -65,6 +65,54 @@ VALID_PRIMITIVE_IDS = {
     "unmapped_field_availability",
 }
 PRIMITIVE_FIXTURE_ARTIFACT_TYPES = {"source", "derived", "contract"}
+VALID_SEMANTIC_CLAIM_TYPES = {
+    "coherence",
+    "contradiction",
+    "completeness",
+    "plausibility",
+}
+VALID_SEMANTIC_EVIDENCE_STATES = {
+    "enough_evidence",
+    "missing_evidence",
+    "conflicting_evidence",
+    "unsupported_semantic_claim",
+}
+SEMANTIC_FIXTURE_REQUIRED_FIELDS = {
+    "contract_id",
+    "version",
+    "applies_to",
+    "description",
+    "claims",
+}
+SEMANTIC_CLAIM_REQUIRED_FIELDS = {
+    "claim_id",
+    "claim_type",
+    "description",
+    "primary_artifact",
+    "assertion",
+    "expected_evidence",
+    "evidence_state",
+    "expected_verdict",
+    "expected_status",
+}
+SEMANTIC_SCOPE_FIELD_BY_CLAIM_TYPE = {
+    "coherence": "coherence_scope",
+    "contradiction": "contradiction_domain",
+    "completeness": "completeness_scope",
+    "plausibility": "plausibility_rules",
+}
+PUBLIC_TEXT_ROOT_FILES = {"README.md", "README.zh-CN.md", "CHANGELOG.md", "SKILL.md"}
+LOCALIZED_PUBLIC_TEXT_FILES = {"README.zh-CN.md"}
+PUBLIC_TEXT_FORBIDDEN_SUBSTRINGS = {
+    ".workbuddy",
+    "validator_examples",
+    "Railyard-Control",
+    "WorkBuddy",
+    "ARES",
+}
+PUBLIC_TEXT_EXCLUDED_PATHS = {"references/roadmap.md"}
+PUBLIC_TEXT_EXCLUDED_PREFIXES = {"examples/validator_examples/"}
+LOCAL_PATH_PATTERN = re.compile(r"\b[A-Za-z]:[\\/]")
 
 TICKET_REQUIRED_FIELDS = {
     "ticket_id",
@@ -806,8 +854,204 @@ def validate_primitive_fixture(
             )
 
 
+def validate_semantic_fixture(data: dict[str, Any]) -> None:
+    """Validate a v0.7.4 semantic calibration fixture.
+
+    Semantic calibration fixtures are non-executable reference artifacts. This
+    validator checks their declared contract shape, evidence states, and
+    expected verdict branches. It does not perform semantic inference.
+    """
+    if not isinstance(data, dict):
+        raise ValidationError("semantic fixture must be an object")
+
+    missing = missing_fields(data, SEMANTIC_FIXTURE_REQUIRED_FIELDS)
+    if missing:
+        raise ValidationError(f"semantic fixture missing required fields: {', '.join(missing)}")
+
+    for field in ("contract_id", "version", "description"):
+        require_string(data, field)
+
+    applies_to = data["applies_to"]
+    if not isinstance(applies_to, list) or "semantic_calibration_fixture" not in applies_to:
+        raise ValidationError("applies_to must include 'semantic_calibration_fixture'")
+
+    claims = data["claims"]
+    if not isinstance(claims, list) or not claims:
+        raise ValidationError("claims must be a non-empty array")
+
+    claim_types: set[str] = set()
+    evidence_states: set[str] = set()
+    enough_verdicts: set[str] = set()
+    for cidx, claim in enumerate(claims):
+        if not isinstance(claim, dict):
+            raise ValidationError(f"claims[{cidx}] must be an object")
+        missing_claim = missing_fields(claim, SEMANTIC_CLAIM_REQUIRED_FIELDS)
+        if missing_claim:
+            raise ValidationError(
+                f"claims[{cidx}] missing required fields: {', '.join(missing_claim)}"
+            )
+        for field in (
+            "claim_id",
+            "claim_type",
+            "description",
+            "primary_artifact",
+            "assertion",
+            "evidence_state",
+            "expected_verdict",
+            "expected_status",
+        ):
+            require_string(claim, field)
+
+        claim_type = claim["claim_type"]
+        if claim_type not in VALID_SEMANTIC_CLAIM_TYPES:
+            raise ValidationError(
+                f"claims[{cidx}].claim_type must be one of "
+                f"{sorted(VALID_SEMANTIC_CLAIM_TYPES)}, got {claim_type!r}"
+            )
+        claim_types.add(claim_type)
+
+        evidence_state = claim["evidence_state"]
+        if evidence_state not in VALID_SEMANTIC_EVIDENCE_STATES:
+            raise ValidationError(
+                f"claims[{cidx}].evidence_state must be one of "
+                f"{sorted(VALID_SEMANTIC_EVIDENCE_STATES)}, got {evidence_state!r}"
+            )
+        evidence_states.add(evidence_state)
+
+        verdict = claim["expected_verdict"]
+        if verdict not in VALID_OVERALL_VERDICTS:
+            raise ValidationError(
+                f"claims[{cidx}].expected_verdict must be one of "
+                f"{sorted(VALID_OVERALL_VERDICTS)}, got {verdict!r}"
+            )
+
+        status = claim["expected_status"]
+        if status not in VALID_FINDING_STATUSES:
+            raise ValidationError(
+                f"claims[{cidx}].expected_status must be one of "
+                f"{sorted(VALID_FINDING_STATUSES)}, got {status!r}"
+            )
+
+        expected_evidence = claim["expected_evidence"]
+        if not isinstance(expected_evidence, list) or not expected_evidence:
+            raise ValidationError(f"claims[{cidx}].expected_evidence must be a non-empty array")
+        if not all(isinstance(item, str) and item.strip() for item in expected_evidence):
+            raise ValidationError(f"claims[{cidx}].expected_evidence must contain strings")
+
+        if claim_type in {"coherence", "contradiction"}:
+            related = claim.get("related_artifacts")
+            if not isinstance(related, list) or not related:
+                raise ValidationError(
+                    f"claims[{cidx}].related_artifacts must be a non-empty array "
+                    f"for {claim_type} claims"
+                )
+
+        if evidence_state == "enough_evidence":
+            if verdict not in {"pass", "fail"}:
+                raise ValidationError(
+                    f"claims[{cidx}] enough_evidence must expect pass or fail, got {verdict!r}"
+                )
+            if status != verdict:
+                raise ValidationError(
+                    f"claims[{cidx}] enough_evidence expected_status must equal "
+                    f"expected_verdict"
+                )
+            enough_verdicts.add(verdict)
+        elif evidence_state in {"missing_evidence", "conflicting_evidence"}:
+            if verdict != "inconclusive" or status != "inconclusive":
+                raise ValidationError(
+                    f"claims[{cidx}] {evidence_state} must expect inconclusive verdict/status"
+                )
+        elif evidence_state == "unsupported_semantic_claim":
+            expected_unsupported = (
+                "human_review_required"
+                if claim_type in {"coherence", "contradiction"}
+                else "inconclusive"
+            )
+            if verdict != expected_unsupported:
+                raise ValidationError(
+                    f"claims[{cidx}] unsupported {claim_type} claim must expect "
+                    f"{expected_unsupported!r}, got {verdict!r}"
+                )
+
+    if len(claim_types) != 1:
+        raise ValidationError(
+            f"semantic fixture must target exactly one claim_type, got {sorted(claim_types)}"
+        )
+
+    claim_type = next(iter(claim_types))
+    required_scope = SEMANTIC_SCOPE_FIELD_BY_CLAIM_TYPE[claim_type]
+    if required_scope not in data:
+        raise ValidationError(f"semantic fixture for {claim_type} missing {required_scope}")
+
+    missing_states = VALID_SEMANTIC_EVIDENCE_STATES - evidence_states
+    if missing_states:
+        raise ValidationError(
+            f"semantic fixture missing evidence states: {sorted(missing_states)}"
+        )
+
+    if enough_verdicts != {"pass", "fail"}:
+        raise ValidationError(
+            "semantic fixture must include enough_evidence examples for both pass and fail"
+        )
+
+
+def validate_public_text(path: pathlib.Path, project_root: pathlib.Path) -> None:
+    """Validate public text hygiene.
+
+    Public text is ASCII-only by default. Localized documents are an explicit
+    exception: they may contain target-language characters, but still must be
+    valid UTF-8 without BOM, replacement characters, private-use mojibake, local
+    paths, or private project references.
+    """
+    data = path.read_bytes()
+    rel = relative(path, project_root)
+    if data.startswith(b"\xef\xbb\xbf"):
+        raise ValidationError("public text must be UTF-8 without BOM")
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValidationError(f"public text must be valid UTF-8: {exc}") from exc
+    if "\ufffd" in text:
+        raise ValidationError("public text contains Unicode replacement character")
+    if any(0xE000 <= ord(char) <= 0xF8FF for char in text):
+        raise ValidationError("public text contains private-use mojibake characters")
+    if rel not in LOCALIZED_PUBLIC_TEXT_FILES and any(ord(char) > 127 for char in text):
+        raise ValidationError("public text must be ASCII-only unless localized")
+    for marker in sorted(PUBLIC_TEXT_FORBIDDEN_SUBSTRINGS):
+        if marker in text:
+            raise ValidationError(f"public text contains forbidden marker {marker!r}")
+    if LOCAL_PATH_PATTERN.search(text):
+        raise ValidationError("public text contains a local absolute path")
+
+
+def include_public_text(path: pathlib.Path, project_root: pathlib.Path) -> bool:
+    rel = relative(path, project_root)
+    if rel in PUBLIC_TEXT_EXCLUDED_PATHS:
+        return False
+    return not any(rel.startswith(prefix) for prefix in PUBLIC_TEXT_EXCLUDED_PREFIXES)
+
+
 def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Path]]:
     artifacts: list[tuple[str, pathlib.Path]] = []
+    for filename in sorted(PUBLIC_TEXT_ROOT_FILES):
+        path = project_root / filename
+        if path.exists() and include_public_text(path, project_root):
+            artifacts.append(("public-text", path))
+    references = project_root / "references"
+    if references.exists():
+        artifacts.extend(
+            ("public-text", path)
+            for path in sorted(references.glob("*.md"))
+            if include_public_text(path, project_root)
+        )
+    examples = project_root / "examples"
+    if examples.exists():
+        artifacts.extend(
+            ("public-text", path)
+            for path in sorted(examples.glob("**/*.md"))
+            if include_public_text(path, project_root)
+        )
     for lane in sorted(VALID_LANES):
         inbox = project_root / "docs" / lane / "inbox"
         epic_dir = project_root / "docs" / lane / "epics"
@@ -840,6 +1084,14 @@ def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Pat
             artifacts.extend(
                 ("primitive-fixture", path)
                 for path in sorted(primitive_fixture_dir.glob("**/primitive-fixture.json"))
+            )
+    # Validate semantic calibration fixtures under examples
+    if examples.exists():
+        semantic_fixture_dir = examples / "semantic_calibration_fixtures"
+        if semantic_fixture_dir.exists():
+            artifacts.extend(
+                ("semantic-fixture", path)
+                for path in sorted(semantic_fixture_dir.glob("fixture-semantic-*.json"))
             )
     # Validate Validator usage example inputs and reports under examples
     if examples.exists():
@@ -878,7 +1130,12 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         fixture_dir = path.parent
         validate_primitive_fixture(payload, fixture_dir, project_root)
 
+    def validate_semantic_fixture_func(path: pathlib.Path) -> None:
+        payload = load_json(path)
+        validate_semantic_fixture(payload)
+
     validators = {
+        "public-text": lambda path: validate_public_text(path, project_root),
         "ticket": validate_ticket,
         "epic": validate_epic,
         "result": validate_result,
@@ -889,6 +1146,7 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         "example-validator-input": validate_example_validator_input,
         "example-validator-report": validate_example_validator_report,
         "primitive-fixture": validate_primitive_fixture_func,
+        "semantic-fixture": validate_semantic_fixture_func,
     }
     checked: list[dict[str, str]] = []
     errors: list[dict[str, str]] = []

@@ -1,0 +1,83 @@
+{
+  "contract_id": "semantic-completeness-calibration",
+  "version": "0.7.4",
+  "applies_to": ["semantic_calibration_fixture"],
+  "description": "Bounded calibration fixture for semantic_completeness primitive. Exercises concept coverage verification under the four fixed evidence states.",
+  "claims": [
+    {
+      "claim_id": "completeness-enough-pass",
+      "claim_type": "completeness",
+      "description": "All required concepts from the concept registry are addressed in the primary artifact. Enough evidence exists.",
+      "primary_artifact": "fixture-artifact-scope.json",
+      "assertion": "Concepts CONCEPT_A and CONCEPT_B from the registry are addressed in the artifact scope.",
+      "expected_evidence": [
+        "concept_registry declares CONCEPT_A as required",
+        "concept_registry declares CONCEPT_B as required",
+        "fixture-artifact-scope.json addresses CONCEPT_A",
+        "fixture-artifact-scope.json addresses CONCEPT_B"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "pass",
+      "expected_status": "pass"
+    },
+    {
+      "claim_id": "completeness-enough-fail",
+      "claim_type": "completeness",
+      "description": "A required concept from the registry is not addressed in the primary artifact. Completeness check detects the gap.",
+      "primary_artifact": "fixture-artifact-scope.json",
+      "assertion": "All concepts from the registry are addressed.",
+      "expected_evidence": [
+        "concept_registry declares CONCEPT_C as required",
+        "fixture-artifact-scope.json does not address CONCEPT_C"
+      ],
+      "evidence_state": "enough_evidence",
+      "expected_verdict": "fail",
+      "expected_status": "fail"
+    },
+    {
+      "claim_id": "completeness-missing",
+      "claim_type": "completeness",
+      "description": "Completeness check where the concept registry is not available. Cannot verify concept coverage.",
+      "primary_artifact": "fixture-artifact-scope.json",
+      "assertion": "All required concepts are addressed.",
+      "expected_evidence": [
+        "concept_registry is not available"
+      ],
+      "evidence_state": "missing_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "completeness-conflicting",
+      "claim_type": "completeness",
+      "description": "Multiple concept registries provide conflicting lists of required concepts. Coverage cannot be determined.",
+      "primary_artifact": "fixture-artifact-scope.json",
+      "assertion": "All required concepts are addressed.",
+      "expected_evidence": [
+        "concept_registry_v1 declares CONCEPT_D as required",
+        "concept_registry_v2 does not list CONCEPT_D"
+      ],
+      "evidence_state": "conflicting_evidence",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    },
+    {
+      "claim_id": "completeness-unsupported",
+      "claim_type": "completeness",
+      "description": "Completeness claim whose scope format is not supported. The claim cannot be meaningfully evaluated.",
+      "primary_artifact": "fixture-artifact-scope.json",
+      "assertion": "All concepts from an unsupported registry format are addressed.",
+      "expected_evidence": [
+        "concept_registry uses an unsupported format"
+      ],
+      "evidence_state": "unsupported_semantic_claim",
+      "expected_verdict": "inconclusive",
+      "expected_status": "inconclusive"
+    }
+  ],
+  "completeness_scope": {
+    "concept_registry": {
+      "required_concepts": ["CONCEPT_A", "CONCEPT_B", "CONCEPT_C", "CONCEPT_D"]
+    }
+  }
+}

@@ -34,6 +34,16 @@ railyard/.workflow/workflow.db
 railyard/.railyard-workflow.json
 ```
 
+The `railyard/` directory is the Railyard dependency checkout -- it contains the
+workflow engine (scripts, references, SKILL.md). The workflow database and
+authority record inside it are your project's local workflow state. They are not
+part of the upstream Railyard repository and must not be committed.
+
+This distinction matters: the Railyard dependency is version-controlled and
+shared; the project workflow state is local and specific to your project.
+Updating or re-cloning the `railyard/` directory requires care to preserve
+`.workflow/workflow.db` and `.railyard-workflow.json`.
+
 `.railyard-workflow.json` is the local workflow authority record. It records the
 resolved project root, workflow root, and workflow database used by this
 Railyard installation. It is generated local state and is not committed.
@@ -52,6 +62,11 @@ Every Planner, Architect, and Runner session must check
 recorded workflow database path explicitly with helper commands. If the record
 is missing, run `init_workflow.py` to perform cold-start initialization or
 legacy database discovery before continuing.
+
+Portable self-contained state architecture -- including update safety, backup,
+migration, and multiple-instance behavior -- is deferred to future architecture
+scope. The current default placement is intentionally preserved until that work
+is complete.
 
 The `.github/agents/` directory contains default Railyard agent profiles for platforms that support VS Code / GitHub Copilot-style custom agents. Platforms that do not read this directory can still use the same profile text as prompt material.
 
