@@ -1,0 +1,618 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://railyard.dev/schemas/runtime-adapter-v1.schema.json",
+  "title": "Railyard Runtime Adapter Contract v1.0.0",
+  "description": "Canonical JSON Schema for the Railyard Runtime Adapter Contract. Covers AdapterRequest, AdapterResponse, AdapterError, OperationPayload, ProviderInterface, AdapterDescriptor, and CapabilityDeclaration.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/AdapterRequest" },
+    { "$ref": "#/$defs/AdapterResponse" },
+    { "$ref": "#/$defs/AdapterError" },
+    { "$ref": "#/$defs/CapabilityDeclaration" },
+    { "$ref": "#/$defs/OperationPayload" },
+    { "$ref": "#/$defs/ProviderInterface" },
+    { "$ref": "#/$defs/AdapterDescriptor" }
+  ],
+  "$defs": {
+    "ArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "artifact_kind"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "artifact_kind": { "type": "string", "minLength": 1 },
+        "artifact_version": { "type": "string" },
+        "locator": { "type": "string" },
+        "digest": { "type": "string" }
+      }
+    },
+    "Context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "trigger_artifact": { "$ref": "#/$defs/ArtifactRef" },
+        "correlation_id": { "type": "string", "minLength": 1 },
+        "executor_identity": { "type": "string", "minLength": 1 }
+      }
+    },
+    "CreateRunParams": {
+      "type": "object",
+      "required": ["run_id"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "AppendEventParams": {
+      "type": "object",
+      "required": ["run_id"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ReadEventParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "event_order"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 },
+        "event_order": { "type": "integer", "exclusiveMinimum": 0 }
+      }
+    },
+    "ReadEventsParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "GetRunParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "GetStageParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "stage_id"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 },
+        "stage_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "EvidenceSnapshotParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ExportEvidenceParams": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "export_id", "exported_at"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 },
+        "export_id": { "type": "string", "minLength": 1 },
+        "exported_at": { "type": "string", "minLength": 1 }
+      }
+    },
+    "OperationPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "params"],
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "create_run",
+            "append_event",
+            "read_event",
+            "read_events",
+            "get_run",
+            "get_stage",
+            "evidence_snapshot",
+            "export_evidence"
+          ]
+        },
+        "params": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "operation": { "const": "create_run" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/CreateRunParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "append_event" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/AppendEventParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "read_event" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/ReadEventParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "read_events" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/ReadEventsParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "get_run" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/GetRunParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "get_stage" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/GetStageParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "evidence_snapshot" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/EvidenceSnapshotParams" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "export_evidence" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": { "params": { "$ref": "#/$defs/ExportEvidenceParams" } }
+          }
+        }
+      ]
+    },
+    "AdapterError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "detail", "request_id", "operation"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "MALFORMED_ENVELOPE",
+            "UNSUPPORTED_VERSION",
+            "UNKNOWN_OPERATION",
+            "INVALID_PAYLOAD",
+            "CAPABILITY_UNAVAILABLE",
+            "CAPABILITY_DEGRADED_SCOPE",
+            "DELEGATED_ERROR",
+            "INTERNAL_ERROR"
+          ]
+        },
+        "detail": { "type": "object" },
+        "request_id": { "anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}] },
+        "operation": { "anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "code": { "not": { "const": "MALFORMED_ENVELOPE" } } },
+            "required": ["code"]
+          },
+          "then": {
+            "properties": {
+              "request_id": { "type": "string", "minLength": 1 },
+              "operation": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "CapabilityDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "state"],
+      "properties": {
+        "capability": {
+          "type": "string",
+          "enum": [
+            "create_run",
+            "append_event",
+            "read_event",
+            "read_events",
+            "get_run",
+            "get_stage",
+            "evidence_snapshot",
+            "export_evidence"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["full", "degraded_transport", "degraded_scope", "unavailable"]
+        },
+        "degradation_note": { "type": "string" },
+        "scope_constraints": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["param_allowlist"],
+          "properties": {
+            "param_allowlist": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "anyOf": [
+                    { "type": "string" },
+                    { "type": "number" },
+                    { "type": "boolean" },
+                    { "type": "null" }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "state": { "not": { "const": "full" } } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["degradation_note"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "degraded_scope" } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["scope_constraints"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "enum": ["full", "degraded_transport", "unavailable"] } },
+            "required": ["state"]
+          },
+          "then": {
+            "not": { "required": ["scope_constraints"] }
+          }
+        }
+      ]
+    },
+    "ProviderInterface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interface_id", "interface_version", "capabilities", "input_schema_ref", "output_schema_ref", "error_schema_ref"],
+      "properties": {
+        "interface_id": { "type": "string", "minLength": 1 },
+        "interface_version": { "type": "string", "minLength": 1 },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "create_run",
+              "append_event",
+              "read_event",
+              "read_events",
+              "get_run",
+              "get_stage",
+              "evidence_snapshot",
+              "export_evidence"
+            ]
+          }
+        },
+        "input_schema_ref": { "type": "string", "minLength": 1 },
+        "output_schema_ref": { "type": "string", "minLength": 1 },
+        "error_schema_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "AdapterDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_id", "implements", "provider", "protocol_version", "capability_declaration"],
+      "properties": {
+        "adapter_id": { "type": "string", "minLength": 1 },
+        "implements": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1 },
+        "protocol_version": { "const": "1.0.0" },
+        "capability_declaration": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/CapabilityDeclaration" }
+        }
+      },
+      "allOf": [
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "create_run" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "append_event" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "read_event" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "read_events" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "get_run" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "get_stage" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "evidence_snapshot" } }, "required": ["capability"] } } } },
+        { "properties": { "capability_declaration": { "contains": { "properties": { "capability": { "const": "export_evidence" } }, "required": ["capability"] } } } }
+      ]
+    },
+    "AdapterRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "request_id", "operation", "payload"],
+      "properties": {
+        "protocol_version": { "const": "1.0.0" },
+        "request_id": { "type": "string", "minLength": 1 },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "create_run",
+            "append_event",
+            "read_event",
+            "read_events",
+            "get_run",
+            "get_stage",
+            "evidence_snapshot",
+            "export_evidence"
+          ]
+        },
+        "payload": { "$ref": "#/$defs/OperationPayload" },
+        "context": { "$ref": "#/$defs/Context" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "operation": { "const": "create_run" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "create_run" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "append_event" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "append_event" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "read_event" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "read_event" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "read_events" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "read_events" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "get_run" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "get_run" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "get_stage" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "get_stage" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "evidence_snapshot" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "evidence_snapshot" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "operation": { "const": "export_evidence" } },
+            "required": ["operation"]
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "properties": { "operation": { "const": "export_evidence" } },
+                "required": ["operation"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AdapterResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "request_id", "status", "operation", "capability_state"],
+      "properties": {
+        "protocol_version": { "const": "1.0.0" },
+        "request_id": { "anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}] },
+        "status": { "type": "string", "enum": ["success", "error"] },
+        "operation": { "anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}] },
+        "data": { "anyOf": [{"type": "object"}, {"type": "array"}, {"type": "null"}] },
+        "error": { "$ref": "#/$defs/AdapterError" },
+        "capability_state": {
+          "type": "string",
+          "enum": ["full", "degraded_transport", "degraded_scope", "unavailable"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "success" } },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["data"],
+            "properties": { "error": false }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "error" } },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["error"],
+            "properties": { "data": false }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "success" },
+              "operation": { "const": "read_events" }
+            },
+            "required": ["status", "operation"]
+          },
+          "then": {
+            "properties": { "data": { "type": "array" } }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "success" },
+              "operation": { "const": "read_event" }
+            },
+            "required": ["status", "operation"]
+          },
+          "then": {
+            "properties": { "data": { "anyOf": [{"type": "object"}, {"type": "null"}] } }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "success" },
+              "operation": { "enum": ["create_run", "append_event", "get_run", "get_stage", "evidence_snapshot", "export_evidence"] }
+            },
+            "required": ["status", "operation"]
+          },
+          "then": {
+            "properties": { "data": { "type": "object" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "success" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "request_id": { "type": "string", "minLength": 1 },
+              "operation": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "allOf": [
+              { "properties": { "status": { "const": "error" } }, "required": ["status"] },
+              {
+                "properties": {
+                  "error": {
+                    "properties": { "code": { "not": { "const": "MALFORMED_ENVELOPE" } } },
+                    "required": ["code"]
+                  }
+                },
+                "required": ["error"]
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "request_id": { "type": "string", "minLength": 1 },
+              "operation": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

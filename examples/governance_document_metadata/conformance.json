@@ -1,0 +1,439 @@
+[
+  {
+    "case_id": "CASE-001",
+    "description": "Valid Protocol document with all required metadata and canonical authority.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-PROTOCOL-VALID",
+    "documents": [
+      {
+        "document_id": "doc-proto-001",
+        "governance_kind": "protocol",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "startup sequence",
+        "status": "active",
+        "applies_to": ["system-initialization"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["startup-sequence"],
+        "description": "Defines the step-by-step operating sequence for system initialization."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-002",
+    "description": "Valid Policy document with all required metadata and stricter_only overrideability.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-POLICY-VALID",
+    "documents": [
+      {
+        "document_id": "doc-policy-001",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "role responsibilities",
+        "status": "active",
+        "applies_to": ["runner", "architect", "planner"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["role-responsibilities"],
+        "description": "Defines role responsibilities and boundaries."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-003",
+    "description": "Valid Contract document with non_overridable overrideability protecting producer-consumer obligations.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-CONTRACT-NON-OVERRIDABLE",
+    "documents": [
+      {
+        "document_id": "doc-contract-001",
+        "governance_kind": "contract",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "result format",
+        "status": "active",
+        "applies_to": ["runner-result-json"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["runner-result-json-format"],
+        "description": "Defines required shape of Runner result JSON."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-004",
+    "description": "Valid Schema document with all required metadata governing structural validity.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-SCHEMA-VALID",
+    "documents": [
+      {
+        "document_id": "doc-schema-001",
+        "governance_kind": "schema",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "governance metadata validation",
+        "status": "active",
+        "applies_to": ["governance-documents"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["governance-metadata-validation"],
+        "description": "JSON Schema for governance document metadata validation."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-005",
+    "description": "Valid Registry document with canonical_for array mapping identifiers to definitions.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-REGISTRY-VALID",
+    "documents": [
+      {
+        "document_id": "doc-registry-001",
+        "governance_kind": "registry",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "validation primitives",
+        "status": "active",
+        "applies_to": ["validation-primitives"],
+        "overrideability": "non_overridable",
+        "canonical_for": [
+          "validation-primitive-identity",
+          "validation-primitive-multiply",
+          "validation-primitive-parse"
+        ],
+        "description": "Maps validation primitive names to their canonical definitions."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-006",
+    "description": "Valid Guide document with informational authority_level and informational overrideability -- Guide is always non-normative.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-GUIDE-VALID",
+    "documents": [
+      {
+        "document_id": "doc-guide-001",
+        "governance_kind": "guide",
+        "version": "1.0.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "project overview",
+        "status": "active",
+        "applies_to": ["project-documentation-users"],
+        "overrideability": "informational",
+        "description": "Project overview and getting-started guide."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-007",
+    "description": "Invalid: document uses unknown governance_kind 'manifesto' which is not in the defined enum.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-KIND-UNKNOWN",
+    "documents": [
+      {
+        "document_id": "doc-unknown-001",
+        "governance_kind": "manifesto",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "unknown kind test",
+        "status": "active",
+        "applies_to": ["unknown-artifacts"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["unknown-topic"]
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-008",
+    "description": "Invalid: document missing required document_id field -- metadata completeness violation.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-METADATA-REQUIRED",
+    "documents": [
+      {
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "missing id test",
+        "status": "active",
+        "applies_to": ["policy-artifacts"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["policy-topic"]
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-009",
+    "description": "Invalid: two active documents both claim canonical_for on the same topic 'role-responsibilities' -- duplicate canonical authority.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-DUPLICATE-CANONICAL",
+    "documents": [
+      {
+        "document_id": "doc-dup-a",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "role responsibilities",
+        "status": "active",
+        "applies_to": ["runner", "architect"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["role-responsibilities"]
+      },
+      {
+        "document_id": "doc-dup-b",
+        "governance_kind": "policy",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "role responsibilities v2",
+        "status": "active",
+        "applies_to": ["runner", "architect"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["role-responsibilities"]
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-010",
+    "description": "Invalid: scoped constraint attempts to relax a non_overridable Contract obligation -- forbidden weakening of a protected authority.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-FORBIDDEN-WEAKENING",
+    "documents": [
+      {
+        "document_id": "doc-contract-base",
+        "governance_kind": "contract",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "result format requirements",
+        "status": "active",
+        "applies_to": ["runner-result-json"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["runner-result-json-format"],
+        "description": "Requires runner_result, summary, and evidence fields in all Runner result documents."
+      },
+      {
+        "document_id": "doc-weakening-attempt",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "normative_reference",
+        "owner": "runner",
+        "scope": "result format relaxation",
+        "status": "active",
+        "applies_to": ["runner-result-json"],
+        "overrideability": "scoped_override",
+        "canonical_for": ["result-format-exceptions"],
+        "description": "Attempts to make evidence field optional, weakening a non_overridable Contract."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-011",
+    "description": "Valid: scoped constraint adds stricter requirement within authorized overrideability -- monotonic narrowing is permitted.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-STRICTER-SCOPE",
+    "documents": [
+      {
+        "document_id": "doc-policy-base",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "code review requirements",
+        "status": "active",
+        "applies_to": ["all-tickets"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["code-review-policy"],
+        "description": "Requires at least one reviewer approval for all tickets."
+      },
+      {
+        "document_id": "doc-policy-stricter",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "normative_reference",
+        "owner": "architect",
+        "scope": "high-risk code review",
+        "status": "active",
+        "applies_to": ["high-risk-tickets"],
+        "overrideability": "scoped_override",
+        "canonical_for": ["high-risk-code-review"],
+        "description": "Requires at least two reviewer approvals for high-risk tickets -- a monotonic stricter constraint, not a weakening."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-012",
+    "description": "Invalid: two documents at the same canonical authority_level make contradictory claims about the same scope -- same-level conflict.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-SAME-LEVEL-CONFLICT",
+    "documents": [
+      {
+        "document_id": "doc-conflict-a",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect-a",
+        "scope": "ticket acceptance rules",
+        "status": "active",
+        "applies_to": ["ticket-acceptance"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["ticket-acceptance-rules"],
+        "description": "Requires one reviewer for ticket acceptance."
+      },
+      {
+        "document_id": "doc-conflict-b",
+        "governance_kind": "policy",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect-b",
+        "scope": "ticket acceptance rules",
+        "status": "active",
+        "applies_to": ["ticket-acceptance"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["ticket-acceptance-rules"],
+        "description": "Requires two reviewers for ticket acceptance -- contradicts doc-conflict-a at same authority level."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-013",
+    "description": "Valid: explicit versioned supersession -- v2 supersedes v1 through declared supersedes link, v1 marked as superseded.",
+    "expected_verdict": "pass",
+    "expected_rule_id": "GOV-SUPERSESSION-VALID",
+    "documents": [
+      {
+        "document_id": "doc-lifecycle-v1",
+        "governance_kind": "protocol",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "ticket lifecycle",
+        "status": "superseded",
+        "applies_to": ["ticket-lifecycle"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["ticket-lifecycle"],
+        "description": "Original lifecycle protocol version 1.0.0."
+      },
+      {
+        "document_id": "doc-lifecycle-v2",
+        "governance_kind": "protocol",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "ticket lifecycle",
+        "status": "active",
+        "applies_to": ["ticket-lifecycle"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["ticket-lifecycle"],
+        "supersedes": ["doc-lifecycle-v1"],
+        "description": "Revised lifecycle protocol version 2.0.0, explicitly supersedes version 1.0.0."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-014",
+    "description": "Invalid: Guide document attempts to assert normative authority with canonical authority_level and non_overridable overrideability -- Guide cannot be normative.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-GUIDE-NON-NORMATIVE",
+    "documents": [
+      {
+        "document_id": "doc-guide-normative",
+        "governance_kind": "guide",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "everything",
+        "status": "active",
+        "applies_to": ["all-artifacts"],
+        "overrideability": "informational",
+        "description": "A guide that incorrectly claims normative canonical authority -- Guide is always non-normative per taxonomy Rule 7."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-015",
+    "description": "Invalid: document declares supersedes containing its own document_id -- self-supersession is prohibited.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-SUPERSEDES-SELF-REF",
+    "documents": [
+      {
+        "document_id": "doc-self-supersede",
+        "governance_kind": "protocol",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "lifecycle rules",
+        "status": "active",
+        "applies_to": ["ticket-lifecycle"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["ticket-lifecycle"],
+        "supersedes": ["doc-self-supersede"],
+        "description": "Invalidly attempts to supersede itself."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-016",
+    "description": "Invalid: supersedes references a non-existent document_id -- broken supersession link evaluates to semantic failure.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-SUPERSEDES-BROKEN-LINK",
+    "documents": [
+      {
+        "document_id": "doc-broken-supersede",
+        "governance_kind": "protocol",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "lifecycle rules",
+        "status": "active",
+        "applies_to": ["ticket-lifecycle"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["ticket-lifecycle"],
+        "supersedes": ["doc-non-existent-v1"],
+        "description": "Declares supersession of a non-existent document -- structurally valid but semantically broken."
+      }
+    ]
+  },
+  {
+    "case_id": "CASE-017",
+    "description": "Invalid: two documents form a supersession cycle where each supersedes the other -- cycles are prohibited.",
+    "expected_verdict": "fail",
+    "expected_rule_id": "GOV-SUPERSEDES-CYCLE",
+    "documents": [
+      {
+        "document_id": "doc-cycle-a",
+        "governance_kind": "policy",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "review rules",
+        "status": "active",
+        "applies_to": ["code-review"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["code-review-rules"],
+        "supersedes": ["doc-cycle-b"],
+        "description": "Document A claims to supersede document B."
+      },
+      {
+        "document_id": "doc-cycle-b",
+        "governance_kind": "policy",
+        "version": "2.1.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "review rules",
+        "status": "active",
+        "applies_to": ["code-review"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["code-review-rules"],
+        "supersedes": ["doc-cycle-a"],
+        "description": "Document B claims to supersede document A -- forms an invalid cycle."
+      }
+    ]
+  }
+]

@@ -1,0 +1,3319 @@
+[
+  {
+    "fixture_id": "example-pos-001",
+    "category": "positive",
+    "description": "Initial evaluation request -- validator gate, pass outcome, complete evidence classification, full execution mode.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-001",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-002",
+    "category": "positive",
+    "description": "Initial evaluation request -- validator gate, fail outcome, complete evidence classification, full execution mode.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-002",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-002",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_run",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-002",
+        "gate_id": "example-gate-002",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "fail",
+        "failure_code": "validator_fail_deterministic"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.1, 14.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-003",
+    "category": "positive",
+    "description": "Initial evaluation request -- artifact_shape gate, pass outcome, complete classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-003",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-003",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-003",
+        "gate_id": "example-gate-003",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "artifact_ref": {
+          "artifact_id": "example-artifact-001",
+          "artifact_kind": "artifact",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.2",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-004",
+    "category": "positive",
+    "description": "Initial evaluation request -- artifact_shape gate, fail outcome, complete classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-004",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-004",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "halt_run"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-004",
+        "gate_id": "example-gate-004",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "fail",
+        "artifact_ref": {
+          "artifact_id": "example-artifact-002",
+          "artifact_kind": "artifact",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "validator_fail_deterministic"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.2, 14.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-005",
+    "category": "positive",
+    "description": "Initial evaluation request -- diff_review gate, pass outcome, complete classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-005",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-005",
+        "gate_type": "diff_review",
+        "required": false,
+        "allow_gate_override": true,
+        "failure_behavior": "warn"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-005",
+        "gate_id": "example-gate-005",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "diff_ref": {
+          "artifact_id": "example-diff-001",
+          "artifact_kind": "diff",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.3",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-006",
+    "category": "positive",
+    "description": "Initial evaluation request -- diff_review gate, fail outcome, complete classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-006",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-006",
+        "gate_type": "diff_review",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-006",
+        "gate_id": "example-gate-006",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "fail",
+        "diff_ref": {
+          "artifact_id": "example-diff-002",
+          "artifact_kind": "diff",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "validator_fail_deterministic"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.3, 14.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-007",
+    "category": "positive",
+    "description": "Initial evaluation request -- custom gate, blocked outcome, partial_recoverable classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-007",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-007",
+        "gate_type": "custom",
+        "required": false,
+        "allow_gate_override": true,
+        "failure_behavior": "require_intervention"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-007",
+        "gate_id": "example-gate-007",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "partial_recoverable",
+        "missing_evidence_description": [
+          "example-missing-item"
+        ],
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "blocked",
+        "custom_source_ref": {
+          "artifact_id": "example-custom-source-001",
+          "artifact_kind": "custom_source",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "evidence_incomplete"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.4, 14.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-008",
+    "category": "positive",
+    "description": "Initial evaluation request -- custom gate, inconclusive outcome, partial_absent classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-008",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-008",
+        "gate_type": "custom",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "require_intervention"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-008",
+        "gate_id": "example-gate-008",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "partial_absent",
+        "missing_evidence_description": [
+          "example-permanently-missing-item"
+        ],
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "inconclusive",
+        "custom_source_ref": {
+          "artifact_id": "example-custom-source-002",
+          "artifact_kind": "custom_source",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "evidence_absent_inconclusive"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.4, 14.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-009",
+    "category": "positive",
+    "description": "Initial evaluation request -- custom gate, human_review_required outcome, conflicted classification.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-009",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-009",
+        "gate_type": "custom",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "require_intervention"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-009",
+        "gate_id": "example-gate-009",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "conflicted",
+        "missing_evidence_description": [
+          "example-conflicting-source-a",
+          "example-conflicting-source-b"
+        ],
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "human_review_required",
+        "custom_source_ref": {
+          "artifact_id": "example-custom-source-003",
+          "artifact_kind": "custom_source",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "evidence_conflict_human"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 4.1, 8.4, 14.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-010",
+    "category": "positive",
+    "description": "Initial evaluation request -- degraded_transport mode with degradation_note.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-010",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-010",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-010",
+        "gate_id": "example-gate-010",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "artifact_ref": {
+          "artifact_id": "example-artifact-003",
+          "artifact_kind": "artifact",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "degraded_transport",
+      "degradation_note": "example-transport-degradation-reason"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 7.3",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-011",
+    "category": "positive",
+    "description": "Initial evaluation request -- degraded_storage mode with degradation_note.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-011",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-011",
+        "gate_type": "diff_review",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "warn"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-011",
+        "gate_id": "example-gate-011",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "diff_ref": {
+          "artifact_id": "example-diff-003",
+          "artifact_kind": "diff",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "degraded_storage",
+      "degradation_note": "example-storage-degradation-reason"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.1, 7.3",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-012",
+    "category": "positive",
+    "description": "Re-evaluation request -- validator gate, pass outcome, with previous_decision_snapshot and prior_evidence_ids containing new evidence.",
+    "data": {
+      "request_kind": "reevaluation",
+      "decision_id": "example-decision-012",
+      "evaluated_at": "2026-07-24T01:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-012",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-012",
+        "gate_id": "example-gate-012",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          },
+          {
+            "artifact_id": "example-evidence-002",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T01:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "previous_decision_snapshot": {
+        "decision_id": "example-decision-prev-001",
+        "gate_id": "example-gate-012",
+        "outcome": "blocked",
+        "execution_mode": "full",
+        "evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "recommendation": "more_evidence",
+        "evaluated_at": "2026-07-24T00:00:00Z",
+        "evaluated_by": "example-evaluator",
+        "run_context": {
+          "run_id": "example-run-001",
+          "stage_id": "example-stage-001"
+        },
+        "failure_code": "evidence_incomplete",
+        "failure_description": "Required evidence artifact is missing but recoverable."
+      },
+      "prior_evidence_ids": [
+        "example-evidence-001:evidence:0.1.0"
+      ],
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.2, 11.1, 11.2",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-013",
+    "category": "positive",
+    "description": "Override request -- non-required gate with allow_gate_override=true, valid override_authorization.",
+    "data": {
+      "request_kind": "override",
+      "decision_id": "example-decision-013",
+      "evaluated_at": "2026-07-24T02:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-013",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": true,
+        "failure_behavior": "halt_stage"
+      },
+      "previous_decision": {
+        "decision_id": "example-decision-ovrd-prev",
+        "gate_id": "example-gate-013",
+        "outcome": "fail",
+        "execution_mode": "full",
+        "evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "recommendation": "stop_stage",
+        "failure_code": "validator_fail_deterministic",
+        "failure_description": "Validator found deterministic error-severity failures.",
+        "evaluated_at": "2026-07-24T01:00:00Z",
+        "evaluated_by": "example-evaluator",
+        "run_context": {
+          "run_id": "example-run-001",
+          "stage_id": "example-stage-001"
+        }
+      },
+      "override_authorization": {
+        "intervention_id": "example-intervention-001",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-24T02:00:00Z",
+        "reason": "example-override-reason"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Sections 3.3, 12.1, 12.2, 12.3",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-014",
+    "category": "positive",
+    "description": "GateDecision -- pass outcome (no failure_code or failure_description).",
+    "data": {
+      "decision_id": "example-decision-gd-001",
+      "gate_id": "example-gate-001",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-015",
+    "category": "positive",
+    "description": "GateDecision -- fail outcome with failure_code and failure_description.",
+    "data": {
+      "decision_id": "example-decision-gd-002",
+      "gate_id": "example-gate-002",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-016",
+    "category": "positive",
+    "description": "GateEvaluationError -- nullable decision_id, gate_id, and run_context (all null).",
+    "data": {
+      "decision_id": null,
+      "gate_id": null,
+      "error_code": "invalid_input_branch",
+      "error_description": "The request contains a forbidden field for its branch, is missing a required field, or has an invalid request_kind value.",
+      "run_context": null
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 15.2, 15.3",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-017",
+    "category": "positive",
+    "description": "GateEvaluationError -- valid non-null identity fields.",
+    "data": {
+      "decision_id": "example-decision-err-001",
+      "gate_id": "example-gate-err-001",
+      "error_code": "required_gate_warn_behavior",
+      "error_description": "Gate with required=true cannot use warn failure_behavior.",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 15.2",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-inv-001",
+    "category": "schema_invalid",
+    "description": "Unknown request_kind value 'renovate' -- not in the closed enumeration.",
+    "data": {
+      "request_kind": "renovate",
+      "decision_id": "example-decision-inv-001",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 3.4, rule 2",
+    "expected_error_code": null,
+    "mutation_reversal": "Change request_kind from 'renovate' to 'initial'."
+  },
+  {
+    "fixture_id": "example-inv-002",
+    "category": "schema_invalid",
+    "description": "Missing required field 'decision_id' on initial branch.",
+    "data": {
+      "request_kind": "initial",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 3.1, 3.4 rule 4",
+    "expected_error_code": null,
+    "mutation_reversal": "Add 'decision_id': 'example-decision-inv-002'."
+  },
+  {
+    "fixture_id": "example-inv-003",
+    "category": "schema_invalid",
+    "description": "Forbidden field 'override_authorization' present on initial branch.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-003",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full",
+      "override_authorization": {
+        "intervention_id": "example-intervention-001",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-24T00:00:00Z",
+        "reason": "example-reason"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 3.1 forbidden fields, 3.4 rule 3",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove the 'override_authorization' field."
+  },
+  {
+    "fixture_id": "example-inv-004",
+    "category": "schema_invalid",
+    "description": "Forbidden field 'evidence_envelope' present on override branch.",
+    "data": {
+      "request_kind": "override",
+      "decision_id": "example-decision-inv-004",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-013",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": true,
+        "failure_behavior": "halt_stage"
+      },
+      "previous_decision": {
+        "decision_id": "example-decision-ovrd-prev",
+        "gate_id": "example-gate-013",
+        "outcome": "fail",
+        "execution_mode": "full",
+        "evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "recommendation": "stop_stage",
+        "failure_code": "validator_fail_deterministic",
+        "failure_description": "Validator found deterministic error-severity failures.",
+        "evaluated_at": "2026-07-24T00:00:00Z",
+        "evaluated_by": "example-evaluator",
+        "run_context": {
+          "run_id": "example-run-001",
+          "stage_id": "example-stage-001"
+        }
+      },
+      "override_authorization": {
+        "intervention_id": "example-intervention-001",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-24T00:00:00Z",
+        "reason": "example-reason"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-013",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 3.3 forbidden fields, 3.4 rule 3",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove the 'evidence_envelope' field."
+  },
+  {
+    "fixture_id": "example-inv-005",
+    "category": "schema_invalid",
+    "description": "Signal/gate_type mismatch -- validator gate declaration but evaluation_signal uses artifact_shape shape (artifact_ref instead of report_ref).",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-005",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "artifact_ref": {
+          "artifact_id": "example-artifact-001",
+          "artifact_kind": "artifact",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 4.1, Section 4.2 rule 3",
+    "expected_error_code": null,
+    "mutation_reversal": "Replace evaluation_signal with matching validator shape: report_ref and overall_verdict."
+  },
+  {
+    "fixture_id": "example-inv-006",
+    "category": "schema_invalid",
+    "description": "Pass outcome in evaluation_signal with failure_code present -- failure_code forbidden on pass.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-006",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass",
+        "failure_code": "validator_fail_deterministic"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 4.1, 4.2 rules 6, 8",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove the 'failure_code' field from evaluation_signal."
+  },
+  {
+    "fixture_id": "example-inv-007",
+    "category": "schema_invalid",
+    "description": "Non-pass outcome (fail) without failure_code in evaluation_signal -- failure_code required for non-pass.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-007",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "fail"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 4.1, 4.2 rules 7, 9",
+    "expected_error_code": null,
+    "mutation_reversal": "Add 'failure_code': 'validator_fail_deterministic' to evaluation_signal."
+  },
+  {
+    "fixture_id": "example-inv-008",
+    "category": "schema_invalid",
+    "description": "Extra property 'description_extra' on GateDeclaration -- additionalProperties is false.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-008",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        },
+        "description_extra": "this-should-not-be-here"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 2.1",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove the 'description_extra' property from gate_declaration."
+  },
+  {
+    "fixture_id": "example-inv-009",
+    "category": "schema_invalid",
+    "description": "Invalid ArtifactRef -- missing required 'artifact_id' field.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-009",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_kind": "evidence"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 2.1 (ArtifactRef shape)",
+    "expected_error_code": null,
+    "mutation_reversal": "Add 'artifact_id': 'example-evidence-001' to the primary_evidence entry."
+  },
+  {
+    "fixture_id": "example-inv-010",
+    "category": "schema_invalid",
+    "description": "Required gate with allow_gate_override=true -- required gates must not be overridable.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-010",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "allow_gate_override": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 2.2 rule 3",
+    "expected_error_code": null,
+    "mutation_reversal": "Set 'allow_gate_override' to false, or set 'required' to false."
+  },
+  {
+    "fixture_id": "example-inv-011",
+    "category": "schema_invalid",
+    "description": "Required gate with failure_behavior=warn -- required gates cannot use warn.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-011",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "warn",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 2.2 rule 7",
+    "expected_error_code": null,
+    "mutation_reversal": "Change 'failure_behavior' to 'halt_stage', or set 'required' to false and add 'allow_gate_override'."
+  },
+  {
+    "fixture_id": "example-inv-012",
+    "category": "schema_invalid",
+    "description": "Missing degradation_note when execution_mode is degraded_transport.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-012",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "artifact_ref": {
+          "artifact_id": "example-artifact-001",
+          "artifact_kind": "artifact",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "degraded_transport"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 3.1 optional fields",
+    "expected_error_code": null,
+    "mutation_reversal": "Add 'degradation_note': 'example-degradation-reason'."
+  },
+  {
+    "fixture_id": "example-inv-013",
+    "category": "schema_invalid",
+    "description": "GateDecision with pass outcome but failure_code present -- failure_code forbidden on pass.",
+    "data": {
+      "decision_id": "example-decision-gd-inv-001",
+      "gate_id": "example-gate-001",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Should not be here.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 7.1",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove 'failure_code' and 'failure_description'."
+  },
+  {
+    "fixture_id": "example-inv-014",
+    "category": "schema_invalid",
+    "description": "GateDecision with fail outcome but missing failure_code.",
+    "data": {
+      "decision_id": "example-decision-gd-inv-002",
+      "gate_id": "example-gate-001",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 7.1",
+    "expected_error_code": null,
+    "mutation_reversal": "Add 'failure_code': 'validator_fail_deterministic' and 'failure_description': 'Validator found deterministic error-severity failures.'."
+  },
+  {
+    "fixture_id": "example-inv-015",
+    "category": "schema_invalid",
+    "description": "Invalid gate_type enum value 'compliance' -- not in closed enumeration.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-inv-015",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "compliance",
+        "required": false,
+        "allow_gate_override": false,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "pass",
+        "artifact_ref": {
+          "artifact_id": "example-artifact-001",
+          "artifact_kind": "artifact",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 2.1, 4.2 rule 3",
+    "expected_error_code": null,
+    "mutation_reversal": "Change 'gate_type' to a valid enum value such as 'validator' and add 'contract_ref'."
+  },
+  {
+    "fixture_id": "example-inv-016",
+    "category": "schema_invalid",
+    "description": "Forbidden field 'execution_mode' present on override branch.",
+    "data": {
+      "request_kind": "override",
+      "decision_id": "example-decision-inv-016",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-013",
+        "gate_type": "artifact_shape",
+        "required": false,
+        "allow_gate_override": true,
+        "failure_behavior": "halt_stage"
+      },
+      "previous_decision": {
+        "decision_id": "example-decision-ovrd-prev",
+        "gate_id": "example-gate-013",
+        "outcome": "fail",
+        "execution_mode": "full",
+        "evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "recommendation": "stop_stage",
+        "failure_code": "validator_fail_deterministic",
+        "failure_description": "Validator found deterministic error-severity failures.",
+        "evaluated_at": "2026-07-24T00:00:00Z",
+        "evaluated_by": "example-evaluator",
+        "run_context": {
+          "run_id": "example-run-001",
+          "stage_id": "example-stage-001"
+        }
+      },
+      "override_authorization": {
+        "intervention_id": "example-intervention-001",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-24T00:00:00Z",
+        "reason": "example-reason"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "degraded_transport"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 3.3 forbidden fields",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove the 'execution_mode' field."
+  },
+  {
+    "fixture_id": "example-cinv-001",
+    "category": "schema_valid_contract_invalid",
+    "description": "Report ref mismatch -- evaluation_signal.report_ref and evidence_envelope.validation_report have different artifact_id values.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-cinv-001",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-001",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-001",
+        "gate_id": "example-gate-001",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "validation_report": {
+          "artifact_id": "example-validator-report-v2",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 4.3",
+    "expected_error_code": "report_reference_mismatch",
+    "mutation_reversal": "Change validation_report.artifact_id to 'example-validator-report-v1' to match report_ref."
+  },
+  {
+    "fixture_id": "example-cinv-002",
+    "category": "schema_valid_contract_invalid",
+    "description": "Re-evaluation with no new evidence -- prior_evidence_ids contains all evidence IDs from the current evidence_envelope projection.",
+    "data": {
+      "request_kind": "reevaluation",
+      "decision_id": "example-decision-cinv-002",
+      "evaluated_at": "2026-07-24T01:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-012",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-012",
+        "gate_id": "example-gate-012",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T01:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "previous_decision_snapshot": {
+        "decision_id": "example-decision-prev-001",
+        "gate_id": "example-gate-012",
+        "outcome": "blocked",
+        "execution_mode": "full",
+        "evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "recommendation": "more_evidence",
+        "evaluated_at": "2026-07-24T00:00:00Z",
+        "evaluated_by": "example-evaluator",
+        "run_context": {
+          "run_id": "example-run-001",
+          "stage_id": "example-stage-001"
+        },
+        "failure_code": "evidence_incomplete",
+        "failure_description": "Required evidence artifact is missing but recoverable."
+      },
+      "prior_evidence_ids": [
+        "example-evidence-001:evidence:0.1.0",
+        "example-validator-report-v1:report:0.1.0"
+      ],
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 11.1",
+    "expected_error_code": "reevaluation_no_new_evidence",
+    "mutation_reversal": "Remove 'example-validator-report-v1:report:0.1.0' from prior_evidence_ids so the validation_report ArtifactRef becomes new evidence."
+  },
+  {
+    "fixture_id": "example-cinv-003",
+    "category": "schema_invalid",
+    "description": "Inadmissible failure_code -- fail outcome with complete classification requires validator_fail_deterministic, but evidence_incomplete is supplied (admissible only for blocked+partial_recoverable).",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-cinv-003",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-002",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_run",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-002",
+        "gate_id": "example-gate-002",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-001",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "fail",
+        "failure_code": "evidence_incomplete"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (cross-outcome code now schema-enforced)",
+    "expected_error_code": "failure_code_invalid",
+    "mutation_reversal": "Change 'failure_code' from 'evidence_incomplete' to 'validator_fail_deterministic'."
+  },
+  {
+    "fixture_id": "example-neg-001",
+    "category": "schema_invalid",
+    "description": "GateDecision pass with failure_code present (failure_description absent) -- pass forbids failure_code independently of failure_description.",
+    "data": {
+      "decision_id": "example-decision-gd-001",
+      "gate_id": "example-gate-001",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "failure_code": "validator_fail_deterministic"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 7.1 (independent forbid)",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove failure_code from GateDecision."
+  },
+  {
+    "fixture_id": "example-neg-002",
+    "category": "schema_invalid",
+    "description": "GateDecision pass with failure_description present (failure_code absent) -- pass forbids failure_description independently of failure_code.",
+    "data": {
+      "decision_id": "example-decision-gd-001",
+      "gate_id": "example-gate-001",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "failure_description": "Should not be here."
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 7.1 (independent forbid)",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove failure_description from GateDecision."
+  },
+  {
+    "fixture_id": "example-neg-003",
+    "category": "schema_invalid",
+    "description": "GateDecision pass with recommendation=stop_stage -- pass must have recommendation=proceed per Section 13.1.",
+    "data": {
+      "decision_id": "example-decision-gd-001",
+      "gate_id": "example-gate-001",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 13.1 (pass=proceed)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change recommendation to proceed."
+  },
+  {
+    "fixture_id": "example-neg-004",
+    "category": "schema_invalid",
+    "description": "GateDecision with unknown failure_code \"custom_error\" -- not in closed 17-code FailureCode enumeration.",
+    "data": {
+      "decision_id": "example-decision-gd-001",
+      "gate_id": "example-gate-001",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "example-evidence-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "failure_code": "custom_error",
+      "failure_description": "Some error."
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.1 (closed enum)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to validator_fail_deterministic."
+  },
+  {
+    "fixture_id": "example-neg-005",
+    "category": "schema_invalid",
+    "description": "GateDecision blocked with recommendation=proceed -- blocked must have recommendation=more_evidence per Section 13.1.",
+    "data": {
+      "decision_id": "gd-neg-005",
+      "gate_id": "example-gate-099",
+      "outcome": "blocked",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-099",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "failure_code": "evidence_incomplete",
+      "failure_description": "Required evidence artifact is missing but recoverable.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 13.1 (blocked=more_evidence)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change recommendation to more_evidence."
+  },
+  {
+    "fixture_id": "example-neg-006",
+    "category": "schema_invalid",
+    "description": "GateDecision inconclusive with recommendation=more_evidence -- inconclusive must have recommendation=human_intervention per Section 13.1.",
+    "data": {
+      "decision_id": "gd-neg-006",
+      "gate_id": "example-gate-100",
+      "outcome": "inconclusive",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "more_evidence",
+      "failure_code": "evidence_absent_inconclusive",
+      "failure_description": "Required evidence artifact does not exist and cannot be produced.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 13.1 (inconclusive=human_intervention)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change recommendation to human_intervention."
+  },
+  {
+    "fixture_id": "example-neg-007",
+    "category": "schema_invalid",
+    "description": "GateDecision pass with empty evidence array -- pass requires non-empty evidence per Section 10.",
+    "data": {
+      "decision_id": "example-decision-gd-001",
+      "gate_id": "example-gate-001",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "proceed",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 10 (non-empty evidence for pass/fail)",
+    "expected_error_code": null,
+    "mutation_reversal": "Add at least one ArtifactRef to evidence array."
+  },
+  {
+    "fixture_id": "example-neg-008",
+    "category": "schema_invalid",
+    "description": "GateDecision fail with empty evidence array -- fail requires non-empty evidence per Section 10.",
+    "data": {
+      "decision_id": "gd-neg-008",
+      "gate_id": "example-gate-101",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "stop_stage",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 10 (non-empty evidence for pass/fail)",
+    "expected_error_code": null,
+    "mutation_reversal": "Add at least one ArtifactRef to evidence array."
+  },
+  {
+    "fixture_id": "example-neg-009",
+    "category": "schema_invalid",
+    "description": "GateDecision with execution_mode=degraded_transport but missing degradation_note.",
+    "data": {
+      "decision_id": "gd-neg-009",
+      "gate_id": "example-gate-102",
+      "outcome": "pass",
+      "execution_mode": "degraded_transport",
+      "evidence": [
+        {
+          "artifact_id": "ev-102",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 7.1 (degradation_note conditional)",
+    "expected_error_code": null,
+    "mutation_reversal": "Add degradation_note field."
+  },
+  {
+    "fixture_id": "example-neg-010",
+    "category": "schema_invalid",
+    "description": "PreviousDecisionSnapshot (via GateDecision $ref) with pass outcome and failure_code -- pass independently forbids failure_code.",
+    "data": {
+      "decision_id": "snap-neg-010",
+      "gate_id": "example-gate-103",
+      "outcome": "pass",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-103",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "failure_code": "evidence_incomplete",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 7.1 via PreviousDecisionSnapshot $ref reuse",
+    "expected_error_code": null,
+    "mutation_reversal": "Remove failure_code from snapshot."
+  },
+  {
+    "fixture_id": "example-neg-011",
+    "category": "schema_invalid",
+    "description": "GateDecision fail with failure_description not matching canonical template for validator_fail_deterministic.",
+    "data": {
+      "decision_id": "gd-neg-011",
+      "gate_id": "example-gate-104",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-104",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Arbitrary non-canonical description text.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 18.1 (canonical template)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_description to canonical: Validator found deterministic error-severity failures."
+  },
+  {
+    "fixture_id": "example-neg-012",
+    "category": "schema_invalid",
+    "description": "Evaluation signal with failure_code \"random_error\" -- not in closed 17-code FailureCode enumeration.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "dec-neg-012",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-neg-012",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-neg-012",
+        "gate_id": "gate-neg-012",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-neg-012",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "fail",
+        "failure_code": "random_error"
+      },
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.1 (closed FailureCode enum in signal)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to validator_fail_deterministic."
+  },
+  {
+    "fixture_id": "example-pos-018",
+    "category": "positive",
+    "description": "GateDecision blocked outcome with more_evidence recommendation, evidence_incomplete failure_code, canonical description.",
+    "data": {
+      "decision_id": "gd-pos-018",
+      "gate_id": "example-gate-200",
+      "outcome": "blocked",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-200",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "more_evidence",
+      "failure_code": "evidence_incomplete",
+      "failure_description": "Required evidence artifact is missing but recoverable.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1, 13.1, 14.1, 18.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-019",
+    "category": "positive",
+    "description": "GateDecision inconclusive outcome with human_intervention recommendation, evidence_absent_inconclusive failure_code, canonical description, empty evidence.",
+    "data": {
+      "decision_id": "gd-pos-019",
+      "gate_id": "example-gate-201",
+      "outcome": "inconclusive",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "human_intervention",
+      "failure_code": "evidence_absent_inconclusive",
+      "failure_description": "Required evidence artifact does not exist and cannot be produced.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1, 13.1, 14.1, 18.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-020",
+    "category": "positive",
+    "description": "GateDecision human_review_required outcome with human_intervention recommendation, truth_hierarchy_human failure_code, canonical description.",
+    "data": {
+      "decision_id": "gd-pos-020",
+      "gate_id": "example-gate-202",
+      "outcome": "human_review_required",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-202",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "human_intervention",
+      "failure_code": "truth_hierarchy_human",
+      "failure_description": "Validator used candidate output as truth source with no resolution path. Human review required.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1, 13.1, 14.1, 18.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-021",
+    "category": "positive",
+    "description": "GateDecision fail outcome with stop_run recommendation, validator_fail_deterministic failure_code, canonical description.",
+    "data": {
+      "decision_id": "gd-pos-021",
+      "gate_id": "example-gate-203",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-203",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_run",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1, 13.1 (fail=stop_run/halt_run mapping)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-022",
+    "category": "positive",
+    "description": "GateDecision fail outcome with human_intervention recommendation (require_intervention path).",
+    "data": {
+      "decision_id": "gd-pos-022",
+      "gate_id": "example-gate-204",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-204",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "human_intervention",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 13.1 (fail=human_intervention/require_intervention mapping)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-023",
+    "category": "positive",
+    "description": "GateDecision fail outcome with proceed_with_warning recommendation (warn path for non-required gate).",
+    "data": {
+      "decision_id": "gd-pos-023",
+      "gate_id": "example-gate-205",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-205",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed_with_warning",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 13.1 (fail=proceed_with_warning)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-024",
+    "category": "positive",
+    "description": "GateDecision blocked with degradation_note for degraded_transport execution_mode.",
+    "data": {
+      "decision_id": "gd-pos-024",
+      "gate_id": "example-gate-206",
+      "outcome": "blocked",
+      "execution_mode": "degraded_transport",
+      "evidence": [],
+      "recommendation": "more_evidence",
+      "failure_code": "degradation_blocked_correctness",
+      "failure_description": "Execution mode degraded below the correctness threshold.",
+      "degradation_note": "Transport layer partially unavailable.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 7.1, 7.3, 13.1",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-025",
+    "category": "positive",
+    "description": "Re-evaluation request with empty prior_evidence_ids array -- contract requires array but does not require minItems 1; reevaluation from prior empty-evidence decision is structurally valid.",
+    "data": {
+      "request_kind": "reevaluation",
+      "decision_id": "dec-pos-025",
+      "evaluated_at": "2026-07-24T01:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-pos-025",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-pos-025",
+        "gate_id": "gate-pos-025",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-pos-025",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "previous_decision_snapshot": {
+        "decision_id": "dec-prev-empty",
+        "gate_id": "gate-pos-025",
+        "outcome": "inconclusive",
+        "execution_mode": "full",
+        "evidence": [],
+        "recommendation": "human_intervention",
+        "failure_code": "evidence_absent_inconclusive",
+        "failure_description": "Required evidence artifact does not exist and cannot be produced.",
+        "evaluated_at": "2026-07-24T00:00:00Z",
+        "evaluated_by": "example-evaluator",
+        "run_context": {
+          "run_id": "example-run-001",
+          "stage_id": "example-stage-001"
+        }
+      },
+      "prior_evidence_ids": [],
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 3.2, 11.1, 11.2 (empty prior_evidence_ids permitted)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-026",
+    "category": "positive",
+    "description": "GateDecision blocked with validator_unreachable failure_code, canonical description.",
+    "data": {
+      "decision_id": "gd-pos-026",
+      "gate_id": "example-gate-207",
+      "outcome": "blocked",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "more_evidence",
+      "failure_code": "validator_unreachable",
+      "failure_description": "Independent Validator could not be dispatched or reached.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 14.1 (blocked codes)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-027",
+    "category": "positive",
+    "description": "GateDecision blocked with contract_unavailable failure_code, canonical description.",
+    "data": {
+      "decision_id": "gd-pos-027",
+      "gate_id": "example-gate-208",
+      "outcome": "blocked",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "more_evidence",
+      "failure_code": "contract_unavailable",
+      "failure_description": "Required Validation Contract could not be resolved.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 14.1 (blocked codes)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-neg-013",
+    "category": "schema_invalid",
+    "description": "GateDecision fail with evidence_incomplete failure_code -- evidence_incomplete is a blocked-outcome code per Section 14.1, not admissible for fail.",
+    "data": {
+      "decision_id": "gd-neg-013",
+      "gate_id": "example-gate-209",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-209",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "failure_code": "evidence_incomplete",
+      "failure_description": "Required evidence artifact is missing but recoverable.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (evidence_incomplete not admissible for fail)",
+    "expected_error_code": "failure_code_invalid",
+    "mutation_reversal": "Change failure_code to validator_fail_deterministic."
+  },
+  {
+    "fixture_id": "example-neg-014",
+    "category": "schema_invalid",
+    "description": "GateDecision inconclusive with validator_fail_deterministic failure_code -- validator_fail_deterministic is a fail-only code per Section 14.1.",
+    "data": {
+      "decision_id": "gd-neg-014",
+      "gate_id": "example-gate-210",
+      "outcome": "inconclusive",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "human_intervention",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "run_context": {
+        "run_id": "example-run-001",
+        "stage_id": "example-stage-001"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (validator_fail_deterministic not admissible for inconclusive)",
+    "expected_error_code": "failure_code_invalid",
+    "mutation_reversal": "Change failure_code to evidence_absent_inconclusive."
+  },
+  {
+    "fixture_id": "example-neg-151-001",
+    "category": "schema_invalid",
+    "description": "GateDecision fail with recommendation=proceed -- proceed is forbidden for fail decisions per Section 13.1.",
+    "data": {
+      "decision_id": "gd-neg-151-001",
+      "gate_id": "gate-151-001",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-151-001",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 13.1 (fail forbids proceed)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change recommendation to stop_stage."
+  },
+  {
+    "fixture_id": "example-neg-151-002",
+    "category": "schema_invalid",
+    "description": "GateDecision fail with recommendation=more_evidence -- more_evidence is forbidden for fail decisions per Section 13.1.",
+    "data": {
+      "decision_id": "gd-neg-151-002",
+      "gate_id": "gate-151-002",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-151-002",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "more_evidence",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 13.1 (fail forbids more_evidence)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change recommendation to human_intervention."
+  },
+  {
+    "fixture_id": "example-neg-151-003",
+    "category": "schema_invalid",
+    "description": "GateDecision blocked with validator_fail_deterministic -- fail-only code used with blocked outcome (cross-outcome violation per Section 14.2).",
+    "data": {
+      "decision_id": "gd-neg-151-003",
+      "gate_id": "gate-151-003",
+      "outcome": "blocked",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-151-003",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "more_evidence",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (cross-outcome failure code)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to evidence_incomplete."
+  },
+  {
+    "fixture_id": "example-neg-151-004",
+    "category": "schema_invalid",
+    "description": "GateDecision inconclusive with evidence_incomplete -- blocked-only code used with inconclusive outcome.",
+    "data": {
+      "decision_id": "gd-neg-151-004",
+      "gate_id": "gate-151-004",
+      "outcome": "inconclusive",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "human_intervention",
+      "failure_code": "evidence_incomplete",
+      "failure_description": "Required evidence artifact is missing but recoverable.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (cross-outcome failure code)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to evidence_absent_inconclusive."
+  },
+  {
+    "fixture_id": "example-neg-151-005",
+    "category": "schema_invalid",
+    "description": "GateDecision human_review_required with evidence_absent_inconclusive -- inconclusive-only code used with hrr outcome.",
+    "data": {
+      "decision_id": "gd-neg-151-005",
+      "gate_id": "gate-151-005",
+      "outcome": "human_review_required",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "human_intervention",
+      "failure_code": "evidence_absent_inconclusive",
+      "failure_description": "Required evidence artifact does not exist and cannot be produced.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (cross-outcome failure code)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to evidence_absent_human."
+  },
+  {
+    "fixture_id": "example-neg-151-006",
+    "category": "schema_invalid",
+    "description": "Validator signal with fail overall_verdict and blocked-only failure_code evidence_incomplete.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "dec-neg-151-006",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-151-006",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-151-006",
+        "gate_id": "gate-151-006",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-151-006",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "fail",
+        "failure_code": "evidence_incomplete"
+      },
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (signal cross-outcome failure code)",
+    "expected_error_code": "failure_code_invalid",
+    "mutation_reversal": "Change failure_code to validator_fail_deterministic."
+  },
+  {
+    "fixture_id": "example-neg-151-007",
+    "category": "schema_invalid",
+    "description": "ArtifactShape signal fail with truth_hierarchy_inconclusive -- inconclusive code used with fail outcome.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "dec-neg-151-007",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-151-007",
+        "gate_type": "artifact_shape",
+        "required": true,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-151-007",
+        "gate_id": "gate-151-007",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-151-007",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "fail",
+        "artifact_ref": {
+          "artifact_id": "ev-151-007",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "truth_hierarchy_inconclusive"
+      },
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (signal cross-outcome failure code)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to validator_fail_deterministic."
+  },
+  {
+    "fixture_id": "example-neg-151-008",
+    "category": "schema_invalid",
+    "description": "DiffReview signal fail with contract_unavailable -- blocked code used with fail outcome.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "dec-neg-151-008",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-151-008",
+        "gate_type": "diff_review",
+        "required": true,
+        "failure_behavior": "halt_stage"
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-151-008",
+        "gate_id": "gate-151-008",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-151-008",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "outcome": "fail",
+        "diff_ref": {
+          "artifact_id": "ev-151-008",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "contract_unavailable"
+      },
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (signal cross-outcome failure code)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to validator_fail_deterministic."
+  },
+  {
+    "fixture_id": "example-neg-151-009",
+    "category": "schema_invalid",
+    "description": "Custom signal human_review_required with degradation_blocked_correctness -- blocked code used with hrr.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "dec-neg-151-009",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-151-009",
+        "gate_type": "custom",
+        "required": true,
+        "failure_behavior": "require_intervention"
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-151-009",
+        "gate_id": "gate-151-009",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-151-009",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "partial_absent",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "missing_evidence_description": [
+          "example-missing-item"
+        ]
+      },
+      "evaluation_signal": {
+        "outcome": "human_review_required",
+        "custom_source_ref": {
+          "artifact_id": "ev-151-009",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        },
+        "failure_code": "degradation_blocked_correctness"
+      },
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 14.2 (signal cross-outcome failure code)",
+    "expected_error_code": null,
+    "mutation_reversal": "Change failure_code to truth_hierarchy_human."
+  },
+  {
+    "fixture_id": "example-pos-151-001",
+    "category": "positive",
+    "description": "GateDecision fail with stop_stage recommendation (halt_stage path, valid fail recommendation).",
+    "data": {
+      "decision_id": "gd-pos-151-001",
+      "gate_id": "gate-151-100",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-151-100",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "stop_stage",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 13.1 (fail=stop_stage valid)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-151-002",
+    "category": "positive",
+    "description": "GateDecision fail with proceed_with_warning recommendation (warn path for non-required gate, valid).",
+    "data": {
+      "decision_id": "gd-pos-151-002",
+      "gate_id": "gate-151-101",
+      "outcome": "fail",
+      "execution_mode": "full",
+      "evidence": [
+        {
+          "artifact_id": "ev-151-101",
+          "artifact_kind": "evidence",
+          "artifact_version": "0.1.0"
+        }
+      ],
+      "recommendation": "proceed_with_warning",
+      "failure_code": "validator_fail_deterministic",
+      "failure_description": "Validator found deterministic error-severity failures.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 13.1 (fail=proceed_with_warning valid)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-151-003",
+    "category": "positive",
+    "description": "Validator signal fail with validator_fail_deterministic -- correct outcome/code pairing.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "dec-pos-151-003",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "gate_declaration": {
+        "gate_id": "gate-151-102",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "env-gate-151-102",
+        "gate_id": "gate-151-102",
+        "primary_evidence": [
+          {
+            "artifact_id": "ev-gate-151-102",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector",
+        "validation_report": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        }
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "fail",
+        "failure_code": "validator_fail_deterministic"
+      },
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 14.2 (signal fail correct code)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-151-004",
+    "category": "positive",
+    "description": "GateDecision blocked with evidence_incomplete -- correct blocked outcome/code pairing.",
+    "data": {
+      "decision_id": "gd-pos-151-004",
+      "gate_id": "gate-151-103",
+      "outcome": "blocked",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "more_evidence",
+      "failure_code": "evidence_incomplete",
+      "failure_description": "Required evidence artifact is missing but recoverable.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 14.2 (blocked correct code)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-151-005",
+    "category": "positive",
+    "description": "GateDecision inconclusive with truth_hierarchy_inconclusive -- correct inconclusive code.",
+    "data": {
+      "decision_id": "gd-pos-151-005",
+      "gate_id": "gate-151-104",
+      "outcome": "inconclusive",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "human_intervention",
+      "failure_code": "truth_hierarchy_inconclusive",
+      "failure_description": "Validator used candidate output as truth source with no resolution path.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 14.2 (inconclusive correct code)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-pos-151-006",
+    "category": "positive",
+    "description": "GateDecision human_review_required with truth_hierarchy_human -- correct hrr code.",
+    "data": {
+      "decision_id": "gd-pos-151-006",
+      "gate_id": "gate-151-105",
+      "outcome": "human_review_required",
+      "execution_mode": "full",
+      "evidence": [],
+      "recommendation": "human_intervention",
+      "failure_code": "truth_hierarchy_human",
+      "failure_description": "Validator used candidate output as truth source with no resolution path. Human review required.",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "evaluator",
+      "run_context": {
+        "run_id": "run-151",
+        "stage_id": "stage-151"
+      }
+    },
+    "expected_schema_valid": true,
+    "expected_contract_valid": true,
+    "decisive_rule": "Section 14.2 (hrr correct code)",
+    "expected_error_code": null,
+    "mutation_reversal": null
+  },
+  {
+    "fixture_id": "example-neg-validator-report-missing",
+    "category": "schema_invalid",
+    "description": "Validator initial request missing evidence_envelope.validation_report; this is the sole decisive defect.",
+    "data": {
+      "request_kind": "initial",
+      "decision_id": "example-decision-validator-report-missing",
+      "evaluated_at": "2026-07-24T00:00:00Z",
+      "evaluated_by": "example-evaluator",
+      "gate_declaration": {
+        "gate_id": "example-gate-validator-report-missing",
+        "gate_type": "validator",
+        "required": true,
+        "failure_behavior": "halt_stage",
+        "contract_ref": {
+          "artifact_id": "example-contract-v1",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0"
+        }
+      },
+      "evidence_envelope": {
+        "envelope_id": "example-envelope-validator-report-missing",
+        "gate_id": "example-gate-validator-report-missing",
+        "primary_evidence": [
+          {
+            "artifact_id": "example-evidence-validator-report-missing",
+            "artifact_kind": "evidence",
+            "artifact_version": "0.1.0"
+          }
+        ],
+        "evidence_classification": "complete",
+        "collected_at": "2026-07-24T00:00:00Z",
+        "collected_by": "example-collector"
+      },
+      "evaluation_signal": {
+        "report_ref": {
+          "artifact_id": "example-validator-report-v1",
+          "artifact_kind": "report",
+          "artifact_version": "0.1.0"
+        },
+        "overall_verdict": "pass"
+      },
+      "run_context": {
+        "run_id": "example-run-validator-report-missing",
+        "stage_id": "example-stage-validator-report-missing"
+      },
+      "execution_mode": "full"
+    },
+    "expected_schema_valid": false,
+    "expected_contract_valid": false,
+    "decisive_rule": "Section 5.1 (validator validation_report required)",
+    "expected_error_code": "invalid_input_branch",
+    "mutation_reversal": "Add evidence_envelope.validation_report matching evaluation_signal.report_ref."
+  }
+]

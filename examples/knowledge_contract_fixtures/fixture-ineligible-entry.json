@@ -1,0 +1,33 @@
+{
+  "fixture_id": "knowledge-invalid-visibility",
+  "description": "An otherwise canonical entry with an invalid visibility classification.",
+  "expected_outcome": "fail",
+  "expected_failure_rule": "visibility-enum",
+  "artifact_inventory": [
+    {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+    {"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"},
+    {"artifact_id": "validation-evidence", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}
+  ],
+  "entries": [
+    {
+      "entry_id": "knowledge-invalid-visibility-root",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "internal",
+      "title": "Invalid visibility sample",
+      "description": "This neutral sample exists only to calibrate visibility validation.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "validation-evidence", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": []
+    }
+  ],
+  "lifecycle_events": []
+}

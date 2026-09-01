@@ -1,0 +1,1989 @@
+{
+  "$schema": "https://github.com/yjwipod-1/railyard/blob/main/assets/schemas/runtime-v080-smoke-conformance-v1.schema.json",
+  "document_id": "railyard-runtime-v080-smoke-conformance-v1.0.0",
+  "governance_kind": "registry",
+  "version": "1.0.0",
+  "authority_level": "canonical",
+  "owner": "architect",
+  "scope": "Frozen v0.8 smoke scenario conformance catalog. Every scenario supplies ALL semantic values (timestamps, IDs, keys, digest seeds, visibility/authorization/checkpoint/provenance facts) as explicit inputs. The catalog contains NO candidate-generated expected outputs, no FIXED_* constants, no counter generators, and no module-level signer key. Expected results are derived from governing contracts and schemas only.",
+  "applies_to": [
+    "runner",
+    "validator"
+  ],
+  "overrideability": "non_overridable",
+  "status": "active",
+  "contract_ref": "references/runtime-v080-smoke-contract.md",
+  "contract_sha256": "bf9229c247674cbd0328645871fd498ca47a0a126f5d91c0a5389e1627e69ee3",
+  "scenario_count": 20,
+  "shared_inputs": {
+    "signer_key_base64": "c21va2UtcnVubmVyLWRldGVybWluaXN0aWMta2V5LXYwODA=",
+    "id_prefix": "s",
+    "id_start": 1
+  },
+  "scenarios": [
+    {
+      "scenario_id": "v080-scenario-001",
+      "description": "Ticket-triggered full pipeline success: init -> dispatch -> evaluate -> decide -> commit -> export -> publish",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-001",
+        "ticket_id": "TICKET-DEMO-001",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 1,
+        "binding_id_seed": 100,
+        "resolution_id_seed": 200,
+        "mesh_eval_id_seed": 300,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-001",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-001",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-state-contract.md",
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-gate-decision-contract.md",
+        "references/runtime-evidence-export-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_sequence",
+        "projection_pass",
+        "ticket_provenance_preserved"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-002",
+      "description": "Non-ticket full pipeline success with optional workflow provenance",
+      "trigger_kind": "non_ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-002",
+        "ticket_id": null,
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 20,
+        "binding_id_seed": 120,
+        "resolution_id_seed": 220,
+        "mesh_eval_id_seed": 320,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-002",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "smoke-provenance",
+        "origin_artifact_kind": "script",
+        "trigger": "local_script",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-state-contract.md",
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-gate-decision-contract.md",
+        "references/runtime-evidence-export-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_sequence",
+        "projection_pass",
+        "no_ticket_provenance_leak"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-003",
+      "description": "Missing required report causes blocked verdict with zero downstream writes",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-003",
+        "ticket_id": "TICKET-DEMO-003",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 40,
+        "binding_id_seed": 140,
+        "resolution_id_seed": 240,
+        "mesh_eval_id_seed": 340,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-003",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_error_code": "validator_unreachable",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001",
+        "dispatch_status": "report_missing"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch_with_missing",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "missing_report"
+          }
+        },
+        {
+          "step_id": "evaluate_blocked",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md",
+        "references/runtime-gate-decision-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-004",
+      "description": "Fail verdict stops pipeline after mesh evaluation with zero artifacts",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-004",
+        "ticket_id": "TICKET-DEMO-004",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 60,
+        "binding_id_seed": 160,
+        "resolution_id_seed": 260,
+        "mesh_eval_id_seed": 360,
+        "requirement_id": "req-fail",
+        "validator_identity": "v-fail",
+        "report_digest_seed": "report-body-req-fail-v080-run-004",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-004",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "fail_verdict"
+          }
+        },
+        {
+          "step_id": "evaluate_fail",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-005",
+      "description": "Blocked verdict from status=blocked finding stops pipeline with zero downstream writes",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-005",
+        "ticket_id": "TICKET-DEMO-005",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 80,
+        "binding_id_seed": 180,
+        "resolution_id_seed": 280,
+        "mesh_eval_id_seed": 380,
+        "requirement_id": "req-blocked",
+        "validator_identity": "v-blocked",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-005",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_error_code": "report_missing",
+        "dispatch_status": "report_missing",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "report_missing"
+          }
+        },
+        {
+          "step_id": "evaluate_blocked",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-006",
+      "description": "Inconclusive verdict stops pipeline and requires more evidence",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-006",
+        "ticket_id": "TICKET-DEMO-006",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 100,
+        "binding_id_seed": 200,
+        "resolution_id_seed": 300,
+        "mesh_eval_id_seed": 400,
+        "requirement_id": "req-inconclusive",
+        "validator_identity": "v-inc",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-006",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_status": "degraded_storage",
+        "dispatch_error_code": "degraded_storage",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "degraded_storage"
+          }
+        },
+        {
+          "step_id": "evaluate_inconclusive",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-007",
+      "description": "Human review required verdict stops pipeline with zero artifacts",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-007",
+        "ticket_id": "TICKET-DEMO-007",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 120,
+        "binding_id_seed": 220,
+        "resolution_id_seed": 320,
+        "mesh_eval_id_seed": 420,
+        "requirement_id": "req-hrr",
+        "validator_identity": "v-hrr",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-007",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_status": "report_missing",
+        "dispatch_error_code": "report_missing",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "report_missing"
+          }
+        },
+        {
+          "step_id": "evaluate_hrr",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-008",
+      "description": "Stale artifact digest causes blocked verdict with zero downstream writes",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-008",
+        "ticket_id": "TICKET-DEMO-008",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 140,
+        "binding_id_seed": 240,
+        "resolution_id_seed": 340,
+        "mesh_eval_id_seed": 440,
+        "requirement_id": "req-stale",
+        "validator_identity": "v-stale",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-008",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_status": "stale_artifact_digest",
+        "dispatch_error_code": "stale_artifact_digest",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch_stale",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "stale"
+          }
+        },
+        {
+          "step_id": "evaluate_blocked",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-009",
+      "description": "Stale contract binding causes blocked verdict",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-009",
+        "ticket_id": "TICKET-DEMO-009",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 160,
+        "binding_id_seed": 260,
+        "resolution_id_seed": 360,
+        "mesh_eval_id_seed": 460,
+        "requirement_id": "req-contract",
+        "validator_identity": "v-contract",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-009",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_status": "stale_artifact_digest",
+        "dispatch_error_code": "stale_contract_binding",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch_stale_contract",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "stale_contract"
+          }
+        },
+        {
+          "step_id": "evaluate_blocked",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-010",
+      "description": "Duplicate or conflicting report causes blocked verdict",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-010",
+        "ticket_id": "TICKET-DEMO-010",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 180,
+        "binding_id_seed": 280,
+        "resolution_id_seed": 380,
+        "mesh_eval_id_seed": 480,
+        "report_digest_seed": "report-body-duplicate-v080-run-010",
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-010",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch_duplicate",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "duplicate"
+          }
+        },
+        {
+          "step_id": "evaluate_blocked",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-011",
+      "description": "Unavailable validator dispatch causes blocked verdict",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-011",
+        "ticket_id": "TICKET-DEMO-011",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 200,
+        "binding_id_seed": 300,
+        "resolution_id_seed": 400,
+        "mesh_eval_id_seed": 500,
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-011",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "dispatch_status": "validator_unreachable",
+        "dispatch_error_code": "validator_unreachable",
+        "requirement_id": "req-011",
+        "validator_identity": "v-unavail-1",
+        "contract_id": "vc-001",
+        "artifact_id": "artifact-001"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "dispatch_unavailable",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "unreachable"
+          }
+        },
+        {
+          "step_id": "evaluate_blocked",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_stops_after_evaluate"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-012",
+      "description": "Publish gate decision path exercised through full pipeline (tamper_evidence step removed as undeclared nested call; integrity-only repair)",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-012",
+        "ticket_id": "TICKET-DEMO-012",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 220,
+        "binding_id_seed": 320,
+        "resolution_id_seed": 420,
+        "mesh_eval_id_seed": 520,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-012",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-012",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate_pass",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide_proceed",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-gate-decision-contract.md",
+        "references/runtime-evidence-export-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-013",
+      "description": "More evidence re-evaluation: inconclusive -> pass complete pipeline",
+      "trigger_kind": "ticket",
+      "dependencies": [
+        "v080-scenario-006"
+      ],
+      "inputs": {
+        "run_id": "v080-run-006",
+        "ticket_id": "TICKET-DEMO-013",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 240,
+        "binding_id_seed": 340,
+        "resolution_id_seed": 440,
+        "mesh_eval_id_seed": 540,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-006-recovery",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-013",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "action_kind": "more_evidence",
+        "decision_id_seed": 1000,
+        "parent_run_id": "v080-run-006",
+        "parent_run_status": "active",
+        "evidence_gap_reason": "missing_evidence",
+        "evaluated_at_action": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_by_action": "smoke-runner",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-15T00:00:01.000000+00:00",
+        "authorization_id": "auth-013-001",
+        "auth_reason": "Inconclusive verdict needs more evidence",
+        "proposed_child_lineage_parent": "v080-run-006",
+        "proposed_child_lineage_kind": "more_evidence",
+        "evidence_request_id": "er-1",
+        "gate_snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "action_policy_more_evidence",
+          "component": "runtime_action_policy",
+          "operation": "evaluate_runtime_action",
+          "input_binding": {}
+        },
+        {
+          "step_id": "re_dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "re_evaluate",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-action-policy-contract.md",
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-gate-decision-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "recovery_all_steps_executed"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-014",
+      "description": "Retry after transient dispatch failure completes pipeline",
+      "trigger_kind": "ticket",
+      "dependencies": [
+        "v080-scenario-011"
+      ],
+      "inputs": {
+        "run_id": "v080-run-011",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 260,
+        "binding_id_seed": 360,
+        "resolution_id_seed": 460,
+        "mesh_eval_id_seed": 560,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-011-retry",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-014",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "action_kind": "retry",
+        "decision_id_seed": 1100,
+        "parent_run_id": "v080-run-011",
+        "parent_run_status": "failed",
+        "current_retry_count": 0,
+        "max_retries": 3,
+        "same_kind_failure_count": 0,
+        "attempt_count": 1,
+        "last_failure_category": "command_failed",
+        "last_failure_transient": true,
+        "last_failure_deterministic": true,
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "transient": true,
+        "deterministic": true,
+        "evaluated_at_action": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_by_action": "smoke-runner",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-15T00:00:01.000000+00:00",
+        "authorization_id": "auth-014-001",
+        "auth_reason": "Transient dispatch failure, retry authorized",
+        "proposed_child_run_id": "v080-run-014-child"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "action_policy_retry",
+          "component": "runtime_action_policy",
+          "operation": "evaluate_runtime_action",
+          "input_binding": {}
+        },
+        {
+          "step_id": "retry_dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "retry_evaluate",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-action-policy-contract.md",
+        "references/runtime-validator-mesh-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "recovery_all_steps_executed"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-015",
+      "description": "Resume from checkpoint after sidecar commit completes export and publish",
+      "trigger_kind": "ticket",
+      "dependencies": [
+        "v080-scenario-001"
+      ],
+      "inputs": {
+        "run_id": "v080-run-001",
+        "stage_id": "current",
+        "visibility": "public",
+        "exported_at": "2026-07-15T00:00:04.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:01.000000+00:00",
+        "executor_identity": "smoke-runner",
+        "action_kind": "resume",
+        "decision_id_seed": 1200,
+        "parent_run_id": "v080-run-001",
+        "parent_run_status": "interrupted",
+        "checkpoint_available": false,
+        "interruption_cause": "session_lost",
+        "proposed_child_run_id": "v080-run-015-child",
+        "evaluated_at_action": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_by_action": "smoke-runner",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-15T00:00:01.000000+00:00",
+        "authorization_id": "auth-015-001",
+        "auth_reason": "Resume from interrupted checkpoint",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 260,
+        "run_ordinal": 1,
+        "resolution_id_seed": 260
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "action_policy_resume",
+          "component": "runtime_action_policy",
+          "operation": "evaluate_runtime_action",
+          "input_binding": {}
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-action-policy-contract.md",
+        "references/runtime-state-contract.md",
+        "references/runtime-evidence-export-contract.md",
+        "references/runtime-gate-decision-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "recovery_all_steps_executed"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-016",
+      "description": "Redesign creates new lineage from parent; child run completes independently",
+      "trigger_kind": "ticket",
+      "dependencies": [
+        "v080-scenario-004"
+      ],
+      "inputs": {
+        "run_id": "v080-run-016-child",
+        "ticket_id": "TICKET-DEMO-016",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "client_event_id_seed": 280,
+        "binding_id_seed": 380,
+        "resolution_id_seed": 480,
+        "mesh_eval_id_seed": 580,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-016-child",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-016",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "action_kind": "redesign",
+        "decision_id_seed": 1300,
+        "parent_run_id": "v080-run-004",
+        "parent_run_status": "active",
+        "parent_lineage_parent": "v080-run-004",
+        "parent_lineage_kind": "redesign",
+        "revised_contract_id": "rc-1",
+        "revised_contract_kind": "contract",
+        "reason_code": "contract_incomplete",
+        "original_history_preserved": true,
+        "original_evidence_preserved": true,
+        "evaluated_at_action": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_by_action": "smoke-runner",
+        "authorized_by": "architect",
+        "authorized_at": "2026-07-15T00:00:01.000000+00:00",
+        "authorization_id": "auth-016-001",
+        "auth_reason": "Redesign authorized due to contract incompleteness"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "action_policy_redesign",
+          "component": "runtime_action_policy",
+          "operation": "evaluate_runtime_action",
+          "input_binding": {}
+        },
+        {
+          "step_id": "dispatch_child",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate_child",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-action-policy-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "recovery_all_steps_executed"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-017",
+      "description": "Authorized human intervention without required-gate override completes pipeline",
+      "trigger_kind": "ticket",
+      "dependencies": [
+        "v080-scenario-007"
+      ],
+      "inputs": {
+        "run_id": "v080-run-007",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 300,
+        "binding_id_seed": 400,
+        "resolution_id_seed": 500,
+        "mesh_eval_id_seed": 600,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-007-intervention",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-017",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1,
+        "action_kind": "human_intervention",
+        "decision_id_seed": 1400,
+        "parent_run_id": "v080-run-007",
+        "parent_run_status": "active",
+        "intervention_source": "gate_recommendation",
+        "intervention_evidence_id": "ev-hi-001",
+        "intervention_evidence_kind": "evidence",
+        "human_intent": "provide_evidence",
+        "required_gate_override_attempted": false,
+        "pass_evidence_fabricated": false,
+        "retry_resume_bounds_bypassed": false,
+        "evaluated_at_action": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_by_action": "smoke-runner",
+        "authorized_by": "human",
+        "authorized_at": "2026-07-15T00:00:01.000000+00:00",
+        "authorization_id": "auth-017-001",
+        "auth_reason": "Human intervention authorized",
+        "gate_snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "gate_snapshot_recommendation": "proceed_with_warning"
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "action_policy_human_intervention",
+          "component": "runtime_action_policy",
+          "operation": "evaluate_runtime_action",
+          "input_binding": {}
+        },
+        {
+          "step_id": "re_dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "re_evaluate",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-action-policy-contract.md",
+        "references/runtime-gate-decision-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "recovery_all_steps_executed",
+        "no_gate_override"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-018",
+      "description": "Public visibility full pipeline produces unrestricted artifacts",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-018",
+        "ticket_id": "TICKET-DEMO-018",
+        "stage_id": "current",
+        "visibility": "public",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 320,
+        "binding_id_seed": 420,
+        "resolution_id_seed": 520,
+        "mesh_eval_id_seed": 620,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-018",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-018",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run_public",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate_pass",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-artifact-visibility-contract.md",
+        "references/runtime-evidence-export-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_sequence",
+        "projection_pass",
+        "visibility_public_preserved"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-019",
+      "description": "Project visibility full pipeline with project-scoped distribution",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-019",
+        "ticket_id": "TICKET-DEMO-019",
+        "stage_id": "current",
+        "visibility": "project",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 340,
+        "binding_id_seed": 440,
+        "resolution_id_seed": 540,
+        "mesh_eval_id_seed": 640,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-019",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-019",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run_project",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "dispatch",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate_pass",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-artifact-visibility-contract.md",
+        "references/runtime-evidence-export-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_sequence",
+        "projection_pass",
+        "visibility_project_preserved"
+      ]
+    },
+    {
+      "scenario_id": "v080-scenario-020",
+      "description": "Restricted visibility with most-restrictive derivation from mixed inputs",
+      "trigger_kind": "ticket",
+      "dependencies": [],
+      "inputs": {
+        "run_id": "v080-run-020",
+        "ticket_id": "TICKET-DEMO-020",
+        "stage_id": "current",
+        "visibility": "restricted",
+        "created_at": "2026-07-15T00:00:00.000000+00:00",
+        "started_at": "2026-07-15T00:00:01.000000+00:00",
+        "completed_at": "2026-07-15T00:00:02.000000+00:00",
+        "dispatched_at": "2026-07-15T00:00:01.000000+00:00",
+        "declared_at": "2026-07-15T00:00:01.000000+00:00",
+        "requested_at": "2026-07-15T00:00:01.000000+00:00",
+        "collected_at": "2026-07-15T00:00:01.000000+00:00",
+        "bound_at": "2026-07-15T00:00:01.000000+00:00",
+        "evaluated_at": "2026-07-15T00:00:02.000000+00:00",
+        "exported_at": "2026-07-15T00:00:03.000000+00:00",
+        "client_event_id_seed": 360,
+        "binding_id_seed": 460,
+        "resolution_id_seed": 560,
+        "mesh_eval_id_seed": 600,
+        "requirement_id": "req-001",
+        "validator_identity": "validator-core",
+        "report_digest_seed": "report-body-req-001-v080-run-020",
+        "artifact_id": "artifact-001",
+        "contract_id": "vc-001",
+        "executor_identity": "smoke-runner",
+        "origin_artifact_id": "TICKET-DEMO-020",
+        "origin_artifact_kind": "ticket",
+        "trigger": "ticket",
+        "run_ordinal": 1
+      },
+      "pipeline": [
+        {
+          "step_id": "init_run_restricted",
+          "component": "runtime_state_sidecar",
+          "operation": "create_run",
+          "input_binding": {
+            "event_type": "run.created"
+          }
+        },
+        {
+          "step_id": "run_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.started"
+          }
+        },
+        {
+          "step_id": "stage_started",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.stage.started"
+          }
+        },
+        {
+          "step_id": "dispatch_mixed_visibility",
+          "component": "runtime_validator_dispatch",
+          "operation": "dispatch",
+          "input_binding": {
+            "provider_kind": "pass"
+          }
+        },
+        {
+          "step_id": "evaluate_pass",
+          "component": "runtime_validator_mesh",
+          "operation": "evaluate_validator_mesh",
+          "input_binding": {}
+        },
+        {
+          "step_id": "decide",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        },
+        {
+          "step_id": "record_gate",
+          "component": "runtime_state_sidecar",
+          "operation": "append_event",
+          "input_binding": {
+            "event_type": "run.gate.evaluated"
+          }
+        },
+        {
+          "step_id": "sidecar_commit",
+          "component": "runtime_state_sidecar",
+          "operation": "commit_stage",
+          "input_binding": {
+            "verdict": "completed",
+            "event_type": "run.stage.completed"
+          }
+        },
+        {
+          "step_id": "export_evidence",
+          "component": "runtime_evidence_export",
+          "operation": "export_run",
+          "input_binding": {}
+        },
+        {
+          "step_id": "publish",
+          "component": "runtime_publish_gate",
+          "operation": "publish_to_gate",
+          "input_binding": {
+            "stage_id": "current"
+          }
+        }
+      ],
+      "governing_contracts": [
+        "references/runtime-artifact-visibility-contract.md",
+        "references/runtime-evidence-export-contract.md",
+        "references/runtime-state-contract.md"
+      ],
+      "verification_rule_ids": [
+        "call_ledger_match",
+        "semantic_input_origin",
+        "no_forbidden_calls",
+        "journal_sequence",
+        "projection_pass",
+        "visibility_restricted_preserved"
+      ]
+    }
+  ],
+  "dispatch_table": {
+    "runtime_state_sidecar": {
+      "create_run": "RuntimeStateSidecar.create_run",
+      "append_event": "RuntimeStateSidecar.append_event",
+      "commit_stage": "RuntimeStateSidecar.append_event"
+    },
+    "runtime_validator_dispatch": {
+      "dispatch": "runtime_validator_dispatch.dispatch"
+    },
+    "runtime_validator_mesh": {
+      "evaluate_validator_mesh": "runtime_validator_mesh.evaluate_validator_mesh"
+    },
+    "runtime_publish_gate": {
+      "publish_to_gate": "runtime_publish_gate.publish_to_gate"
+    },
+    "runtime_gate_decision": {
+      "decide": "runtime_gate_decision.decide"
+    },
+    "runtime_evidence_export": {
+      "export_run": "runtime_evidence_export.export_run"
+    },
+    "runtime_action_policy": {
+      "evaluate_runtime_action": "runtime_action_policy.evaluate_runtime_action"
+    }
+  },
+  "validation_rules": {
+    "scenario_count_must_be_exactly_20": "The catalog must contain exactly 20 scenarios; no more, no less.",
+    "scenario_ids_must_be_unique": "Every scenario_id must appear exactly once.",
+    "pipeline_must_be_non_empty": "Every scenario's pipeline must have at least one step.",
+    "dependencies_must_reference_defined_scenarios": "Every dependency must reference a scenario_id defined in this catalog.",
+    "no_self_dependency": "A scenario must not list itself as a dependency.",
+    "acyclic_dependencies": "The dependency graph must be acyclic.",
+    "all_semantic_values_in_inputs": "Every semantic value (timestamps, IDs, keys, digests, visibility facts) must be in scenario inputs.",
+    "dispatch_table_complete": "Every catalog pipeline entry must map to exactly one real production callable in the dispatch table."
+  }
+}

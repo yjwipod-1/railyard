@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:railyard:schema:governance-read-routing:v1",
+  "title": "Governance Read-Routing Registry v1",
+  "description": "Declarative routing registry for minimum canonical governance reads per role, conditional rules, and explicit contract ref resolution. The registry carries request_schema_ref and result_schema_ref pointing to URN fragments in $defs; the resolver loads those definitions directly.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["routing_id", "version", "created_at", "roles", "conditional_rules", "ref_resolution", "output_rules", "request_schema_ref", "result_schema_ref"],
+  "properties": {
+    "routing_id": { "type": "string", "const": "railyard-governance-read-routing-v1" },
+    "version": { "type": "string", "const": "1.0.0" },
+    "created_at": { "type": "string" },
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planner", "architect", "runner", "validator", "knowledge_curator"],
+      "properties": {
+        "planner": { "$ref": "#/$defs/role_profile" },
+        "architect": { "$ref": "#/$defs/role_profile" },
+        "runner": { "$ref": "#/$defs/role_profile" },
+        "validator": { "$ref": "#/$defs/role_profile" },
+        "knowledge_curator": { "$ref": "#/$defs/role_profile" }
+      }
+    },
+    "conditional_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/conditional_rule" }
+    },
+    "ref_resolution": { "$ref": "#/$defs/ref_resolution_policy" },
+    "output_rules": { "$ref": "#/$defs/output_rules_policy" },
+    "authority_rule": { "type": "string" },
+    "request_schema_ref": {
+      "type": "string",
+      "const": "urn:railyard:schema:governance-read-routing:v1#/$defs/routing_request",
+      "description": "Stable URN fragment pointer to the routing_request schema definition consumed by the resolver."
+    },
+    "result_schema_ref": {
+      "type": "string",
+      "const": "urn:railyard:schema:governance-read-routing:v1#/$defs/routing_result",
+      "description": "Stable URN fragment pointer to the routing_result schema definition consumed by the resolver."
+    }
+  },
+  "$defs": {
+    "role_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "required_reads"],
+      "properties": {
+        "description": { "type": "string" },
+        "required_reads": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Ordered list of inventory paths that must be read first for this role."
+        }
+      }
+    },
+    "conditional_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "predicate", "action"],
+      "properties": {
+        "rule_id": { "type": "string" },
+        "description": { "type": "string" },
+        "predicate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "condition": { "type": "string", "enum": ["validator_required", "epic_closure", "validation_task", "governance_task", "knowledge_task", "runtime_task"] },
+            "applies_to_roles": { "type": "array", "items": { "type": "string" } },
+            "topic_required": { "type": "string" }
+          },
+          "required": ["condition"]
+        },
+        "action": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["includes"],
+          "properties": {
+            "includes": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "description": "Ordered list of inventory paths to include when predicate matches."
+            }
+          }
+        }
+      }
+    },
+    "ref_resolution_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["forms", "fail_closed_rules"],
+      "properties": {
+        "forms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Accepted ref forms: path, document_id, canonical_for"
+        },
+        "caller_order_preserved": { "type": "boolean" },
+        "fail_closed_rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["condition", "outcome"],
+            "properties": {
+              "condition": { "type": "string" },
+              "outcome": { "type": "string", "const": "blocked" },
+              "detail": { "type": "string" }
+            }
+          }
+        },
+        "heuristic_prohibition": { "type": "string" }
+      }
+    },
+    "output_rules_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "deduplication", "guide_policy", "minimum_read_principle"],
+      "properties": {
+        "order": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Output order: required_reads, conditional_includes, explicit_contract_refs"
+        },
+        "deduplication": { "type": "string", "description": "Deduplicate by first occurrence." },
+        "guide_policy": { "type": "string", "description": "Guides never normative; included only by explicit guide request." },
+        "minimum_read_principle": { "type": "string" }
+      }
+    },
+    "contract_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["form", "value"],
+      "properties": {
+        "form": { "type": "string", "enum": ["path", "document_id", "canonical_for"] },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "guide_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["form", "value"],
+      "properties": {
+        "form": { "type": "string", "enum": ["path", "document_id"] },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "routing_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role"],
+      "properties": {
+        "role": { "type": "string", "enum": ["planner", "architect", "runner", "validator", "knowledge_curator"] },
+        "validator_required": { "type": "boolean" },
+        "epic_closure": { "type": "boolean" },
+        "validation_task": { "type": "boolean" },
+        "validation_topic": {
+          "type": "string",
+          "enum": ["semantic"],
+          "description": "Optional validation topic discriminator. Only valid when validation_task is true."
+        },
+        "governance_task": { "type": "boolean" },
+        "knowledge_task": { "type": "boolean" },
+        "runtime_task": { "type": "boolean" },
+        "explicit_contract_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contract_ref" }
+        },
+        "explicit_guide_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/guide_ref" }
+        }
+      },
+      "description": "Deterministic routing request. Exactly six optional boolean flags plus an optional string-enum validation_topic. Unknown fields fail. Ticket prose, file content, and model-inferred context are not routing input.",
+      "if": {
+        "required": ["validation_topic"]
+      },
+      "then": {
+        "required": ["validation_task"],
+        "properties": {
+          "validation_task": { "const": true }
+        }
+      }
+    },
+    "routing_result": {
+      "description": "Deterministic routing result. Ready returns ordered normative_reads (Protocol, Policy, Contract, Registry, Schema) and supplemental_guides. Blocked returns a stable reason code with optional field, ref, and candidates context.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "role", "normative_reads", "supplemental_guides"],
+          "properties": {
+            "status": { "type": "string", "const": "ready" },
+            "role": { "type": "string", "enum": ["planner", "architect", "runner", "validator", "knowledge_curator"] },
+            "normative_reads": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Ordered normative reads (Protocol, Policy, Contract, Registry, Schema). Deduplicated by first occurrence."
+            },
+            "supplemental_guides": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Ordered supplemental Guide documents. Present only when explicit_guide_refs were provided. Guides are never normative."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "reason"],
+          "properties": {
+            "status": { "type": "string", "const": "blocked" },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "unknown_ref",
+                "multiple_active_matches",
+                "inactive_or_superseded",
+                "guide_only_match",
+                "ambiguous_or_no_match",
+                "unknown_field",
+                "missing_role",
+                "invalid_form",
+                "invalid_kind"
+              ]
+            },
+            "field": {
+              "type": "string",
+              "description": "The problematic request field for request-shape errors such as unknown_field or missing_role, when no inventory ref is relevant."
+            },
+            "ref": {
+              "type": "string",
+              "description": "The failing ref value, when a ref is relevant to the blocked reason."
+            },
+            "candidates": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Optional list of candidate matches that could not be resolved deterministically."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

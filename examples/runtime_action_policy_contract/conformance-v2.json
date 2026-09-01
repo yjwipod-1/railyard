@@ -1,0 +1,3652 @@
+{
+  "contract": {
+    "contract_id": "runtime-action-policy-contract",
+    "contract_version": "2.0.0",
+    "schema_ref": "assets/schemas/runtime-action-policy-v2.schema.json",
+    "schema_sha256": "1a950cae92adcad3f4273b855aa7a89ce98b707f5fba3fbda80c877b820fccfc",
+    "generated_at": "2026-01-01T00:00:00Z",
+    "generator": "conformance-catalog-builder",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema"
+  },
+  "counts": {
+    "positives": 45,
+    "negatives": 18,
+    "schema_valid_contract_invalid": 14,
+    "authorized_reason_codes": 8,
+    "denied_reason_codes": 7,
+    "error_codes": 12,
+    "action_kinds": 8,
+    "root_public_types": 8
+  },
+  "enums": {
+    "authorized_reason_codes": [
+      "action_authorized_stop_stage",
+      "action_authorized_stop_run",
+      "action_authorized_retry",
+      "action_authorized_resume",
+      "action_authorized_more_evidence",
+      "action_authorized_redesign",
+      "action_authorized_human_intervention",
+      "action_authorized_terminate"
+    ],
+    "denied_reason_codes": [
+      "denied_parent_status_ineligible",
+      "denied_stage_not_active",
+      "denied_gate_recommendation_mismatch",
+      "denied_retry_bounds_exceeded",
+      "denied_checkpoint_unavailable",
+      "denied_evidence_gap_unrecoverable",
+      "denied_terminal_run"
+    ],
+    "error_codes": [
+      "unknown_action_kind",
+      "authorization_missing",
+      "authorization_role_invalid",
+      "checkpoint_evidence_invalid",
+      "invalid_action_branch",
+      "lineage_self_reference",
+      "child_lineage_parent_mismatch",
+      "gate_snapshot_contradiction",
+      "system_retry_unauthorized",
+      "policy_exhausted_unsupported",
+      "human_override_prohibited",
+      "history_rewrite_prohibited"
+    ],
+    "action_kinds": [
+      "stop_stage",
+      "stop_run",
+      "retry",
+      "resume",
+      "more_evidence",
+      "redesign",
+      "human_intervention",
+      "terminate"
+    ]
+  },
+  "positives": [
+    {
+      "id": "pos-declaration",
+      "root_type": "RuntimeActionPolicyDeclaration",
+      "description": "Canonical policy declaration binding to contract v2.0.0.",
+      "fixture": {
+        "contract_id": "runtime-action-policy-contract",
+        "contract_version": "2.0.0",
+        "policy_id": "P-ACT-1",
+        "evaluated_under": "runtime-action-policy-evaluator-v2"
+      }
+    },
+    {
+      "id": "pos-boundary-facts",
+      "root_type": "RuntimeBoundaryFacts",
+      "description": "Canonical bounded caller-supplied facts.",
+      "fixture": {
+        "parent_run_id": "run-1",
+        "parent_run_status": "active",
+        "relevant_stage_id": "stage-1",
+        "relevant_stage_status": "active",
+        "current_retry_count": 0,
+        "max_retries": 5,
+        "same_kind_failure_count": 1,
+        "checkpoint_available": false,
+        "interruption_cause": null
+      }
+    },
+    {
+      "id": "pos-retry-eligibility",
+      "root_type": "RetryEligibility",
+      "description": "Canonical derived retry eligibility (system auto-authorized).",
+      "fixture": {
+        "eligible": true,
+        "parent_status_satisfied": true,
+        "lineage_satisfied": true,
+        "bounds_satisfied": true,
+        "system_auto_authorized": true,
+        "ineligibility_reason_code": null
+      }
+    },
+    {
+      "id": "pos-checkpoint-evidence",
+      "root_type": "CheckpointEvidence",
+      "description": "Canonical checkpoint evidence.",
+      "fixture": {
+        "checkpoint_ref": {
+          "artifact_id": "cp-1",
+          "artifact_kind": "checkpoint"
+        },
+        "checkpoint_event_order": 2,
+        "checkpoint_stage_id": "stage-1",
+        "recovery_action": "replay_from_checkpoint",
+        "artifacts_produced_before_checkpoint": [
+          {
+            "artifact_id": "ev-1",
+            "artifact_kind": "evidence"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pos-action-authorization",
+      "root_type": "ActionAuthorization",
+      "description": "Canonical action authorization.",
+      "fixture": {
+        "authorized_by": "architect",
+        "authorized_at": "2026-01-01T00:00:00Z",
+        "authorization_id": "az-1",
+        "reason": "Authorized."
+      }
+    },
+    {
+      "id": "pos-request-stop-stage",
+      "root_type": "RuntimeActionRequest",
+      "description": "Canonical stop_stage request.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "pos-decision",
+      "root_type": "RuntimeActionDecision",
+      "description": "Canonical authorized decision shape (14 fields).",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_stop_stage",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-error",
+      "root_type": "RuntimeActionEvaluationError",
+      "description": "Canonical evaluation error shape (9 fields).",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "unknown_action_kind",
+        "description": "Unknown action kind.",
+        "field_paths": []
+      }
+    },
+    {
+      "id": "pos-branch-stop_stage",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_stage",
+      "description": "Canonical stop_stage request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "pos-branch-stop_run",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_run",
+      "description": "Canonical stop_run request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_run",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_run",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "pos-branch-retry",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "Canonical retry request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "transient": true,
+        "deterministic": false,
+        "authorization": {
+          "authorized_by": "system",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": 5,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      }
+    },
+    {
+      "id": "pos-branch-resume",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "resume",
+      "description": "Canonical resume request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "resume",
+        "proposed_child_run_id": "c-1",
+        "checkpoint": {
+          "checkpoint_ref": {
+            "artifact_id": "cp-1",
+            "artifact_kind": "checkpoint"
+          },
+          "checkpoint_event_order": 2,
+          "checkpoint_stage_id": "stage-1",
+          "recovery_action": "replay_from_checkpoint",
+          "artifacts_produced_before_checkpoint": [
+            {
+              "artifact_id": "ev-1",
+              "artifact_kind": "evidence"
+            }
+          ]
+        },
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "checkpoint_available": true,
+          "interruption_cause": "session_lost",
+          "checkpoint_event_order": 2
+        }
+      }
+    },
+    {
+      "id": "pos-branch-more_evidence",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "more_evidence",
+      "description": "Canonical more_evidence request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "more_evidence",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "blocked",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "more_evidence",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "required_gate_blocked",
+            "failure_description": "Required gate cannot proceed due to unavailable dependency."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "more_evidence",
+          "lineage_id": "l-1"
+        },
+        "evidence_requests": [
+          {
+            "request_id": "er-1",
+            "artifact_kind": "evidence",
+            "description": "need",
+            "required": true
+          }
+        ],
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "evidence_gap_reason": "missing_evidence"
+        }
+      }
+    },
+    {
+      "id": "pos-branch-redesign",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "redesign",
+      "description": "Canonical redesign request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "redesign",
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "redesign",
+          "lineage_id": "l-1"
+        },
+        "revised_contract_ref": {
+          "artifact_id": "rc-1",
+          "artifact_kind": "contract"
+        },
+        "reason_code": "requirements_changed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "history_preservation_facts": {
+          "original_history_preserved": true,
+          "original_evidence_preserved": true
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "pos-branch-human_intervention",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "human_intervention",
+      "description": "Canonical human_intervention request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "human_intervention",
+        "intervention_source": "gate_recommendation",
+        "intervention_evidence": [
+          {
+            "artifact_id": "ev-1",
+            "artifact_kind": "evidence"
+          }
+        ],
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "human_intent": "authorize_action",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "inconclusive",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "human_intervention",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "evidence_absent_inconclusive",
+            "failure_description": "Required evidence artifact does not exist and cannot be produced."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "prohibited_override_facts": {
+          "required_gate_override_attempted": false,
+          "pass_evidence_fabricated": false,
+          "retry_resume_bounds_bypassed": false
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "pos-branch-terminate",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "terminate",
+      "description": "Canonical terminate request branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "terminate",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "terminate_reason": "terminal run",
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_stop_stage",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_stop_stage",
+      "description": "Authorized decision with reason_code action_authorized_stop_stage.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_stop_stage",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_stop_run",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_stop_run",
+      "description": "Authorized decision with reason_code action_authorized_stop_run.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_stop_run",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_retry",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_retry",
+      "description": "Authorized decision with reason_code action_authorized_retry.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_retry",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_resume",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_resume",
+      "description": "Authorized decision with reason_code action_authorized_resume.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_resume",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_more_evidence",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_more_evidence",
+      "description": "Authorized decision with reason_code action_authorized_more_evidence.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_more_evidence",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_redesign",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_redesign",
+      "description": "Authorized decision with reason_code action_authorized_redesign.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_redesign",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_human_intervention",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_human_intervention",
+      "description": "Authorized decision with reason_code action_authorized_human_intervention.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_human_intervention",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-action_authorized_terminate",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "action_authorized_terminate",
+      "description": "Authorized decision with reason_code action_authorized_terminate.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_terminate",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_parent_status_ineligible",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_parent_status_ineligible",
+      "description": "Denied decision with reason_code denied_parent_status_ineligible.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_parent_status_ineligible",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_stage_not_active",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_stage_not_active",
+      "description": "Denied decision with reason_code denied_stage_not_active.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_stage_not_active",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_gate_recommendation_mismatch",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_gate_recommendation_mismatch",
+      "description": "Denied decision with reason_code denied_gate_recommendation_mismatch.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_gate_recommendation_mismatch",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_retry_bounds_exceeded",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_retry_bounds_exceeded",
+      "description": "Denied decision with reason_code denied_retry_bounds_exceeded.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_retry_bounds_exceeded",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_checkpoint_unavailable",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_checkpoint_unavailable",
+      "description": "Denied decision with reason_code denied_checkpoint_unavailable.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_checkpoint_unavailable",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_evidence_gap_unrecoverable",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_evidence_gap_unrecoverable",
+      "description": "Denied decision with reason_code denied_evidence_gap_unrecoverable.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_evidence_gap_unrecoverable",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-decision-denied_terminal_run",
+      "root_type": "RuntimeActionDecision",
+      "reason_code": "denied_terminal_run",
+      "description": "Denied decision with reason_code denied_terminal_run.",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "denied",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_terminal_run",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "pos-error-unknown_action_kind",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "unknown_action_kind",
+      "description": "Evaluation error with error_code unknown_action_kind.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "unknown_action_kind",
+        "description": "Error: unknown_action_kind.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-authorization_missing",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "authorization_missing",
+      "description": "Evaluation error with error_code authorization_missing.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "authorization_missing",
+        "description": "Error: authorization_missing.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-authorization_role_invalid",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "authorization_role_invalid",
+      "description": "Evaluation error with error_code authorization_role_invalid.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "authorization_role_invalid",
+        "description": "Error: authorization_role_invalid.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-checkpoint_evidence_invalid",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "checkpoint_evidence_invalid",
+      "description": "Evaluation error with error_code checkpoint_evidence_invalid.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "checkpoint_evidence_invalid",
+        "description": "Error: checkpoint_evidence_invalid.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-invalid_action_branch",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "invalid_action_branch",
+      "description": "Evaluation error with error_code invalid_action_branch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "invalid_action_branch",
+        "description": "Error: invalid_action_branch.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-lineage_self_reference",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "lineage_self_reference",
+      "description": "Evaluation error with error_code lineage_self_reference.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "lineage_self_reference",
+        "description": "Error: lineage_self_reference.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-child_lineage_parent_mismatch",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "child_lineage_parent_mismatch",
+      "description": "Evaluation error with error_code child_lineage_parent_mismatch.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "child_lineage_parent_mismatch",
+        "description": "Error: child_lineage_parent_mismatch.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-gate_snapshot_contradiction",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "gate_snapshot_contradiction",
+      "description": "Evaluation error with error_code gate_snapshot_contradiction.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "gate_snapshot_contradiction",
+        "description": "Error: gate_snapshot_contradiction.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-system_retry_unauthorized",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "system_retry_unauthorized",
+      "description": "Evaluation error with error_code system_retry_unauthorized.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "system_retry_unauthorized",
+        "description": "Error: system_retry_unauthorized.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-policy_exhausted_unsupported",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "policy_exhausted_unsupported",
+      "description": "Evaluation error with error_code policy_exhausted_unsupported.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "policy_exhausted_unsupported",
+        "description": "Error: policy_exhausted_unsupported.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-human_override_prohibited",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "human_override_prohibited",
+      "description": "Evaluation error with error_code human_override_prohibited.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "human_override_prohibited",
+        "description": "Error: human_override_prohibited.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-error-history_rewrite_prohibited",
+      "root_type": "RuntimeActionEvaluationError",
+      "error_code": "history_rewrite_prohibited",
+      "description": "Evaluation error with error_code history_rewrite_prohibited.",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "history_rewrite_prohibited",
+        "description": "Error: history_rewrite_prohibited.",
+        "field_paths": [
+          "/boundary_facts"
+        ]
+      }
+    },
+    {
+      "id": "pos-retry-max-retries-one",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry request with max_retries=1 and current_retry_count=0 (structurally valid and evaluator-eligible).",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "max_retries": 1,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          }
+        }
+      }
+    },
+    {
+      "id": "pos-retry-max-retries-three",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry request with max_retries=3 and current_retry_count=0 (structurally valid and evaluator-eligible).",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "max_retries": 3,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          }
+        }
+      }
+    }
+  ],
+  "negatives": [
+    {
+      "id": "neg-missing-required",
+      "category": "missing-required",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_stage",
+      "description": "stop_stage request missing required run_id.",
+      "cause": "missing required property run_id",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "neg-forbidden-field",
+      "category": "forbidden-field",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_stage",
+      "description": "stop_stage request carries forbidden transient field.",
+      "cause": "transient forbidden for stop_stage",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        },
+        "transient": true
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "neg-bad-enum",
+      "category": "bad-enum",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_stage",
+      "description": "stop_stage request with invalid action_kind enum value.",
+      "cause": "action_kind not in enum",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "explode",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "neg-system-retry-missing-transient",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "system-authorized retry missing required transient boolean.",
+      "cause": "missing transient for system authorization",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "deterministic": false,
+        "authorization": {
+          "authorized_by": "system",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": 5,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "transient": true,
+        "deterministic": false,
+        "authorization": {
+          "authorized_by": "system",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": 5,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      }
+    },
+    {
+      "id": "neg-system-retry-extra-transient",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "architect-authorized retry must not carry transient.",
+      "cause": "transient forbidden for non-system authorization",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "transient": true,
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": 5,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": 5,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      }
+    },
+    {
+      "id": "neg-resume-checkpoint-missing",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "resume",
+      "description": "resume checkpoint event order is below the structural minimum.",
+      "cause": "checkpoint_event_order must be a non-negative integer",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "resume",
+        "proposed_child_run_id": "c-1",
+        "checkpoint": {
+          "checkpoint_ref": {
+            "artifact_id": "cp-1",
+            "artifact_kind": "checkpoint"
+          },
+          "checkpoint_event_order": 2,
+          "checkpoint_stage_id": "stage-1",
+          "recovery_action": "replay_from_checkpoint",
+          "artifacts_produced_before_checkpoint": [
+            {
+              "artifact_id": "ev-1",
+              "artifact_kind": "evidence"
+            }
+          ]
+        },
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "checkpoint_available": true,
+          "interruption_cause": "session_lost",
+          "checkpoint_event_order": -1
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "resume",
+        "proposed_child_run_id": "c-1",
+        "checkpoint": {
+          "checkpoint_ref": {
+            "artifact_id": "cp-1",
+            "artifact_kind": "checkpoint"
+          },
+          "checkpoint_event_order": 2,
+          "checkpoint_stage_id": "stage-1",
+          "recovery_action": "replay_from_checkpoint",
+          "artifacts_produced_before_checkpoint": [
+            {
+              "artifact_id": "ev-1",
+              "artifact_kind": "evidence"
+            }
+          ]
+        },
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "checkpoint_available": true,
+          "interruption_cause": "session_lost",
+          "checkpoint_event_order": 2
+        }
+      }
+    },
+    {
+      "id": "neg-redesign-bad-reason",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "redesign",
+      "description": "redesign request with invalid reason_code enum value.",
+      "cause": "reason_code not in enum",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "redesign",
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "redesign",
+          "lineage_id": "l-1"
+        },
+        "revised_contract_ref": {
+          "artifact_id": "rc-1",
+          "artifact_kind": "contract"
+        },
+        "reason_code": "not_a_reason",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "history_preservation_facts": {
+          "original_history_preserved": true,
+          "original_evidence_preserved": true
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "redesign",
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "redesign",
+          "lineage_id": "l-1"
+        },
+        "revised_contract_ref": {
+          "artifact_id": "rc-1",
+          "artifact_kind": "contract"
+        },
+        "reason_code": "requirements_changed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "history_preservation_facts": {
+          "original_history_preserved": true,
+          "original_evidence_preserved": true
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "neg-human-gate-missing-binding",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "human_intervention",
+      "description": "gate_recommendation human_intervention carries an invalid binding digest.",
+      "cause": "gate_snapshot_binding canonical_digest violates its sha256 pattern",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "human_intervention",
+        "intervention_source": "gate_recommendation",
+        "intervention_evidence": [
+          {
+            "artifact_id": "ev-1",
+            "artifact_kind": "evidence"
+          }
+        ],
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "human_intent": "authorize_action",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "inconclusive",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "human_intervention",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "evidence_absent_inconclusive",
+            "failure_description": "Required evidence artifact does not exist and cannot be produced."
+          },
+          "canonical_digest": "invalid-digest"
+        },
+        "prohibited_override_facts": {
+          "required_gate_override_attempted": false,
+          "pass_evidence_fabricated": false,
+          "retry_resume_bounds_bypassed": false
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "human_intervention",
+        "intervention_source": "gate_recommendation",
+        "intervention_evidence": [
+          {
+            "artifact_id": "ev-1",
+            "artifact_kind": "evidence"
+          }
+        ],
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "human_intent": "authorize_action",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "inconclusive",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "human_intervention",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "evidence_absent_inconclusive",
+            "failure_description": "Required evidence artifact does not exist and cannot be produced."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "prohibited_override_facts": {
+          "required_gate_override_attempted": false,
+          "pass_evidence_fabricated": false,
+          "retry_resume_bounds_bypassed": false
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "neg-more-evidence-bad-gap",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "more_evidence",
+      "description": "more_evidence request with invalid evidence_gap_reason enum value.",
+      "cause": "evidence_gap_reason not in enum",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "more_evidence",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "blocked",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "more_evidence",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "required_gate_blocked",
+            "failure_description": "Required gate cannot proceed due to unavailable dependency."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "more_evidence",
+          "lineage_id": "l-1"
+        },
+        "evidence_requests": [
+          {
+            "request_id": "er-1",
+            "artifact_kind": "evidence",
+            "description": "need",
+            "required": true
+          }
+        ],
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "evidence_gap_reason": "bogus"
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "more_evidence",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "blocked",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "more_evidence",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "required_gate_blocked",
+            "failure_description": "Required gate cannot proceed due to unavailable dependency."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "more_evidence",
+          "lineage_id": "l-1"
+        },
+        "evidence_requests": [
+          {
+            "request_id": "er-1",
+            "artifact_kind": "evidence",
+            "description": "need",
+            "required": true
+          }
+        ],
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "evidence_gap_reason": "missing_evidence"
+        }
+      }
+    },
+    {
+      "id": "neg-decision-disposition-mismatch",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionDecision",
+      "action_kind": null,
+      "description": "authorized disposition paired with denied reason_code.",
+      "cause": "disposition/reason_code domain mismatch",
+      "invalid_fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "denied_terminal_run",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      },
+      "repaired_fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "stop_stage",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_stop_stage",
+        "evidence_refs": [],
+        "run_id": "run-1",
+        "parent_run_id": "run-1",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "neg-error-bad-code",
+      "category": "branch-constraint",
+      "root_type": "RuntimeActionEvaluationError",
+      "action_kind": null,
+      "description": "evaluation error with invalid error_code enum value.",
+      "cause": "error_code not in enum",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "not_an_error",
+        "description": "Unknown action kind.",
+        "field_paths": []
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "unknown_action_kind",
+        "description": "Unknown action kind.",
+        "field_paths": []
+      }
+    },
+    {
+      "id": "neg-max-retries-type",
+      "category": "type-error",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries given as string instead of integer.",
+      "cause": "max_retries not integer",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "transient": true,
+        "deterministic": false,
+        "authorization": {
+          "authorized_by": "system",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": "five",
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "transient": true,
+        "deterministic": false,
+        "authorization": {
+          "authorized_by": "system",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 0,
+          "max_retries": 5,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      }
+    },
+    {
+      "id": "neg-retry-max-retries-negative-one",
+      "category": "range-error",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries=-1 is below the structural minimum (>= 0).",
+      "cause": "max_retries below structural minimum 0",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": -1
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 5
+        }
+      }
+    },
+    {
+      "id": "neg-retry-max-retries-boolean-true",
+      "category": "type-error",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries=true is boolean, not a non-null integer.",
+      "cause": "max_retries not an integer",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": true
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 5
+        }
+      }
+    },
+    {
+      "id": "neg-retry-max-retries-boolean-false",
+      "category": "type-error",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries=false is boolean, not a non-null integer.",
+      "cause": "max_retries not an integer",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": false
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 5
+        }
+      }
+    },
+    {
+      "id": "neg-retry-max-retries-float",
+      "category": "type-error",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries=1.5 is a float, not an integer.",
+      "cause": "max_retries not an integer",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 1.5
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 5
+        }
+      }
+    },
+    {
+      "id": "neg-retry-max-retries-null",
+      "category": "type-error",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries=null is not a non-null integer.",
+      "cause": "max_retries is null",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": null
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 5
+        }
+      }
+    },
+    {
+      "id": "neg-retry-max-retries-missing",
+      "category": "missing-required",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry boundary_facts.max_retries omitted (required on the retry branch).",
+      "cause": "max_retries missing",
+      "invalid_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          }
+        }
+      },
+      "repaired_fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 5
+        }
+      }
+    }
+  ],
+  "schema_valid_contract_invalid": [
+    {
+      "id": "svc-gate-recommendation-mismatch",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_stage",
+      "description": "stop_stage request whose bound gate recommends stop_run (contract requires matching recommendation).",
+      "contract_violation": "gate_recommendation_mismatch",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_run",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "svc-digest-inequality",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "stop_stage",
+      "description": "gate_snapshot_binding canonical_digest differs from source digest (evaluator must assert equality).",
+      "contract_violation": "gate_snapshot_contradiction",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "fail",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "stop_stage",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "validator_fail_deterministic",
+            "failure_description": "Validator found deterministic error-severity failures."
+          },
+          "canonical_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "relevant_stage_id": "stage-1",
+          "relevant_stage_status": "active"
+        }
+      }
+    },
+    {
+      "id": "svc-lineage-self-reference",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "more_evidence",
+      "description": "proposed_child_lineage lineage_id equals the current run_id (evaluator forbids lineage self-reference).",
+      "contract_violation": "lineage_self_reference",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "more_evidence",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "blocked",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "more_evidence",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "required_gate_blocked",
+            "failure_description": "Required gate cannot proceed due to unavailable dependency."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "more_evidence",
+          "lineage_id": "run-1"
+        },
+        "evidence_requests": [
+          {
+            "request_id": "er-1",
+            "artifact_kind": "evidence",
+            "description": "need",
+            "required": true
+          }
+        ],
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "evidence_gap_reason": "missing_evidence"
+        }
+      }
+    },
+    {
+      "id": "svc-retry-bounds-exceeded",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "current_retry_count exceeds max_retries (evaluator enforces 1..max threshold).",
+      "contract_violation": "denied_retry_bounds_exceeded",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "x",
+        "transient": true,
+        "deterministic": false,
+        "authorization": {
+          "authorized_by": "system",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "current_retry_count": 5,
+          "max_retries": 3,
+          "same_kind_failure_count": 1,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "x",
+            "last_failure_transient": true,
+            "last_failure_deterministic": false
+          }
+        }
+      }
+    },
+    {
+      "id": "svc-checkpoint-event-order-mismatch",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "resume",
+      "description": "boundary checkpoint_event_order disagrees with checkpoint.checkpoint_event_order (evaluator requires equality).",
+      "contract_violation": "checkpoint_evidence_invalid",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "resume",
+        "proposed_child_run_id": "c-1",
+        "checkpoint": {
+          "checkpoint_ref": {
+            "artifact_id": "cp-1",
+            "artifact_kind": "checkpoint"
+          },
+          "checkpoint_event_order": 2,
+          "checkpoint_stage_id": "stage-1",
+          "recovery_action": "replay_from_checkpoint",
+          "artifacts_produced_before_checkpoint": [
+            {
+              "artifact_id": "ev-1",
+              "artifact_kind": "evidence"
+            }
+          ]
+        },
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "checkpoint_available": true,
+          "interruption_cause": "session_lost",
+          "checkpoint_event_order": 9
+        }
+      }
+    },
+    {
+      "id": "svc-policy-exhausted-unsupported",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "human_intervention",
+      "description": "policy_exhaustion with normal_branch_available is unsupported by contract.",
+      "contract_violation": "policy_exhausted_unsupported",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "human_intervention",
+        "intervention_source": "policy_exhaustion",
+        "intervention_evidence": [
+          {
+            "artifact_id": "ev-1",
+            "artifact_kind": "evidence"
+          }
+        ],
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "human_intent": "authorize_action",
+        "prohibited_override_facts": {
+          "required_gate_override_attempted": false,
+          "pass_evidence_fabricated": false,
+          "retry_resume_bounds_bypassed": false
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        },
+        "policy_exhaustion_facts": {
+          "exhaustion_classification": "normal_branch_available"
+        }
+      }
+    },
+    {
+      "id": "svc-human-override-prohibited",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "human_intervention",
+      "description": "all prohibited_override_facts true (evaluator yields human_override_prohibited).",
+      "contract_violation": "human_override_prohibited",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "human_intervention",
+        "intervention_source": "gate_recommendation",
+        "intervention_evidence": [
+          {
+            "artifact_id": "ev-1",
+            "artifact_kind": "evidence"
+          }
+        ],
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "human_intent": "authorize_action",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "inconclusive",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "human_intervention",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "evidence_absent_inconclusive",
+            "failure_description": "Required evidence artifact does not exist and cannot be produced."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "prohibited_override_facts": {
+          "required_gate_override_attempted": true,
+          "pass_evidence_fabricated": true,
+          "retry_resume_bounds_bypassed": true
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "svc-history-rewrite-prohibited",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "redesign",
+      "description": "original_history_preserved false (evaluator yields history_rewrite_prohibited).",
+      "contract_violation": "history_rewrite_prohibited",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "redesign",
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "redesign",
+          "lineage_id": "l-1"
+        },
+        "revised_contract_ref": {
+          "artifact_id": "rc-1",
+          "artifact_kind": "contract"
+        },
+        "reason_code": "requirements_changed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "history_preservation_facts": {
+          "original_history_preserved": false,
+          "original_evidence_preserved": true
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active"
+        }
+      }
+    },
+    {
+      "id": "svc-run-id-inequality",
+      "root_type": "RuntimeActionDecision",
+      "action_kind": "terminate",
+      "description": "decision run_id differs from parent_run_id (evaluator asserts lineage equality).",
+      "contract_violation": "child_lineage_parent_mismatch",
+      "fixture": {
+        "decision_id": "dec-1",
+        "action_kind": "terminate",
+        "disposition": "authorized",
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "reason_code": "action_authorized_terminate",
+        "evidence_refs": [],
+        "run_id": "run-X",
+        "parent_run_id": "run-Y",
+        "child_run_id": null,
+        "authorization_echo": null,
+        "retry_eligibility": null,
+        "checkpoint_evidence": null
+      }
+    },
+    {
+      "id": "svc-error-precedence",
+      "root_type": "RuntimeActionEvaluationError",
+      "action_kind": "retry",
+      "description": "error_code system_retry_unauthorized with valid structure (evaluator precedence is semantic).",
+      "contract_violation": "system_retry_unauthorized",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "stop_stage",
+        "error_code": "system_retry_unauthorized",
+        "description": "system retry unauthorized",
+        "field_paths": []
+      }
+    },
+    {
+      "id": "svc-evidence-gap-unrecoverable",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "more_evidence",
+      "description": "evidence_gap_reason unrecoverable_evidence_gap (evaluator yields denied_evidence_gap_unrecoverable).",
+      "contract_violation": "denied_evidence_gap_unrecoverable",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "more_evidence",
+        "gate_snapshot_binding": {
+          "source_gate_decision_ref": {
+            "artifact_id": "gd-1",
+            "artifact_kind": "gate-decision",
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "gate_decision_snapshot": {
+            "decision_id": "gd-1",
+            "gate_id": "gate-1",
+            "outcome": "blocked",
+            "execution_mode": "full",
+            "evidence": [
+              {
+                "artifact_id": "ev-1",
+                "artifact_kind": "evidence"
+              }
+            ],
+            "recommendation": "more_evidence",
+            "evaluated_at": "2026-01-01T00:00:00Z",
+            "evaluated_by": "gate-eval",
+            "run_context": {
+              "run_id": "run-1",
+              "stage_id": "stage-1"
+            },
+            "failure_code": "required_gate_blocked",
+            "failure_description": "Required gate cannot proceed due to unavailable dependency."
+          },
+          "canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "proposed_child_lineage": {
+          "parent_run_id": "run-1",
+          "lineage_kind": "more_evidence",
+          "lineage_id": "l-1"
+        },
+        "evidence_requests": [
+          {
+            "request_id": "er-1",
+            "artifact_kind": "evidence",
+            "description": "need",
+            "required": true
+          }
+        ],
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "active",
+          "evidence_gap_reason": "unrecoverable_evidence_gap"
+        }
+      }
+    },
+    {
+      "id": "svc-retry-max-retries-zero",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry request with max_retries=0 is schema-valid but policy-ineligible (evaluator eligibility requires 1..3).",
+      "contract_violation": "denied_retry_bounds_exceeded",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 0
+        }
+      }
+    },
+    {
+      "id": "svc-retry-max-retries-four",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry request with max_retries=4 is schema-valid but policy-ineligible (evaluator eligibility requires 1..3).",
+      "contract_violation": "denied_retry_bounds_exceeded",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 4
+        }
+      }
+    },
+    {
+      "id": "svc-retry-max-retries-large",
+      "root_type": "RuntimeActionRequest",
+      "action_kind": "retry",
+      "description": "retry request with max_retries=1000 is schema-valid but policy-ineligible (evaluator eligibility requires 1..3).",
+      "contract_violation": "denied_retry_bounds_exceeded",
+      "fixture": {
+        "policy_declaration": {
+          "contract_id": "runtime-action-policy-contract",
+          "contract_version": "2.0.0",
+          "policy_id": "P-ACT-1",
+          "evaluated_under": "runtime-action-policy-evaluator-v2"
+        },
+        "decision_id": "dec-1",
+        "evaluated_at": "2026-01-01T00:00:00Z",
+        "evaluated_by": "architect",
+        "run_id": "run-1",
+        "action_kind": "retry",
+        "proposed_child_run_id": "c-1",
+        "retry_strategy": "full",
+        "failure_category": "command_failed",
+        "authorization": {
+          "authorized_by": "architect",
+          "authorized_at": "2026-01-01T00:00:00Z",
+          "authorization_id": "az-1",
+          "reason": "Authorized."
+        },
+        "boundary_facts": {
+          "parent_run_id": "run-1",
+          "parent_run_status": "failed",
+          "current_retry_count": 0,
+          "same_kind_failure_count": 0,
+          "attempt_history_facts": {
+            "attempt_count": 1,
+            "last_failure_category": "command_failed",
+            "last_failure_transient": true,
+            "last_failure_deterministic": true
+          },
+          "max_retries": 1000
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,572 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Runtime Action Policy Schema v1.0.0",
+  "description": "JSON Schema Draft 2020-12 encoding the frozen Runtime Action Policy Contract v1.0.0 (references/runtime-action-policy-contract.md). Encodes the eight canonical public types as a root oneOf, the RuntimeActionRequest discriminated union over the eight action kinds (stop_stage, stop_run, retry, resume, more_evidence, redesign, human_intervention, terminate) with explicit per-branch required/optional/forbidden fields and no implicit defaults, closed enums, closed objects (additionalProperties:false), integer/boolean type separation, and the complete embedded GateDecision v2.2.0 snapshot shape reused via an offline relative $ref to runtime-gate-decision-v2.schema.json#/$defs/GateDecision. Evaluator-only semantics (ordered first-match precedence, bounded-fact truth-table decisions, id distinctness, recommendation-match) are intentionally NOT enforced by this schema and are catalogued as schema_valid_contract_invalid in the conformance fixtures.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+    { "$ref": "#/$defs/RuntimeBoundaryFacts" },
+    { "$ref": "#/$defs/RetryEligibility" },
+    { "$ref": "#/$defs/CheckpointEvidence" },
+    { "$ref": "#/$defs/ActionAuthorization" },
+    { "$ref": "#/$defs/RuntimeActionRequest" },
+    { "$ref": "#/$defs/RuntimeActionDecision" },
+    { "$ref": "#/$defs/RuntimeActionEvaluationError" }
+  ],
+  "$defs": {
+    "ArtifactRef": {
+      "type": "object",
+      "description": "Typed artifact reference reused from knowledge-contract v0.8.0. Required: artifact_id, artifact_kind. Optional: artifact_version, locator, digest.",
+      "required": ["artifact_id", "artifact_kind"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "artifact_kind": { "type": "string", "minLength": 1 },
+        "artifact_version": { "type": "string" },
+        "locator": { "type": "string" },
+        "digest": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "RunLineage": {
+      "type": "object",
+      "description": "RunLineage reference for proposed_child_lineage. parent_run_id is the parent the proposed child descends from; lineage_kind declares the relationship.",
+      "required": ["parent_run_id", "lineage_kind"],
+      "properties": {
+        "parent_run_id": { "type": "string", "minLength": 1 },
+        "lineage_kind": { "type": "string", "enum": ["more_evidence", "redesign"] },
+        "lineage_id": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceRequest": {
+      "type": "object",
+      "description": "Single evidence request entry inside the more_evidence evidence_requests array.",
+      "required": ["request_id", "artifact_kind", "description", "required"],
+      "properties": {
+        "request_id": { "type": "string", "minLength": 1 },
+        "artifact_kind": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "AttemptHistoryFacts": {
+      "type": "object",
+      "description": "Bounded retry attempt history facts required on retry branches. attempt_count is a positive integer; last_failure_* may be null.",
+      "required": ["attempt_count", "last_failure_category", "last_failure_transient", "last_failure_deterministic"],
+      "properties": {
+        "attempt_count": { "type": "integer", "minimum": 1 },
+        "last_failure_category": { "type": ["string", "null"] },
+        "last_failure_transient": { "type": ["boolean", "null"] },
+        "last_failure_deterministic": { "type": ["boolean", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "ActionAuthorization": {
+      "type": "object",
+      "description": "ActionAuthorization record. authorized_by is a closed role enum (architect, human, system).",
+      "required": ["authorized_by", "authorized_at", "authorization_id", "reason"],
+      "properties": {
+        "authorized_by": { "type": "string", "enum": ["architect", "human", "system"] },
+        "authorized_at": { "type": "string" },
+        "authorization_id": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionPolicyDeclaration": {
+      "type": "object",
+      "description": "RuntimeActionPolicyDeclaration binds a request and its decision to this contract version. All four fields are caller-supplied and copied verbatim.",
+      "required": ["contract_id", "contract_version", "policy_id", "evaluated_under"],
+      "properties": {
+        "contract_id": { "type": "string", "const": "runtime-action-policy-contract" },
+        "contract_version": { "type": "string", "const": "1.0.0" },
+        "policy_id": { "type": "string", "minLength": 1 },
+        "evaluated_under": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeBoundaryFacts": {
+      "type": "object",
+      "description": "Bounded caller-supplied fact object (NOT a RunProjection snapshot, NOT runtime authority). parent_run_id and parent_run_status are always required; all other fields are optional at the facts layer and their per-branch required/forbidden posture is enforced by the RuntimeActionRequest branch schemas.",
+      "required": ["parent_run_id", "parent_run_status"],
+      "properties": {
+        "parent_run_id": { "type": "string", "minLength": 1 },
+        "parent_run_status": { "type": "string", "enum": ["pending", "active", "completed", "failed", "blocked", "interrupted"] },
+        "relevant_stage_id": { "type": ["string", "null"] },
+        "relevant_stage_status": { "type": ["string", "null"], "enum": ["pending", "active", "completed", "failed", "skipped", null] },
+        "gate_decision_snapshot": {
+          "anyOf": [
+            { "$ref": "runtime-gate-decision-v2.schema.json#/$defs/GateDecision" },
+            { "type": "null" }
+          ]
+        },
+        "current_retry_count": { "type": ["integer", "null"], "minimum": 0 },
+        "max_retries": { "type": ["integer", "null"], "minimum": 1, "maximum": 3 },
+        "same_kind_failure_count": { "type": ["integer", "null"], "minimum": 0 },
+        "attempt_history_facts": {
+          "anyOf": [
+            { "$ref": "#/$defs/AttemptHistoryFacts" },
+            { "type": "null" }
+          ]
+        },
+        "checkpoint_available": { "type": ["boolean", "null"] },
+        "checkpoint_event_order": { "type": ["integer", "null"], "minimum": 0 },
+        "evidence_gap_reason": { "type": ["string", "null"], "enum": ["missing_evidence", "missing_permission", "missing_dependency", "missing_tool", "unrecoverable_evidence_gap", null] },
+        "parent_blocked_reason": { "type": ["string", "null"] },
+        "interruption_cause": { "type": ["string", "null"], "enum": ["session_lost", "environment_terminated", "external_signal", null] }
+      },
+      "additionalProperties": false
+    },
+    "RetryEligibility": {
+      "type": "object",
+      "description": "Derived structure included in the decision when action_kind=retry. Never caller-supplied. ineligibility_reason_code is null unless eligible is false.",
+      "required": ["eligible", "parent_status_satisfied", "lineage_satisfied", "bounds_satisfied", "system_auto_authorized", "ineligibility_reason_code"],
+      "properties": {
+        "eligible": { "type": "boolean" },
+        "parent_status_satisfied": { "type": "boolean" },
+        "lineage_satisfied": { "type": "boolean" },
+        "bounds_satisfied": { "type": "boolean" },
+        "system_auto_authorized": { "type": "boolean" },
+        "ineligibility_reason_code": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "CheckpointEvidence": {
+      "type": "object",
+      "description": "Bounded caller-supplied checkpoint evidence required on resume branches. recovery_action is a closed enum; artifacts_produced_before_checkpoint is a non-empty array of ArtifactRef.",
+      "required": ["checkpoint_ref", "checkpoint_event_order", "checkpoint_stage_id", "recovery_action", "artifacts_produced_before_checkpoint"],
+      "properties": {
+        "checkpoint_ref": { "$ref": "#/$defs/ArtifactRef" },
+        "checkpoint_event_order": { "type": "integer", "minimum": 0 },
+        "checkpoint_stage_id": { "type": "string", "minLength": 1 },
+        "recovery_action": { "type": "string", "enum": ["replay_from_checkpoint", "restart_stage"] },
+        "artifacts_produced_before_checkpoint": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ArtifactRef" },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionRequest": {
+      "type": "object",
+      "description": "RuntimeActionRequest discriminated union keyed by action_kind. Each branch declares explicit required, optional, and forbidden fields; forbidden fields are simply absent from the branch properties (closed by additionalProperties:false). No field-presence inference and no implicit defaults.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_stop_stage"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_stop_run"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_retry"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_resume"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_more_evidence"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_redesign"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_human_intervention"
+        },
+        {
+          "$ref": "#/$defs/RuntimeActionRequest_terminate"
+        }
+      ]
+    },
+    "RuntimeActionRequest_stop_stage": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "stop_stage" },
+        "boundary_facts": {
+          "allOf": [
+            { "$ref": "#/$defs/RuntimeBoundaryFacts" },
+            { "required": ["relevant_stage_id", "relevant_stage_status", "gate_decision_snapshot"] },
+            {
+              "properties": {
+                "relevant_stage_status": { "not": { "type": "null" } },
+                "gate_decision_snapshot": { "not": { "type": "null" } }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionRequest_stop_run": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "stop_run" },
+        "boundary_facts": {
+          "allOf": [
+            { "$ref": "#/$defs/RuntimeBoundaryFacts" },
+            { "required": ["gate_decision_snapshot"] },
+            { "properties": { "gate_decision_snapshot": { "not": { "type": "null" } } } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionRequest_retry": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts", "proposed_child_run_id", "retry_strategy", "failure_category", "authorization"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "retry" },
+        "proposed_child_run_id": { "type": "string", "minLength": 1 },
+        "retry_strategy": { "type": "string", "enum": ["full", "resume"] },
+        "failure_category": { "type": "string", "minLength": 1 },
+        "transient": { "type": "boolean" },
+        "deterministic": { "type": "boolean" },
+        "authorization": { "$ref": "#/$defs/ActionAuthorization" },
+        "boundary_facts": {
+          "allOf": [
+            { "$ref": "#/$defs/RuntimeBoundaryFacts" },
+            { "required": ["current_retry_count", "max_retries", "same_kind_failure_count", "attempt_history_facts"] }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "authorization": { "properties": { "authorized_by": { "const": "system" } }, "required": ["authorized_by"] } },
+            "required": ["authorization"]
+          },
+          "then": { "required": ["transient", "deterministic"] },
+          "else": { "not": { "anyOf": [ { "required": ["transient"] }, { "required": ["deterministic"] } ] } }
+        }
+      ]
+    },
+    "RuntimeActionRequest_resume": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts", "proposed_child_run_id", "checkpoint", "authorization"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "resume" },
+        "proposed_child_run_id": { "type": "string", "minLength": 1 },
+        "checkpoint": { "$ref": "#/$defs/CheckpointEvidence" },
+        "authorization": {
+          "allOf": [
+            { "$ref": "#/$defs/ActionAuthorization" },
+            { "properties": { "authorized_by": { "enum": ["architect", "human"] } } }
+          ]
+        },
+        "boundary_facts": {
+          "allOf": [
+            { "$ref": "#/$defs/RuntimeBoundaryFacts" },
+            { "required": ["checkpoint_available", "checkpoint_event_order", "interruption_cause"] },
+            {
+              "properties": {
+                "checkpoint_available": { "const": true },
+                "checkpoint_event_order": { "not": { "type": "null" } },
+                "interruption_cause": { "not": { "type": "null" } }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionRequest_more_evidence": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts", "proposed_child_lineage", "evidence_requests"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "more_evidence" },
+        "proposed_child_lineage": {
+          "allOf": [
+            { "$ref": "#/$defs/RunLineage" },
+            { "properties": { "lineage_kind": { "const": "more_evidence" } } }
+          ]
+        },
+        "evidence_requests": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/EvidenceRequest" },
+          "minItems": 1
+        },
+        "boundary_facts": {
+          "allOf": [
+            { "$ref": "#/$defs/RuntimeBoundaryFacts" },
+            { "required": ["gate_decision_snapshot", "evidence_gap_reason"] },
+            {
+              "properties": {
+                "gate_decision_snapshot": { "not": { "type": "null" } },
+                "evidence_gap_reason": { "not": { "type": "null" } }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionRequest_redesign": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts", "proposed_child_lineage", "revised_contract_ref", "reason_code", "authorization"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "redesign" },
+        "proposed_child_lineage": {
+          "allOf": [
+            { "$ref": "#/$defs/RunLineage" },
+            { "properties": { "lineage_kind": { "const": "redesign" } } }
+          ]
+        },
+        "revised_contract_ref": { "$ref": "#/$defs/ArtifactRef" },
+        "reason_code": { "type": "string", "minLength": 1 },
+        "authorization": {
+          "allOf": [
+            { "$ref": "#/$defs/ActionAuthorization" },
+            { "properties": { "authorized_by": { "enum": ["architect", "human"] } } }
+          ]
+        },
+        "boundary_facts": { "$ref": "#/$defs/RuntimeBoundaryFacts" }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionRequest_human_intervention": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts", "intervention_source", "intervention_evidence", "authorization", "human_intent"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "human_intervention" },
+        "intervention_source": { "type": "string", "enum": ["gate_recommendation", "policy_exhaustion"] },
+        "intervention_evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ArtifactRef" },
+          "minItems": 1
+        },
+        "authorization": {
+          "allOf": [
+            { "$ref": "#/$defs/ActionAuthorization" },
+            { "properties": { "authorized_by": { "enum": ["architect", "human"] } } }
+          ]
+        },
+        "human_intent": { "type": "string", "enum": ["provide_evidence", "authorize_action", "redesign", "terminate"] },
+        "gate_decision_snapshot": {
+          "anyOf": [
+            { "$ref": "runtime-gate-decision-v2.schema.json#/$defs/GateDecision" },
+            { "type": "null" }
+          ]
+        },
+        "boundary_facts": { "$ref": "#/$defs/RuntimeBoundaryFacts" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "intervention_source": { "const": "gate_recommendation" } },
+            "required": ["intervention_source"]
+          },
+          "then": { "required": ["gate_decision_snapshot"] }
+        }
+      ]
+    },
+    "RuntimeActionRequest_terminate": {
+      "type": "object",
+      "required": ["policy_declaration", "decision_id", "evaluated_at", "evaluated_by", "run_id", "action_kind", "boundary_facts", "authorization", "terminate_reason"],
+      "properties": {
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "decision_id": { "type": "string", "minLength": 1 },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "const": "terminate" },
+        "authorization": {
+          "allOf": [
+            { "$ref": "#/$defs/ActionAuthorization" },
+            { "properties": { "authorized_by": { "enum": ["architect", "human"] } } }
+          ]
+        },
+        "terminate_reason": { "type": "string", "minLength": 1 },
+        "boundary_facts": { "$ref": "#/$defs/RuntimeBoundaryFacts" }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeActionDecision": {
+      "type": "object",
+      "description": "RuntimeActionDecision complete canonical output shape. All 14 fields required. retry_eligibility is non-null only for retry; checkpoint_evidence is non-null only for resume; child_run_id is null for more_evidence and redesign. disposition drives the reason_code domain.",
+      "required": ["decision_id", "action_kind", "disposition", "policy_declaration", "evaluated_at", "evaluated_by", "reason_code", "evidence_refs", "run_id", "parent_run_id", "child_run_id", "authorization_echo", "retry_eligibility", "checkpoint_evidence"],
+      "properties": {
+        "decision_id": { "type": "string", "minLength": 1 },
+        "action_kind": { "type": "string", "enum": ["stop_stage", "stop_run", "retry", "resume", "more_evidence", "redesign", "human_intervention", "terminate"] },
+        "disposition": { "type": "string", "enum": ["authorized", "denied"] },
+        "policy_declaration": { "$ref": "#/$defs/RuntimeActionPolicyDeclaration" },
+        "evaluated_at": { "type": "string" },
+        "evaluated_by": { "type": "string", "minLength": 1 },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "action_authorized_stop_stage",
+            "action_authorized_stop_run",
+            "action_authorized_retry",
+            "action_authorized_resume",
+            "action_authorized_more_evidence",
+            "action_authorized_redesign",
+            "action_authorized_human_intervention",
+            "action_authorized_terminate",
+            "denied_parent_status_ineligible",
+            "denied_stage_not_active",
+            "denied_gate_recommendation_mismatch",
+            "denied_retry_bounds_exceeded",
+            "denied_checkpoint_unavailable",
+            "denied_evidence_gap_unrecoverable",
+            "denied_terminal_run"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ArtifactRef" }
+        },
+        "run_id": { "type": "string", "minLength": 1 },
+        "parent_run_id": { "type": "string", "minLength": 1 },
+        "child_run_id": { "type": ["string", "null"] },
+        "authorization_echo": {
+          "anyOf": [
+            { "$ref": "#/$defs/ActionAuthorization" },
+            { "type": "null" }
+          ]
+        },
+        "retry_eligibility": {
+          "anyOf": [
+            { "$ref": "#/$defs/RetryEligibility" },
+            { "type": "null" }
+          ]
+        },
+        "checkpoint_evidence": {
+          "anyOf": [
+            { "$ref": "#/$defs/CheckpointEvidence" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "action_kind": { "const": "retry" } }, "required": ["action_kind"] },
+          "then": { "properties": { "retry_eligibility": { "not": { "type": "null" } } } },
+          "else": { "properties": { "retry_eligibility": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "action_kind": { "const": "resume" } }, "required": ["action_kind"] },
+          "then": { "properties": { "checkpoint_evidence": { "not": { "type": "null" } } } },
+          "else": { "properties": { "checkpoint_evidence": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "action_kind": { "enum": ["more_evidence", "redesign"] } }, "required": ["action_kind"] },
+          "then": { "properties": { "child_run_id": { "const": null } } }
+        },
+        {
+          "if": { "properties": { "disposition": { "const": "authorized" } }, "required": ["disposition"] },
+          "then": {
+            "properties": {
+              "reason_code": {
+                "type": "string",
+                "enum": [
+                  "action_authorized_stop_stage",
+                  "action_authorized_stop_run",
+                  "action_authorized_retry",
+                  "action_authorized_resume",
+                  "action_authorized_more_evidence",
+                  "action_authorized_redesign",
+                  "action_authorized_human_intervention",
+                  "action_authorized_terminate"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "disposition": { "const": "denied" } }, "required": ["disposition"] },
+          "then": {
+            "properties": {
+              "reason_code": {
+                "type": "string",
+                "enum": [
+                  "denied_parent_status_ineligible",
+                  "denied_stage_not_active",
+                  "denied_gate_recommendation_mismatch",
+                  "denied_retry_bounds_exceeded",
+                  "denied_checkpoint_unavailable",
+                  "denied_evidence_gap_unrecoverable",
+                  "denied_terminal_run"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RuntimeActionEvaluationError": {
+      "type": "object",
+      "description": "RuntimeActionEvaluationError complete five-field shape. decision_id and action_kind may be null when unextractable; error_code is the closed 12-value taxonomy in first-match order; run_context is {run_id} or null.",
+      "required": ["decision_id", "action_kind", "error_code", "error_description", "run_context"],
+      "properties": {
+        "decision_id": { "type": ["string", "null"] },
+        "action_kind": { "type": ["string", "null"] },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "unknown_action_kind",
+            "invalid_action_branch",
+            "lineage_self_reference",
+            "child_lineage_parent_mismatch",
+            "gate_snapshot_contradiction",
+            "system_retry_unauthorized",
+            "authorization_role_invalid",
+            "authorization_missing",
+            "checkpoint_evidence_invalid",
+            "policy_exhausted_unsupported",
+            "human_override_prohibited",
+            "history_rewrite_prohibited"
+          ]
+        },
+        "error_description": { "type": "string", "minLength": 1 },
+        "run_context": {
+          "type": ["object", "null"],
+          "required": ["run_id"],
+          "properties": { "run_id": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,2666 @@
+{
+  "contract": {
+    "contract_id": "runtime-validator-mesh-contract",
+    "contract_version": "1.2.0",
+    "schema_ref": "assets/schemas/runtime-validator-mesh-v1.schema.json",
+    "authority_ref": "references/runtime-validator-mesh-contract.md",
+    "supersedes": "1.1.0",
+    "predecessor_bytes_preserved": false,
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema"
+  },
+  "enums": {
+    "requirement_kind": [
+      "baseline",
+      "extension"
+    ],
+    "missing_mapping_policy": [
+      "fail",
+      "human_review_required"
+    ],
+    "failure_behavior": [
+      "halt_mesh",
+      "halt_run",
+      "require_intervention"
+    ],
+    "risk_level": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "dispatch_status": [
+      "report_produced",
+      "no_report",
+      "unreachable",
+      "degraded_storage",
+      "degraded_transport"
+    ],
+    "report_overall_verdict": [
+      "pass",
+      "fail",
+      "blocked",
+      "inconclusive",
+      "human_review_required"
+    ],
+    "aggregate_verdict": [
+      "fail",
+      "blocked",
+      "human_review_required",
+      "inconclusive",
+      "pass"
+    ],
+    "aggregate_confidence": [
+      "high",
+      "medium",
+      "low"
+    ],
+    "freshness_status": [
+      "superseded",
+      "invalidated",
+      "stale",
+      "mismatched",
+      "duplicate",
+      "conflicting",
+      "current"
+    ],
+    "result_kind": [
+      "report",
+      "missing_baseline",
+      "missing_required_extension",
+      "unusable_required_report",
+      "optional_excluded"
+    ],
+    "recommended_action": [
+      "proceed",
+      "stop_run",
+      "more_evidence",
+      "human_intervention"
+    ],
+    "error_code": [
+      "invalid_mesh_declaration",
+      "invalid_mesh_request",
+      "duplicate_requirement_id",
+      "dispatch_count_mismatch",
+      "duplicate_dispatch_request_id",
+      "orphan_dispatch_result",
+      "invalid_dispatch_result",
+      "invalid_report_binding"
+    ],
+    "report_confidence": [
+      "high",
+      "medium",
+      "low"
+    ]
+  },
+  "counts": {
+    "root_public_types": 8,
+    "error_codes": 8,
+    "dispatch_statuses": 5,
+    "freshness_statuses": 7,
+    "result_kinds": 5,
+    "report_verdicts": 5,
+    "aggregate_verdicts": 5,
+    "requirement_kinds": 2,
+    "missing_mapping_policies": 2,
+    "recommended_actions": 4,
+    "confidence_levels": 3,
+    "risk_levels": 3,
+    "failure_behaviors": 3
+  },
+  "positives": [
+    {
+      "id": "declaration-baseline",
+      "root_type": "ValidatorMeshDeclaration",
+      "data": {
+        "mesh_id": "mesh-a",
+        "mesh_version": "1.2.0",
+        "governing_contract": {
+          "artifact_id": "runtime-architecture",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "declared_at": "2026-08-03T00:00:00Z",
+        "declared_by": "architect",
+        "requirements": [
+          {
+            "requirement_id": "baseline-a",
+            "validator_identity": "validator-a",
+            "contract_ref": {
+              "artifact_id": "validation-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "artifact_scope": [
+              {
+                "artifact_id": "target-a",
+                "artifact_kind": "schema",
+                "artifact_version": "1.1.0",
+                "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ],
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_priority": 0,
+            "missing_mapping_policy": "fail",
+            "failure_behavior": "halt_mesh"
+          }
+        ],
+        "aggregate_hierarchy": {},
+        "dispatch_policy": {},
+        "freshness_rules": {},
+        "publish_bridge_contract": {},
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "requirement-extension",
+      "root_type": "ValidatorRequirement",
+      "data": {
+        "requirement_id": "extension-a",
+        "validator_identity": "validator-b",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "requirement_kind": "extension",
+        "required": false,
+        "dispatch_priority": 1,
+        "failure_behavior": "require_intervention"
+      }
+    },
+    {
+      "id": "dispatch-request-high",
+      "root_type": "ValidatorDispatchRequest",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "requirement_id": "baseline-a",
+        "mesh_id": "mesh-a",
+        "validator_identity": "validator-a",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "evidence_pack": {},
+        "risk_level": "high",
+        "allowed_read_only_commands": [
+          "python"
+        ],
+        "dispatched_at": "2026-08-03T00:00:00Z",
+        "dispatched_by": "architect",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "binding-pass",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-a",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "dispatch-produced",
+      "root_type": "ValidatorDispatchResult",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "report_produced",
+        "report_binding": {
+          "binding_id": "binding-a",
+          "requirement_id": "baseline-a",
+          "validator_identity": "validator-a",
+          "role": "validator",
+          "contract_ref": {
+            "artifact_id": "validation-contract",
+            "artifact_kind": "contract",
+            "artifact_version": "0.8.0",
+            "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "target_artifact_ref": {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "report_ref": {
+            "artifact_id": "report-a",
+            "artifact_kind": "validation_report",
+            "artifact_version": "0.7.0",
+            "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "report_overall_verdict": "pass",
+          "independent_production_evidence": {
+            "producer_identity": "validator-a",
+            "production_environment": "independent",
+            "production_timestamp": "2026-08-03T00:00:00Z",
+            "no_caller_role_collapse": true
+          },
+          "bound_at": "2026-08-03T00:00:00Z",
+          "bound_by": "architect",
+          "report_confidence": "high"
+        },
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "dispatch-no-report",
+      "root_type": "ValidatorDispatchResult",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "no_report",
+        "error_code": "no_report",
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "dispatch-unreachable",
+      "root_type": "ValidatorDispatchResult",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "unreachable",
+        "error_code": "unreachable",
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "dispatch-degraded-storage",
+      "root_type": "ValidatorDispatchResult",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "degraded_storage",
+        "error_code": "storage",
+        "degradation_note": "storage unavailable",
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "dispatch-degraded-transport",
+      "root_type": "ValidatorDispatchResult",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "degraded_transport",
+        "error_code": "transport",
+        "degradation_note": "transport unavailable",
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "eval-request",
+      "root_type": "ValidatorMeshEvaluationRequest",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_declaration": {
+          "mesh_id": "mesh-a",
+          "mesh_version": "1.2.0",
+          "governing_contract": {
+            "artifact_id": "runtime-architecture",
+            "artifact_kind": "contract",
+            "artifact_version": "0.8.0",
+            "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "declared_at": "2026-08-03T00:00:00Z",
+          "declared_by": "architect",
+          "requirements": [
+            {
+              "requirement_id": "baseline-a",
+              "validator_identity": "validator-a",
+              "contract_ref": {
+                "artifact_id": "validation-contract",
+                "artifact_kind": "contract",
+                "artifact_version": "0.8.0",
+                "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              "artifact_scope": [
+                {
+                  "artifact_id": "target-a",
+                  "artifact_kind": "schema",
+                  "artifact_version": "1.1.0",
+                  "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                }
+              ],
+              "requirement_kind": "baseline",
+              "required": true,
+              "dispatch_priority": 0,
+              "missing_mapping_policy": "fail",
+              "failure_behavior": "halt_mesh"
+            }
+          ],
+          "aggregate_hierarchy": {},
+          "dispatch_policy": {},
+          "freshness_rules": {},
+          "publish_bridge_contract": {},
+          "run_context": {
+            "run_id": "run-a",
+            "stage_id": "stage-a"
+          }
+        },
+        "dispatch_results": [
+          {
+            "dispatch_request_id": "baseline-a",
+            "dispatch_status": "no_report",
+            "error_code": "no_report",
+            "collected_at": "2026-08-03T00:00:00Z",
+            "collected_by": "architect"
+          }
+        ],
+        "requested_at": "2026-08-03T00:00:00Z",
+        "requested_by": "architect"
+      }
+    },
+    {
+      "id": "result-report-current",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "pass",
+        "aggregate_confidence": "high",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "pass",
+            "freshness_or_null": "current",
+            "result_kind": "report",
+            "verdict_contribution": "pass"
+          }
+        ],
+        "freshness_assessments": [
+          {
+            "binding_id": "binding-a",
+            "freshness_status": "current",
+            "freshness_details": {}
+          }
+        ],
+        "recommended_action": "proceed",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "result-missing-baseline",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-b",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "fail",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "no_report",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "missing_baseline",
+            "verdict_contribution": "fail"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "stop_run",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "result-missing-required-extension",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-c",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "blocked",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "extension-a",
+            "requirement_kind": "extension",
+            "required": true,
+            "dispatch_status": "unreachable",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "missing_required_extension",
+            "verdict_contribution": "blocked"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "more_evidence",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "result-unusable-required",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-d",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "blocked",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "pass",
+            "freshness_or_null": "conflicting",
+            "result_kind": "unusable_required_report",
+            "verdict_contribution": "blocked"
+          }
+        ],
+        "freshness_assessments": [
+          {
+            "binding_id": "binding-a",
+            "freshness_status": "conflicting",
+            "freshness_details": {
+              "comparison_key": "group-a",
+              "requirement_ids": [
+                "baseline-a",
+                "extension-a"
+              ]
+            }
+          }
+        ],
+        "recommended_action": "more_evidence",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "result-optional-excluded",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-e",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "inconclusive",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "extension-a",
+            "requirement_kind": "extension",
+            "required": false,
+            "dispatch_status": "degraded_transport",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "optional_excluded",
+            "excluded_reason": "optional_unavailable"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "human_intervention",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "freshness-superseded",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "superseded",
+        "freshness_details": {
+          "supersession": {}
+        }
+      }
+    },
+    {
+      "id": "freshness-invalidated",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "invalidated",
+        "freshness_details": {
+          "invalidation": {}
+        }
+      }
+    },
+    {
+      "id": "freshness-stale",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_ref.artifact_id",
+            "report_ref.artifact_version",
+            "report_ref.digest",
+            "report_sha256"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freshness-mismatched",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "mismatched",
+        "freshness_details": {
+          "field_category": "contract_binding"
+        }
+      }
+    },
+    {
+      "id": "freshness-duplicate",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "duplicate",
+        "freshness_details": {
+          "comparison_key": "group-a",
+          "first_requirement_id": "baseline-a"
+        }
+      }
+    },
+    {
+      "id": "error-invalid-declaration",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": null,
+        "mesh_id": null,
+        "error_code": "invalid_mesh_declaration",
+        "error_description": "invalid declaration",
+        "run_context": null
+      }
+    },
+    {
+      "id": "error-invalid-request",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": null,
+        "error_code": "invalid_mesh_request",
+        "error_description": "invalid request",
+        "run_context": null
+      }
+    },
+    {
+      "id": "error-duplicate-requirement",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "duplicate_requirement_id",
+        "error_description": "duplicate requirement",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "error-count",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "dispatch_count_mismatch",
+        "error_description": "count mismatch",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "error-duplicate-dispatch",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "duplicate_dispatch_request_id",
+        "error_description": "duplicate dispatch",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "error-orphan",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "orphan_dispatch_result",
+        "error_description": "orphan dispatch",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "error-invalid-dispatch",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "invalid_dispatch_result",
+        "error_description": "invalid dispatch",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "error-invalid-binding",
+      "root_type": "ValidatorMeshEvaluationError",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "invalid_report_binding",
+        "error_description": "invalid binding",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "requirement-baseline-human-policy",
+      "root_type": "ValidatorRequirement",
+      "data": {
+        "requirement_id": "baseline-human",
+        "validator_identity": "validator-a",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "requirement_kind": "baseline",
+        "required": true,
+        "dispatch_priority": 2,
+        "missing_mapping_policy": "human_review_required",
+        "failure_behavior": "halt_run"
+      }
+    },
+    {
+      "id": "dispatch-request-low",
+      "root_type": "ValidatorDispatchRequest",
+      "data": {
+        "dispatch_request_id": "dispatch-low",
+        "requirement_id": "baseline-a",
+        "mesh_id": "mesh-a",
+        "validator_identity": "validator-a",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "evidence_pack": {},
+        "risk_level": "low",
+        "allowed_read_only_commands": [],
+        "dispatched_at": "2026-08-03T00:00:00Z",
+        "dispatched_by": "architect",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "dispatch-request-medium",
+      "root_type": "ValidatorDispatchRequest",
+      "data": {
+        "dispatch_request_id": "dispatch-medium",
+        "requirement_id": "baseline-a",
+        "mesh_id": "mesh-a",
+        "validator_identity": "validator-a",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "evidence_pack": {},
+        "risk_level": "medium",
+        "allowed_read_only_commands": [],
+        "dispatched_at": "2026-08-03T00:00:00Z",
+        "dispatched_by": "architect",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "binding-fail",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-fail",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-fail",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "fail",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "binding-blocked",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-blocked",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-blocked",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "blocked",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "binding-inconclusive",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-inconclusive",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-inconclusive",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "inconclusive",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "binding-human-review",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-human-review",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-human",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "human_review_required",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "result-human-review",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-human",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "human_review_required",
+        "aggregate_confidence": "medium",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "human_review_required",
+            "freshness_or_null": "current",
+            "result_kind": "report",
+            "verdict_contribution": "human_review_required"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "human_intervention",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "binding-stale-null-artifact-id",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-stale-null-artifact-id",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": null,
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-null-artifact-version",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-stale-null-artifact-version",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": null,
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-null-digest",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-stale-null-digest",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": null
+        },
+        "report_sha256": null,
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-null-sha256",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-stale-null-sha256",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": null,
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-all-null",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-stale-all-null",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": null,
+          "artifact_kind": "validation_report",
+          "artifact_version": null,
+          "digest": null
+        },
+        "report_sha256": null,
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "freshness-stale-artifact-id",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-stale",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_ref.artifact_id"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freshness-stale-artifact-version",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-stale",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_ref.artifact_version"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freshness-stale-digest",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-stale",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_ref.digest"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freshness-stale-sha256",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-stale",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_sha256"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freshness-stale-two-fields",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-stale",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_ref.artifact_id",
+            "report_sha256"
+          ]
+        }
+      }
+    },
+    {
+      "id": "freshness-stale-all-four",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-stale",
+        "freshness_status": "stale",
+        "freshness_details": {
+          "field_category": "report_identity",
+          "missing_fields": [
+            "report_ref.artifact_id",
+            "report_ref.artifact_version",
+            "report_ref.digest",
+            "report_sha256"
+          ]
+        }
+      }
+    },
+    {
+      "id": "result-aggregate-confidence-medium",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-conf-1",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "pass",
+        "aggregate_confidence": "medium",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "pass",
+            "freshness_or_null": "current",
+            "result_kind": "report",
+            "verdict_contribution": "pass"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "proceed",
+        "evaluated_at": "2026-08-10T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "result-aggregate-confidence-low",
+      "root_type": "ValidatorMeshResult",
+      "data": {
+        "mesh_eval_id": "eval-conf-low",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "pass",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "pass",
+            "freshness_or_null": "current",
+            "result_kind": "report",
+            "verdict_contribution": "pass"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "proceed",
+        "evaluated_at": "2026-08-10T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "freshness-superseded-wins-over-stale",
+      "root_type": "FreshnessAssessment",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "superseded",
+        "freshness_details": {
+          "supersession": {}
+        }
+      }
+    },
+    {
+      "id": "binding-confidence-medium",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-conf-med",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-confidence-low",
+      "root_type": "ValidationReportBinding",
+      "data": {
+        "binding_id": "binding-conf-low",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "low",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    }
+  ],
+  "schema_invalid": [
+    {
+      "id": "declaration-v10",
+      "root_type": "ValidatorMeshDeclaration",
+      "cause": "unsupported mesh version",
+      "data": {
+        "mesh_id": "mesh-a",
+        "mesh_version": "1.0.0",
+        "governing_contract": {
+          "artifact_id": "runtime-architecture",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "declared_at": "2026-08-03T00:00:00Z",
+        "declared_by": "architect",
+        "requirements": [
+          {
+            "requirement_id": "extension-a",
+            "validator_identity": "validator-a",
+            "contract_ref": {
+              "artifact_id": "validation-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "artifact_scope": [
+              {
+                "artifact_id": "target-a",
+                "artifact_kind": "schema",
+                "artifact_version": "1.1.0",
+                "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ],
+            "requirement_kind": "extension",
+            "required": false,
+            "dispatch_priority": 0,
+            "failure_behavior": "halt_mesh"
+          }
+        ],
+        "aggregate_hierarchy": {},
+        "dispatch_policy": {},
+        "freshness_rules": {},
+        "publish_bridge_contract": {},
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "requirement-incomplete-contract",
+      "root_type": "ValidatorRequirement",
+      "cause": "contract ref lacks digest",
+      "data": {
+        "requirement_id": "req",
+        "validator_identity": "validator",
+        "contract_ref": {
+          "artifact_id": "contract",
+          "artifact_kind": "contract",
+          "artifact_version": "1"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target",
+            "artifact_kind": "schema",
+            "artifact_version": "1",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "requirement_kind": "baseline",
+        "required": true,
+        "dispatch_priority": 0,
+        "missing_mapping_policy": "fail",
+        "failure_behavior": "halt_mesh"
+      }
+    },
+    {
+      "id": "requirement-noncontract-kind",
+      "root_type": "ValidatorRequirement",
+      "cause": "contract ref kind is not contract",
+      "data": {
+        "requirement_id": "req",
+        "validator_identity": "validator",
+        "contract_ref": {
+          "artifact_id": "contract",
+          "artifact_kind": "schema",
+          "artifact_version": "1",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target",
+            "artifact_kind": "schema",
+            "artifact_version": "1",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "requirement_kind": "baseline",
+        "required": true,
+        "dispatch_priority": 0,
+        "missing_mapping_policy": "fail",
+        "failure_behavior": "halt_mesh"
+      }
+    },
+    {
+      "id": "requirement-multi-target",
+      "root_type": "ValidatorRequirement",
+      "cause": "v1.1 binding permits one target",
+      "data": {
+        "requirement_id": "req",
+        "validator_identity": "validator",
+        "contract_ref": {
+          "artifact_id": "contract",
+          "artifact_kind": "contract",
+          "artifact_version": "1",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          {
+            "artifact_id": "target-b",
+            "artifact_kind": "schema",
+            "artifact_version": "1",
+            "digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          }
+        ],
+        "requirement_kind": "baseline",
+        "required": true,
+        "dispatch_priority": 0,
+        "missing_mapping_policy": "fail",
+        "failure_behavior": "halt_mesh"
+      }
+    },
+    {
+      "id": "baseline-without-policy",
+      "root_type": "ValidatorRequirement",
+      "cause": "baseline missing mapping policy",
+      "data": {
+        "requirement_id": "req",
+        "validator_identity": "validator",
+        "contract_ref": {
+          "artifact_id": "contract",
+          "artifact_kind": "contract",
+          "artifact_version": "1",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target",
+            "artifact_kind": "schema",
+            "artifact_version": "1",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "requirement_kind": "baseline",
+        "required": true,
+        "dispatch_priority": 0,
+        "failure_behavior": "halt_mesh"
+      }
+    },
+    {
+      "id": "extension-with-policy",
+      "root_type": "ValidatorRequirement",
+      "cause": "extension has no missing policy effect",
+      "data": {
+        "requirement_id": "req",
+        "validator_identity": "validator",
+        "contract_ref": {
+          "artifact_id": "contract",
+          "artifact_kind": "contract",
+          "artifact_version": "1",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "artifact_scope": [
+          {
+            "artifact_id": "target",
+            "artifact_kind": "schema",
+            "artifact_version": "1",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "requirement_kind": "extension",
+        "required": false,
+        "dispatch_priority": 0,
+        "missing_mapping_policy": "fail",
+        "failure_behavior": "halt_mesh"
+      }
+    },
+    {
+      "id": "produced-without-binding",
+      "root_type": "ValidatorDispatchResult",
+      "cause": "produced result lacks binding",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "report_produced",
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "unreachable-with-binding",
+      "root_type": "ValidatorDispatchResult",
+      "cause": "unreachable result has binding",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "unreachable",
+        "report_binding": {
+          "binding_id": "binding-a",
+          "requirement_id": "baseline-a",
+          "validator_identity": "validator-a",
+          "role": "validator",
+          "contract_ref": {
+            "artifact_id": "validation-contract",
+            "artifact_kind": "contract",
+            "artifact_version": "0.8.0",
+            "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "target_artifact_ref": {
+            "artifact_id": "target-a",
+            "artifact_kind": "schema",
+            "artifact_version": "1.1.0",
+            "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "report_ref": {
+            "artifact_id": "report-a",
+            "artifact_kind": "validation_report",
+            "artifact_version": "0.7.0",
+            "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "report_overall_verdict": "pass",
+          "independent_production_evidence": {
+            "producer_identity": "validator-a",
+            "production_environment": "independent",
+            "production_timestamp": "2026-08-03T00:00:00Z",
+            "no_caller_role_collapse": true
+          },
+          "bound_at": "2026-08-03T00:00:00Z",
+          "bound_by": "architect",
+          "report_confidence": "high"
+        },
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "degraded-without-note",
+      "root_type": "ValidatorDispatchResult",
+      "cause": "degraded status lacks note",
+      "data": {
+        "dispatch_request_id": "dispatch-a",
+        "dispatch_status": "degraded_storage",
+        "collected_at": "2026-08-03T00:00:00Z",
+        "collected_by": "architect"
+      }
+    },
+    {
+      "id": "binding-report-digest-shape",
+      "root_type": "ValidationReportBinding",
+      "cause": "report sha is not lowercase hex",
+      "data": {
+        "binding_id": "binding-a",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "not-a-digest",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "binding-role-collapse",
+      "root_type": "ValidationReportBinding",
+      "cause": "independent evidence permits role collapse",
+      "data": {
+        "binding_id": "binding-a",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": false
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "result-mixed-contribution",
+      "root_type": "ValidatorMeshResult",
+      "cause": "result entry has contribution and exclusion",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "pass",
+        "aggregate_confidence": "high",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "extension-a",
+            "requirement_kind": "extension",
+            "required": false,
+            "dispatch_status": "no_report",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "optional_excluded",
+            "verdict_contribution": "pass",
+            "excluded_reason": "optional_unavailable"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "proceed",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "freshness-unknown",
+      "root_type": "FreshnessAssessment",
+      "cause": "freshness enum closed",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "pending",
+        "freshness_details": {}
+      }
+    },
+    {
+      "id": "freshness-conflict-details",
+      "root_type": "FreshnessAssessment",
+      "cause": "conflict needs group members",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "conflicting",
+        "freshness_details": {
+          "comparison_key": "group-a",
+          "requirement_ids": [
+            "only-one"
+          ]
+        }
+      }
+    },
+    {
+      "id": "error-deprecated-aggregate",
+      "root_type": "ValidatorMeshEvaluationError",
+      "cause": "v1.0 aggregate errors are absent",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "error_code": "zero_valid_contributions",
+        "error_description": "deprecated",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "binding-no-confidence",
+      "root_type": "ValidationReportBinding",
+      "cause": "missing required report_confidence",
+      "data": {
+        "binding_id": "binding-no-conf",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-empty-artifact-id",
+      "root_type": "ValidationReportBinding",
+      "cause": "empty string report_ref.artifact_id",
+      "data": {
+        "binding_id": "binding-stale-empty-artifact-id",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-empty-artifact-version",
+      "root_type": "ValidationReportBinding",
+      "cause": "empty string report_ref.artifact_version",
+      "data": {
+        "binding_id": "binding-stale-empty-artifact-version",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-stale-empty-digest",
+      "root_type": "ValidationReportBinding",
+      "cause": "empty string report_ref.digest",
+      "data": {
+        "binding_id": "binding-stale-empty-digest",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": ""
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-invalid-confidence",
+      "root_type": "ValidationReportBinding",
+      "cause": "report_confidence not in enum",
+      "data": {
+        "binding_id": "binding-invalid-confidence",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "unknown",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-wrong-report-kind",
+      "root_type": "ValidationReportBinding",
+      "cause": "report_ref.artifact_kind is not validation_report",
+      "data": {
+        "binding_id": "binding-wrong-report-kind",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "schema",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    },
+    {
+      "id": "binding-empty-sha256",
+      "root_type": "ValidationReportBinding",
+      "cause": "report_sha256 empty string not valid",
+      "data": {
+        "binding_id": "binding-empty-sha256",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "",
+        "report_confidence": "medium",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    }
+  ],
+  "schema_valid_contract_invalid": [
+    {
+      "id": "semantic-contract-key-mismatch",
+      "root_type": "ValidatorMeshEvaluationRequest",
+      "expected_code": "contract_key_mismatch",
+      "semantic_probe": "binding_contract_key_equals_requirement",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_declaration": {
+          "mesh_id": "mesh-a",
+          "mesh_version": "1.2.0",
+          "governing_contract": {
+            "artifact_id": "runtime-architecture",
+            "artifact_kind": "contract",
+            "artifact_version": "0.8.0",
+            "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "declared_at": "2026-08-03T00:00:00Z",
+          "declared_by": "architect",
+          "requirements": [
+            {
+              "requirement_id": "baseline-a",
+              "validator_identity": "validator-a",
+              "contract_ref": {
+                "artifact_id": "contract-a",
+                "artifact_kind": "contract",
+                "artifact_version": "1",
+                "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              "artifact_scope": [
+                {
+                  "artifact_id": "target-a",
+                  "artifact_kind": "schema",
+                  "artifact_version": "1",
+                  "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                }
+              ],
+              "requirement_kind": "baseline",
+              "required": true,
+              "dispatch_priority": 0,
+              "missing_mapping_policy": "fail",
+              "failure_behavior": "halt_mesh"
+            }
+          ],
+          "aggregate_hierarchy": {},
+          "dispatch_policy": {},
+          "freshness_rules": {},
+          "publish_bridge_contract": {},
+          "run_context": {
+            "run_id": "run-a",
+            "stage_id": "stage-a"
+          }
+        },
+        "dispatch_results": [
+          {
+            "dispatch_request_id": "baseline-a",
+            "dispatch_status": "report_produced",
+            "report_binding": {
+              "binding_id": "binding-a",
+              "requirement_id": "baseline-a",
+              "validator_identity": "validator-a",
+              "role": "validator",
+              "contract_ref": {
+                "artifact_id": "contract-a",
+                "artifact_kind": "contract",
+                "artifact_version": "2",
+                "digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              },
+              "target_artifact_ref": {
+                "artifact_id": "target-a",
+                "artifact_kind": "schema",
+                "artifact_version": "1",
+                "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "report_ref": {
+                "artifact_id": "report-a",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1",
+                "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              },
+              "report_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "report_overall_verdict": "pass",
+              "independent_production_evidence": {
+                "producer_identity": "validator-a",
+                "production_environment": "independent",
+                "production_timestamp": "2026-08-03T00:00:00Z",
+                "no_caller_role_collapse": true
+              },
+              "bound_at": "2026-08-03T00:00:00Z",
+              "bound_by": "architect",
+              "report_confidence": "high"
+            },
+            "collected_at": "2026-08-03T00:00:00Z",
+            "collected_by": "architect"
+          }
+        ],
+        "requested_at": "2026-08-03T00:00:00Z",
+        "requested_by": "architect"
+      }
+    },
+    {
+      "id": "semantic-report-digest-mismatch",
+      "root_type": "ValidationReportBinding",
+      "expected_code": "report_digest_mismatch",
+      "semantic_probe": "report_digest_equals_sha",
+      "data": {
+        "binding_id": "binding-a",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "contract-a",
+          "artifact_kind": "contract",
+          "artifact_version": "1",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "1",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-03T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-03T00:00:00Z",
+        "bound_by": "architect",
+        "report_confidence": "high"
+      }
+    },
+    {
+      "id": "semantic-duplicate-requirement",
+      "root_type": "ValidatorMeshDeclaration",
+      "expected_code": "duplicate_requirement_id",
+      "semantic_probe": "requirement_ids_unique",
+      "data": {
+        "mesh_id": "mesh-a",
+        "mesh_version": "1.2.0",
+        "governing_contract": {
+          "artifact_id": "runtime-architecture",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "declared_at": "2026-08-03T00:00:00Z",
+        "declared_by": "architect",
+        "requirements": [
+          {
+            "requirement_id": "same",
+            "validator_identity": "validator",
+            "contract_ref": {
+              "artifact_id": "contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1",
+              "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "artifact_scope": [
+              {
+                "artifact_id": "target",
+                "artifact_kind": "schema",
+                "artifact_version": "1",
+                "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              }
+            ],
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_priority": 0,
+            "missing_mapping_policy": "fail",
+            "failure_behavior": "halt_mesh"
+          },
+          {
+            "requirement_id": "same",
+            "validator_identity": "validator",
+            "contract_ref": {
+              "artifact_id": "contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1",
+              "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "artifact_scope": [
+              {
+                "artifact_id": "target-b",
+                "artifact_kind": "schema",
+                "artifact_version": "1",
+                "digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              }
+            ],
+            "requirement_kind": "extension",
+            "required": false,
+            "dispatch_priority": 1,
+            "failure_behavior": "halt_mesh"
+          }
+        ],
+        "aggregate_hierarchy": {},
+        "dispatch_policy": {},
+        "freshness_rules": {},
+        "publish_bridge_contract": {},
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "semantic-zero-contribution",
+      "root_type": "ValidatorMeshResult",
+      "expected_code": "zero_contribution_is_inconclusive",
+      "semantic_probe": "zero_contribution_verdict",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "pass",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "extension-a",
+            "requirement_kind": "extension",
+            "required": false,
+            "dispatch_status": "no_report",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "optional_excluded",
+            "excluded_reason": "optional_unavailable"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "proceed",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "semantic-precedence",
+      "root_type": "ValidatorMeshResult",
+      "expected_code": "aggregate_precedence",
+      "semantic_probe": "aggregate_precedence",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "blocked",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "fail",
+            "freshness_or_null": "current",
+            "result_kind": "report",
+            "verdict_contribution": "fail"
+          },
+          {
+            "requirement_id": "extension-a",
+            "requirement_kind": "extension",
+            "required": true,
+            "dispatch_status": "unreachable",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "missing_required_extension",
+            "verdict_contribution": "blocked"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "more_evidence",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "semantic-action-mapping",
+      "root_type": "ValidatorMeshResult",
+      "expected_code": "recommended_action_mapping",
+      "semantic_probe": "recommended_action_mapping",
+      "data": {
+        "mesh_eval_id": "eval-a",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "fail",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "report_produced",
+            "report_verdict_or_null": "fail",
+            "freshness_or_null": "current",
+            "result_kind": "report",
+            "verdict_contribution": "fail"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "more_evidence",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "semantic-freshness-details",
+      "root_type": "FreshnessAssessment",
+      "expected_code": "freshness_detail_matches_status",
+      "semantic_probe": "freshness_detail_matches_status",
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "current",
+        "freshness_details": {
+          "field_category": "contract_binding"
+        }
+      }
+    },
+    {
+      "id": "semantic-target-key-mismatch",
+      "root_type": "FreshnessAssessment",
+      "expected_code": "target_key_equality",
+      "semantic_probe": "target_key_equality",
+      "semantic_context": {
+        "declared_target_key": [
+          "target-a",
+          "schema",
+          "1.1.0",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        ],
+        "binding_target_key": [
+          "target-a",
+          "schema",
+          "1.1.1",
+          "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        ]
+      },
+      "data": {
+        "binding_id": "binding-target",
+        "freshness_status": "current",
+        "freshness_details": {}
+      }
+    },
+    {
+      "id": "semantic-duplicate-group-order",
+      "root_type": "FreshnessAssessment",
+      "expected_code": "duplicate_group_ordering",
+      "semantic_probe": "duplicate_group_ordering",
+      "semantic_context": {
+        "members": [
+          {
+            "binding_id": "binding-declaration-first",
+            "requirement_id": "req-a",
+            "dispatch_priority": 2,
+            "declaration_order": 0,
+            "report_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "report_verdict": "pass"
+          },
+          {
+            "binding_id": "binding-priority-first",
+            "requirement_id": "req-b",
+            "dispatch_priority": 0,
+            "declaration_order": 1,
+            "report_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "report_verdict": "pass"
+          }
+        ]
+      },
+      "data": {
+        "binding_id": "binding-priority-first",
+        "freshness_status": "duplicate",
+        "freshness_details": {
+          "comparison_key": "group-a",
+          "first_requirement_id": "req-a"
+        }
+      }
+    },
+    {
+      "id": "semantic-conflict-group-order",
+      "root_type": "FreshnessAssessment",
+      "expected_code": "conflict_group_ordering",
+      "semantic_probe": "conflict_group_ordering",
+      "semantic_context": {
+        "members": [
+          {
+            "binding_id": "binding-a",
+            "requirement_id": "req-a",
+            "dispatch_priority": 0,
+            "declaration_order": 0,
+            "report_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "report_verdict": "pass"
+          },
+          {
+            "binding_id": "binding-b",
+            "requirement_id": "req-b",
+            "dispatch_priority": 1,
+            "declaration_order": 1,
+            "report_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "report_verdict": "pass"
+          },
+          {
+            "binding_id": "binding-c",
+            "requirement_id": "req-c",
+            "dispatch_priority": 2,
+            "declaration_order": 2,
+            "report_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "report_verdict": "fail"
+          }
+        ]
+      },
+      "data": {
+        "binding_id": "binding-a",
+        "freshness_status": "current",
+        "freshness_details": {}
+      }
+    },
+    {
+      "id": "semantic-contribution-matrix-row",
+      "root_type": "ValidatorMeshResult",
+      "expected_code": "contribution_matrix_row",
+      "semantic_probe": "contribution_matrix_row",
+      "semantic_context": {
+        "missing_mapping_policy": "fail"
+      },
+      "data": {
+        "mesh_eval_id": "eval-matrix",
+        "mesh_id": "mesh-a",
+        "aggregate_verdict": "blocked",
+        "aggregate_confidence": "low",
+        "report_bindings": [],
+        "requirement_results": [
+          {
+            "requirement_id": "baseline-a",
+            "requirement_kind": "baseline",
+            "required": true,
+            "dispatch_status": "no_report",
+            "report_verdict_or_null": null,
+            "freshness_or_null": null,
+            "result_kind": "missing_required_extension",
+            "verdict_contribution": "blocked"
+          }
+        ],
+        "freshness_assessments": [],
+        "recommended_action": "more_evidence",
+        "evaluated_at": "2026-08-03T00:00:00Z",
+        "evaluated_by": "mesh"
+      }
+    },
+    {
+      "id": "semantic-freshness-precedence",
+      "root_type": "FreshnessAssessment",
+      "expected_code": "freshness_predicate_precedence",
+      "semantic_probe": "freshness_predicate_precedence",
+      "semantic_context": {
+        "superseded": false,
+        "invalidated": false,
+        "report_identity_missing": false,
+        "contract_mismatch": true,
+        "target_mismatch": true
+      },
+      "data": {
+        "binding_id": "binding-precedence",
+        "freshness_status": "mismatched",
+        "freshness_details": {
+          "field_category": "target_artifact_binding"
+        }
+      }
+    },
+    {
+      "id": "semantic-error-first-match",
+      "root_type": "ValidatorMeshEvaluationError",
+      "expected_code": "error_first_match_precedence",
+      "semantic_probe": "error_first_match_precedence",
+      "semantic_context": {
+        "matching_errors": [
+          "dispatch_count_mismatch",
+          "duplicate_requirement_id"
+        ]
+      },
+      "data": {
+        "mesh_eval_id": "eval-error",
+        "mesh_id": "mesh-a",
+        "error_code": "dispatch_count_mismatch",
+        "error_description": "lower precedence selected",
+        "run_context": {
+          "run_id": "run-a",
+          "stage_id": "stage-a"
+        }
+      }
+    },
+    {
+      "id": "semantic-nonnull-digest-mismatch-v12",
+      "root_type": "ValidationReportBinding",
+      "expected_code": "report_digest_equals_sha",
+      "semantic_probe": "report_digest_equals_sha",
+      "data": {
+        "binding_id": "binding-digest-mismatch-v12",
+        "requirement_id": "baseline-a",
+        "validator_identity": "validator-a",
+        "role": "validator",
+        "contract_ref": {
+          "artifact_id": "validation-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "target_artifact_ref": {
+          "artifact_id": "target-a",
+          "artifact_kind": "schema",
+          "artifact_version": "1.1.0",
+          "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "report_ref": {
+          "artifact_id": "report-a",
+          "artifact_kind": "validation_report",
+          "artifact_version": "0.7.0",
+          "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "report_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "report_confidence": "high",
+        "report_overall_verdict": "pass",
+        "independent_production_evidence": {
+          "producer_identity": "validator-a",
+          "production_environment": "independent",
+          "production_timestamp": "2026-08-10T00:00:00Z",
+          "no_caller_role_collapse": true
+        },
+        "bound_at": "2026-08-10T00:00:00Z",
+        "bound_by": "architect"
+      }
+    }
+  ]
+}

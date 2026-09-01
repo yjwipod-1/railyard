@@ -1,0 +1,580 @@
+{
+  "contract_id": "runtime-artifact-visibility-contract",
+  "contract_version": "1.0.0",
+  "schema_version": "1.0.0",
+  "description": "Generic conformance cases for the RuntimeArtifact visibility amendment contract. All identifiers use the example- prefix. No machine-local paths, secrets, credentials, Control IDs, private domains, or internal development notes.",
+  "cases": [
+    {
+      "case_id": "public-single",
+      "description": "A single public artifact produced from a public source artifact. Visibility is resolved to public.",
+      "data": {
+        "artifact_ref": {
+          "artifact_id": "example-artifact-public-001",
+          "artifact_kind": "stage_output",
+          "artifact_version": "1.0.0"
+        },
+        "origin_run": "example-run-public-001",
+        "origin_stage": "example-build-stage",
+        "produced_by": "example-runner-1",
+        "source_artifacts": [
+          {
+            "artifact_id": "example-source-public-001",
+            "artifact_kind": "source",
+            "artifact_version": "1.0.0"
+          }
+        ],
+        "visibility": "public",
+        "visibility_resolution": {
+          "resolution_id": "example-resolution-public-001",
+          "resolved_at": "2026-07-01T00:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "example-contrib-source-public-001",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-public-001",
+                "artifact_kind": "source",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "public",
+              "authority": "Source artifact declares public visibility.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-public-001",
+                  "artifact_kind": "source",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "public",
+          "resolution_audit": {
+            "contributor_count": 1,
+            "restricted_count": 0,
+            "project_count": 0,
+            "public_count": 1,
+            "applied_rule": "most_restrictive"
+          }
+        }
+      },
+      "expectation": {
+        "outcome": "pass",
+        "resolved_visibility": "public"
+      }
+    },
+    {
+      "case_id": "project-single",
+      "description": "A single project artifact produced from a project-visibility source. Visibility is resolved to project.",
+      "data": {
+        "artifact_ref": {
+          "artifact_id": "example-artifact-project-001",
+          "artifact_kind": "stage_output",
+          "artifact_version": "1.0.0"
+        },
+        "origin_run": "example-run-project-001",
+        "origin_stage": "example-build-stage",
+        "produced_by": "example-runner-1",
+        "source_artifacts": [
+          {
+            "artifact_id": "example-source-project-001",
+            "artifact_kind": "source",
+            "artifact_version": "1.0.0"
+          }
+        ],
+        "visibility": "project",
+        "visibility_resolution": {
+          "resolution_id": "example-resolution-project-001",
+          "resolved_at": "2026-07-01T00:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "example-contrib-source-project-001",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-project-001",
+                "artifact_kind": "source",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "project",
+              "authority": "Source artifact classified as project-internal under project policy.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-project-001",
+                  "artifact_kind": "source",
+                  "artifact_version": "1.0.0"
+                },
+                {
+                  "artifact_id": "example-project-policy",
+                  "artifact_kind": "policy",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            },
+            {
+              "contributor_id": "example-contrib-policy-project-001",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "example-project-policy",
+                "artifact_kind": "policy",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "project",
+              "authority": "Project policy classifies internal build outputs as project visibility.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-project-policy",
+                  "artifact_kind": "policy",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "project",
+          "resolution_audit": {
+            "contributor_count": 2,
+            "restricted_count": 0,
+            "project_count": 2,
+            "public_count": 0,
+            "applied_rule": "most_restrictive"
+          }
+        }
+      },
+      "expectation": {
+        "outcome": "pass",
+        "resolved_visibility": "project"
+      }
+    },
+    {
+      "case_id": "restricted-single",
+      "description": "A single restricted artifact produced from a restricted-visibility source. Visibility is resolved to restricted.",
+      "data": {
+        "artifact_ref": {
+          "artifact_id": "example-artifact-restricted-001",
+          "artifact_kind": "stage_output",
+          "artifact_version": "1.0.0"
+        },
+        "origin_run": "example-run-restricted-001",
+        "origin_stage": "example-secure-stage",
+        "produced_by": "example-runner-1",
+        "source_artifacts": [
+          {
+            "artifact_id": "example-source-restricted-001",
+            "artifact_kind": "source",
+            "artifact_version": "1.0.0"
+          }
+        ],
+        "visibility": "restricted",
+        "visibility_resolution": {
+          "resolution_id": "example-resolution-restricted-001",
+          "resolved_at": "2026-07-01T00:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "example-contrib-source-restricted-001",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-restricted-001",
+                "artifact_kind": "source",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "restricted",
+              "authority": "Source artifact classified as restricted under project security policy.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-restricted-001",
+                  "artifact_kind": "source",
+                  "artifact_version": "1.0.0"
+                },
+                {
+                  "artifact_id": "example-security-policy",
+                  "artifact_kind": "policy",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "restricted",
+          "resolution_audit": {
+            "contributor_count": 1,
+            "restricted_count": 1,
+            "project_count": 0,
+            "public_count": 0,
+            "applied_rule": "most_restrictive"
+          }
+        }
+      },
+      "expectation": {
+        "outcome": "pass",
+        "resolved_visibility": "restricted"
+      }
+    },
+    {
+      "case_id": "aggregate-most-restrictive",
+      "description": "An artifact aggregating content from public, project, and restricted sources. Resolved visibility must be restricted (most restrictive).",
+      "data": {
+        "artifact_ref": {
+          "artifact_id": "example-artifact-aggregate-001",
+          "artifact_kind": "stage_output",
+          "artifact_version": "1.0.0"
+        },
+        "origin_run": "example-run-aggregate-001",
+        "origin_stage": "example-aggregate-stage",
+        "produced_by": "example-runner-1",
+        "source_artifacts": [
+          {
+            "artifact_id": "example-source-public-001",
+            "artifact_kind": "source",
+            "artifact_version": "1.0.0"
+          },
+          {
+            "artifact_id": "example-source-project-001",
+            "artifact_kind": "source",
+            "artifact_version": "1.0.0"
+          },
+          {
+            "artifact_id": "example-source-restricted-001",
+            "artifact_kind": "source",
+            "artifact_version": "1.0.0"
+          }
+        ],
+        "visibility": "restricted",
+        "visibility_resolution": {
+          "resolution_id": "example-resolution-aggregate-001",
+          "resolved_at": "2026-07-01T00:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "example-contrib-source-public-in-agg",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-public-001",
+                "artifact_kind": "source",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "public",
+              "authority": "Public source artifact.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-public-001",
+                  "artifact_kind": "source",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            },
+            {
+              "contributor_id": "example-contrib-source-project-in-agg",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-project-001",
+                "artifact_kind": "source",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "project",
+              "authority": "Project-classified source artifact.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-project-001",
+                  "artifact_kind": "source",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            },
+            {
+              "contributor_id": "example-contrib-source-restricted-in-agg",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-restricted-001",
+                "artifact_kind": "source",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "restricted",
+              "authority": "Restricted-classified source artifact.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-restricted-001",
+                  "artifact_kind": "source",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "restricted",
+          "resolution_audit": {
+            "contributor_count": 3,
+            "restricted_count": 1,
+            "project_count": 1,
+            "public_count": 1,
+            "applied_rule": "most_restrictive"
+          }
+        }
+      },
+      "expectation": {
+        "outcome": "pass",
+        "resolved_visibility": "restricted"
+      }
+    },
+    {
+      "case_id": "missing-evidence",
+      "description": "A contributor with an empty classification_evidence array. Must be rejected with visibility_no_evidence.",
+      "data": {
+        "contributor_id": "example-contrib-no-evidence",
+        "contributor_kind": "source_artifact",
+        "contributor_ref": {
+          "artifact_id": "example-source-missing-evidence",
+          "artifact_kind": "source"
+        },
+        "asserted_visibility": "public",
+        "authority": "Claims to be public but has no evidence.",
+        "classification_evidence": []
+      },
+      "expectation": {
+        "outcome": "rejected",
+        "failure_code": "visibility_no_evidence"
+      }
+    },
+    {
+      "case_id": "conflicting-contributor",
+      "description": "Two VisibilityContributor objects with the same contributor_id but different asserted_visibility values. Must be rejected.",
+      "data": {
+        "resolution_id": "example-resolution-conflict-001",
+        "resolved_at": "2026-07-01T00:00:00Z",
+        "contributors": [
+          {
+            "contributor_id": "example-contrib-same-id",
+            "contributor_kind": "source_artifact",
+            "contributor_ref": {
+              "artifact_id": "example-source-conflict-001",
+              "artifact_kind": "source"
+            },
+            "asserted_visibility": "public",
+            "authority": "Declares public visibility.",
+            "classification_evidence": [
+              {
+                "artifact_id": "example-source-conflict-001",
+                "artifact_kind": "source"
+              }
+            ]
+          },
+          {
+            "contributor_id": "example-contrib-same-id",
+            "contributor_kind": "source_artifact",
+            "contributor_ref": {
+              "artifact_id": "example-source-conflict-001",
+              "artifact_kind": "source"
+            },
+            "asserted_visibility": "project",
+            "authority": "Declares project visibility for the same identity.",
+            "classification_evidence": [
+              {
+                "artifact_id": "example-source-conflict-001",
+                "artifact_kind": "source"
+              }
+            ]
+          }
+        ],
+        "resolution_rule": "most_restrictive",
+        "resolved_visibility": "public",
+        "resolution_audit": {
+          "contributor_count": 2,
+          "restricted_count": 0,
+          "project_count": 1,
+          "public_count": 1,
+          "applied_rule": "most_restrictive"
+        }
+      },
+      "expectation": {
+        "outcome": "rejected",
+        "failure_code": "visibility_contributor_conflict"
+      }
+    },
+    {
+      "case_id": "downgrade",
+      "description": "Artifact visibility is public but resolved visibility from contributors is project. Must be rejected with visibility_downgrade.",
+      "data": {
+        "artifact_ref": {
+          "artifact_id": "example-artifact-downgrade-001",
+          "artifact_kind": "stage_output",
+          "artifact_version": "1.0.0"
+        },
+        "origin_run": "example-run-downgrade-001",
+        "produced_by": "example-runner-1",
+        "source_artifacts": [],
+        "visibility": "public",
+        "visibility_resolution": {
+          "resolution_id": "example-resolution-downgrade-001",
+          "resolved_at": "2026-07-01T00:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "example-contrib-project-source",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-source-project-001",
+                "artifact_kind": "source"
+              },
+              "asserted_visibility": "project",
+              "authority": "Project source artifact requires project visibility.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-source-project-001",
+                  "artifact_kind": "source"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "project",
+          "resolution_audit": {
+            "contributor_count": 1,
+            "restricted_count": 0,
+            "project_count": 1,
+            "public_count": 0,
+            "applied_rule": "most_restrictive"
+          }
+        }
+      },
+      "expectation": {
+        "outcome": "rejected",
+        "failure_code": "visibility_downgrade"
+      }
+    },
+    {
+      "case_id": "run-without-artifacts",
+      "description": "A run with only visibility_context and no produced artifacts. The resolved_run_visibility must match the context resolution, and the context must have sufficient contributors for offline export derivation.",
+      "data": {
+        "trigger_visibility": {
+          "contributor_id": "example-contrib-trigger-001",
+          "contributor_kind": "trigger_provenance",
+          "contributor_ref": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "asserted_visibility": "project",
+          "authority": "Triggering ticket carries project visibility.",
+          "classification_evidence": [
+            {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket",
+              "artifact_version": "1.0.0"
+            }
+          ]
+        },
+        "policy_contributors": [
+          {
+            "contributor_id": "example-contrib-policy-001",
+            "contributor_kind": "project_policy",
+            "contributor_ref": {
+              "artifact_id": "example-project-policy",
+              "artifact_kind": "policy",
+              "artifact_version": "1.0.0"
+            },
+            "asserted_visibility": "project",
+            "authority": "Project policy requires project visibility for all triggered runs.",
+            "classification_evidence": [
+              {
+                "artifact_id": "example-project-policy",
+                "artifact_kind": "policy",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        ],
+        "contract_contributors": [
+          {
+            "contributor_id": "example-contrib-contract-001",
+            "contributor_kind": "governing_contract",
+            "contributor_ref": {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0"
+            },
+            "asserted_visibility": "public",
+            "authority": "Governing contract declares public visibility.",
+            "classification_evidence": [
+              {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract",
+                "artifact_version": "0.9.0"
+              }
+            ]
+          }
+        ],
+        "run_visibility_resolution": {
+          "resolution_id": "example-resolution-run-001",
+          "resolved_at": "2026-07-01T00:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "example-contrib-trigger-001",
+              "contributor_kind": "trigger_provenance",
+              "contributor_ref": {
+                "artifact_id": "example-trigger-ticket",
+                "artifact_kind": "ticket",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "project",
+              "authority": "Triggering ticket carries project visibility.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            },
+            {
+              "contributor_id": "example-contrib-policy-001",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "example-project-policy",
+                "artifact_kind": "policy",
+                "artifact_version": "1.0.0"
+              },
+              "asserted_visibility": "project",
+              "authority": "Project policy requires project visibility for all triggered runs.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "example-project-policy",
+                  "artifact_kind": "policy",
+                  "artifact_version": "1.0.0"
+                }
+              ]
+            },
+            {
+              "contributor_id": "example-contrib-contract-001",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract",
+                "artifact_version": "0.9.0"
+              },
+              "asserted_visibility": "public",
+              "authority": "Governing contract declares public visibility.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract",
+                  "artifact_version": "0.9.0"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "project",
+          "resolution_audit": {
+            "contributor_count": 3,
+            "restricted_count": 0,
+            "project_count": 2,
+            "public_count": 1,
+            "applied_rule": "most_restrictive"
+          }
+        },
+        "resolved_run_visibility": "project"
+      },
+      "expectation": {
+        "outcome": "pass",
+        "resolved_visibility": "project"
+      }
+    }
+  ]
+}

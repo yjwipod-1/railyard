@@ -2,6 +2,61 @@
 
 All notable public-facing changes to Railyard are summarized here.
 
+## v0.8.0 - 2026-08-29
+
+### Runtime State Foundation
+
+- Added `references/runtime-architecture.md` defining the runtime component model: event sourcing with deterministic reducer, explicit-path SQLite journal, read-only projection, evidence export, and sidecar facade.
+- Added `references/runtime-state-contract.md` defining the event schema, reducer contract, journal format, projection API, and sidecar interface.
+- Added `scripts/runtime_state_core.py` providing a deterministic event reducer that applies typed events to immutable state snapshots.
+- Added `scripts/runtime_state_journal.py` providing an explicit-path SQLite journal storing events as append-only typed rows with globally unique event_id and run-local event_order that is positive, strictly increasing and gap-free.
+- Added `scripts/runtime_state_projection.py` providing a read-only projection layer over the event journal.
+- Added `scripts/runtime_evidence_export.py` providing structured evidence export from runtime state.
+- Added `scripts/runtime_state_sidecar.py` providing a sidecar facade for runtime components.
+- Added `references/runtime-artifact-visibility-contract.md` and `references/runtime-evidence-export-contract.md` as interface contracts.
+- Added corresponding test suites for all runtime state components.
+
+### Runtime Validation And Public Smoke
+
+- Added the local runtime adapter, Gate Decision, Action Policy, Validator Mesh, Validator dispatch, and publish bridge, with deterministic state, staging-manifest, and smoke authorities.
+- Added `requirements-test.txt` with the two direct test-only dependencies required by the public validation route. The runtime remains stdlib-only; GitHub Actions and every public quickstart install this manifest before the ordered compile, artifact validation, CI harness, 23-file regression, and 20-scenario smoke commands.
+- Added the canonical local validation route: `python -m pip install -r requirements-test.txt`, then `python -m compileall -q scripts`, `python scripts/validate_artifacts.py --project-root .`, `python scripts/test_runtime_v080_ci.py`, `python scripts/runtime_v080_regression.py`, and `python scripts/runtime_v080_smoke.py --tmp-dir <caller-supplied OS temporary directory> --all run`.
+- Added the 20-scenario public smoke contract. Scenarios 003-011 cover nine expected typed non-pass Mesh outcomes; a correct all-scenario conformance run remains `total=20`, `passed=20`, `failed=0` with exit 0.
+- Configured Windows and Linux GitHub Actions for the local route. The configuration is locally validated; no hosted run is claimed without Human-authorized staging and push.
+
+### Governance Taxonomy and Read Routing
+
+- Added `references/governance-document-taxonomy.md` defining the canonical governance meta-model: Protocol, Policy, Contract, Schema, Registry, and Guide document kinds with authority levels, overrideability, and precedence rules.
+- Added `references/governance-document-inventory.json` as the sole machine-readable inventory of all governance documents with their classifications and canonical relationships.
+- Added `references/governance-document-inventory.md` as a human-readable companion to the JSON inventory.
+- Added `references/governance-read-routing.json` as the declarative read-routing registry defining deterministic per-role startup read lists with conditional includes and fail-closed behavior.
+- Added `scripts/governance_read_router.py` implementing the resolver that produces deterministic ordered read lists per role.
+- Updated `scripts/architect.py` to use the governance resolver for Runner dispatch startup reads.
+- Updated `SKILL.md` and `references/startup-sequence.md` to adopt resolver-backed startup reads as the canonical bootstrap path.
+
+### Knowledge Contract and Functionality Ontology
+
+- Added `references/knowledge-contract.md` defining the public Knowledge Contract
+  with domain/capability/feature/behavior hierarchy levels, `technical_fact` and
+  `constraint` entry types, seven cross-cutting relationship types (`part_of`,
+  `depends_on`, `constrained_by`, `implemented_by`, `verified_by`,
+  `introduced_by`, `superseded_by`), Knowledge eligibility and default exclusion
+  rules, multi-ticket aggregation rules, runtime artifact identity and provenance
+  requirements, supersession and invalidation hooks, and role-based Contract
+  ownership.
+- Added Knowledge Curator role to `references/roles.md` with defined
+  responsibilities, default limits, and Validation Contract ownership.
+- Added Knowledge Contract cross-links in `SKILL.md`, `README.md`,
+  `README.zh-CN.md`, and `references/startup-sequence.md`.
+- Added generic, public-safe calibration fixtures under
+  `examples/knowledge_contract_fixtures/` covering valid entries, ineligible
+  entries, missing provenance, supersession chains, broken supersession, multi-
+  ticket aggregation, and ticket-to-multi-functionality contribution.
+
+### Scope
+
+This release delivers the local runtime state foundation, runtime adapter, Gate Decision, Action Policy, Validator Mesh with dispatch and publish bridge, deterministic smoke, staging-manifest authority, governance taxonomy and read-routing, and the Knowledge Contract. The following remain explicitly not implemented: Knowledge extraction or store, vector database, RAG, Context Ranking, hosted runtime or service, scheduler, proprietary provider or model integration, Knowledge Curator tooling, automatic release, tag, commit, or push, or full runtime framework completion.
+
 ## Unreleased / v0.7.4
 
 ### Adoption quickstart
@@ -149,7 +204,7 @@ All notable public-facing changes to Railyard are summarized here.
 ## Unreleased / v0.5
 
 - Added a platform dispatch contract that separates Railyard workflow roles from host-platform agent type names.
-- Documented official platform dispatch notes for Codex, Claude Code, Gemini CLI, GitHub Copilot, VS Code, Windsurf, Cursor, and JetBrains agent surfaces.
+- Documented platform dispatch notes for supported execution surfaces.
 - Added default initialization agent profiles for Railyard Architect, Runner, Explorer, and Reviewer under `.github/agents/`.
 - Updated Runner dispatch payloads to v2 so platform-native agent selection is explicit adapter work and `railyard-runner` is a fallback profile instead of a hardcoded `worker` value.
 - Added the role capability contract and conservative fuzzy matching policy for platform dispatch adapters.

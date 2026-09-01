@@ -1,0 +1,50 @@
+{
+  "fixture_id": "knowledge-ticket-multi-entry",
+  "description": "One accepted ticket contributes to multiple independently scoped Knowledge entries.",
+  "expected_outcome": "pass",
+  "artifact_inventory": [
+    {"artifact_id": "shared-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+    {"artifact_id": "shared-ticket", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"},
+    {"artifact_id": "shared-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}
+  ],
+  "entries": [
+    {
+      "entry_id": "shared-domain",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "restricted",
+      "title": "Shared source domain",
+      "description": "A neutral restricted domain fixture.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "shared-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "shared-ticket", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "shared-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": []
+    },
+    {
+      "entry_id": "shared-capability",
+      "entry_type": "technical_fact",
+      "level": "capability",
+      "visibility": "restricted",
+      "title": "Shared source capability",
+      "description": "The shared ticket supports a separately scoped capability.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "shared-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "shared-ticket", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "shared-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": [{"target_kind": "knowledge_entry", "target_entry_id": "shared-domain", "relationship": "part_of"}]
+    }
+  ],
+  "lifecycle_events": []
+}

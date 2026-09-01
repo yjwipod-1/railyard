@@ -1,0 +1,44 @@
+{
+  "fixture_id": "knowledge-multi-ticket-aggregation",
+  "description": "A project-visible entry grounded in two accepted tickets and their supporting runner results.",
+  "expected_outcome": "pass",
+  "artifact_inventory": [
+    {"artifact_id": "aggregation-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+    {"artifact_id": "source-a", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "source-b", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "result-a", "artifact_kind": "runner_result", "artifact_version": "1.0.0"},
+    {"artifact_id": "result-b", "artifact_kind": "runner_result", "artifact_version": "1.0.0"},
+    {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+  ],
+  "entries": [
+    {
+      "entry_id": "knowledge-aggregated-domain",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "project",
+      "title": "Aggregated accepted sources",
+      "description": "The entry records both accepted contributors and both supporting artifacts.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "aggregation-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [
+          {"artifact_id": "source-a", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+          {"artifact_id": "source-b", "artifact_kind": "ticket", "artifact_version": "1.0.0"}
+        ],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"},
+        "additional_sources": [
+          {"artifact_id": "result-a", "artifact_kind": "runner_result", "artifact_version": "1.0.0"},
+          {"artifact_id": "result-b", "artifact_kind": "runner_result", "artifact_version": "1.0.0"}
+        ]
+      },
+      "evidence": [
+        {"artifact_id": "result-a", "artifact_kind": "runner_result", "artifact_version": "1.0.0"},
+        {"artifact_id": "result-b", "artifact_kind": "runner_result", "artifact_version": "1.0.0"}
+      ],
+      "relationships": []
+    }
+  ],
+  "lifecycle_events": []
+}

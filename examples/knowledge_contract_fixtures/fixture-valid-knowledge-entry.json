@@ -1,0 +1,134 @@
+{
+  "fixture_id": "knowledge-canonical-corpus",
+  "description": "A self-contained canonical hierarchy with typed relationships and deterministic lifecycle replay.",
+  "expected_outcome": "pass",
+  "artifact_inventory": [
+    {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+    {"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "lifecycle-trigger", "artifact_kind": "ticket", "artifact_version": "2.0.0"},
+    {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0", "locator": "references/knowledge-contract.md"},
+    {"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"},
+    {"artifact_id": "reference-script", "artifact_kind": "script", "artifact_version": "1.0.0", "locator": "scripts/example.py"}
+  ],
+  "entries": [
+    {
+      "entry_id": "knowledge-domain",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "public",
+      "title": "Knowledge domain",
+      "description": "A public-safe domain root for contract calibration.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0", "locator": "references/knowledge-contract.md"}
+      },
+      "evidence": [{"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": []
+    },
+    {
+      "entry_id": "knowledge-capability-constraint",
+      "entry_type": "constraint",
+      "level": "capability",
+      "visibility": "project",
+      "title": "Typed reference constraint",
+      "description": "Artifact references remain typed within this project-scoped sample.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "constraint_kind": "invariant",
+      "scope": "Knowledge artifact references",
+      "provenance": {
+        "origin_epic": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0", "locator": "references/knowledge-contract.md"}
+      },
+      "evidence": [{"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": [
+        {"target_kind": "knowledge_entry", "target_entry_id": "knowledge-domain", "relationship": "part_of"}
+      ]
+    },
+    {
+      "entry_id": "knowledge-feature",
+      "entry_type": "technical_fact",
+      "level": "feature",
+      "visibility": "restricted",
+      "title": "Restricted fixture feature",
+      "description": "A neutral restricted sample contains only public-safe calibration text.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0", "locator": "references/knowledge-contract.md"}
+      },
+      "evidence": [{"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": [
+        {"target_kind": "knowledge_entry", "target_entry_id": "knowledge-capability-constraint", "relationship": "part_of"},
+        {"target_kind": "runtime_artifact", "target_artifact": {"artifact_id": "reference-script", "artifact_kind": "script", "artifact_version": "1.0.0", "locator": "scripts/example.py"}, "relationship": "implemented_by"}
+      ]
+    },
+    {
+      "entry_id": "knowledge-behavior",
+      "entry_type": "technical_fact",
+      "level": "behavior",
+      "visibility": "public",
+      "title": "Validated behavior",
+      "description": "The behavior is linked to its parent, constraint, and validation evidence.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "evidence_notes": ["The referenced report validates this public-safe claim."],
+      "provenance": {
+        "origin_epic": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0", "locator": "references/knowledge-contract.md"}
+      },
+      "evidence": [{"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": [
+        {"target_kind": "knowledge_entry", "target_entry_id": "knowledge-feature", "relationship": "part_of"},
+        {"target_kind": "knowledge_entry", "target_entry_id": "knowledge-capability-constraint", "relationship": "constrained_by"},
+        {"target_kind": "runtime_artifact", "target_artifact": {"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}, "relationship": "verified_by"},
+        {"target_kind": "runtime_artifact", "target_artifact": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"}, "relationship": "introduced_by"}
+      ]
+    }
+  ],
+  "lifecycle_events": [
+    {
+      "event_id": "knowledge-event-review",
+      "event_type": "knowledge.review_required",
+      "schema_version": "0.8.0",
+      "occurred_at": "2026-01-15T09:30:00Z",
+      "event_order": 1,
+      "causation_chain": [],
+      "actor_role": "knowledge_curator",
+      "trigger_artifact": {"artifact_id": "lifecycle-trigger", "artifact_kind": "ticket", "artifact_version": "2.0.0"},
+      "affected_entry_ids": ["knowledge-behavior"],
+      "prior_state": {"confidence": "high", "review_required": false, "superseded": false, "archived": false, "invalidated": false},
+      "next_state": {"confidence": "high", "review_required": true, "superseded": false, "archived": false, "invalidated": false},
+      "reason": "Accepted evidence requires technical review.",
+      "propagation_chain": ["knowledge-feature"],
+      "recommended_action": "review"
+    },
+    {
+      "event_id": "knowledge-event-confidence",
+      "event_type": "knowledge.confidence_changed",
+      "schema_version": "0.8.0",
+      "occurred_at": "2026-01-16T09:30:00Z",
+      "event_order": 2,
+      "causation_id": "knowledge-event-review",
+      "actor_role": "knowledge_curator",
+      "trigger_artifact": {"artifact_id": "validator-report", "artifact_kind": "validation_report", "artifact_version": "1.0.0"},
+      "affected_entry_ids": ["knowledge-behavior"],
+      "prior_state": {"confidence": "high", "review_required": true, "superseded": false, "archived": false, "invalidated": false},
+      "next_state": {"confidence": "medium", "review_required": true, "superseded": false, "archived": false, "invalidated": false},
+      "reason": "The accepted report changes the replayed confidence projection.",
+      "propagation_chain": [],
+      "recommended_action": "none"
+    }
+  ]
+}

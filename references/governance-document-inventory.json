@@ -1,0 +1,1255 @@
+{
+  "inventory_id": "railyard-governance-inventory-v1",
+  "created_at": "2026-07-20T00:00:00Z",
+  "schema_version": "1.0.0",
+  "authority_rule": "This file is the sole machine-readable governance metadata authority for Railyard. Embedded frontmatter in individual documents may mirror metadata but is not a second authority.",
+  "documents": [
+    {
+      "path": "README.md",
+      "metadata": {
+        "document_id": "railyard-readme-en-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "maintainer",
+        "scope": "project overview and getting started",
+        "applies_to": ["new-users", "contributors"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "governance-document-taxonomy",
+          "canonical_document": "references/governance-document-taxonomy.md"
+        },
+        {
+          "topic": "governance-document-inventory",
+          "canonical_document": "references/governance-document-inventory.md"
+        }
+      ]
+    },
+    {
+      "path": "README.zh-CN.md",
+      "metadata": {
+        "document_id": "railyard-readme-zhcn-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "maintainer",
+        "scope": "project overview Chinese localization",
+        "applies_to": ["zh-CN-users", "contributors"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "governance-document-taxonomy",
+          "canonical_document": "references/governance-document-taxonomy.md"
+        },
+        {
+          "topic": "governance-document-inventory",
+          "canonical_document": "references/governance-document-inventory.md"
+        }
+      ]
+    },
+    {
+      "path": "SKILL.md",
+      "metadata": {
+        "document_id": "railyard-skill-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "agent workflow operating rules",
+        "applies_to": ["architect", "runner", "planner"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["agent-workflow-rules", "role-constraints"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/roles.md",
+      "metadata": {
+        "document_id": "railyard-roles-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "role responsibilities and boundaries",
+        "applies_to": ["architect", "runner", "planner", "validator"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["role-responsibilities"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Default Closed-Loop Ownership",
+          "secondary_kind": "protocol",
+          "canonical_target": "references/lifecycle.md"
+        },
+        {
+          "heading": "Reject And Redispatch",
+          "secondary_kind": "protocol",
+          "canonical_target": "references/lifecycle.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/runtime-adapter-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-adapter-contract-v1.0.0",
+        "governance_kind": "contract",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "external adapter request/response boundary for provider bridges to the runtime state sidecar",
+        "applies_to": ["adapter-implementers", "transport-providers", "runtime-consumers"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-adapter-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-architecture",
+          "canonical_document": "references/runtime-architecture.md"
+        }
+      ]
+    },
+    {
+      "path": "references/routing.md",
+      "metadata": {
+        "document_id": "railyard-routing-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "lane and role routing rules",
+        "applies_to": ["agent-sessions"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["lane-routing"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/platform-dispatch.md",
+      "metadata": {
+        "document_id": "railyard-platform-dispatch-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "platform agent dispatch and capability selection",
+        "applies_to": ["agent-sessions"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["platform-dispatch-rules"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Restricted-Runner Mode",
+          "secondary_kind": "protocol",
+          "canonical_target": "references/startup-sequence.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/lifecycle.md",
+      "metadata": {
+        "document_id": "railyard-lifecycle-v0.8.0",
+        "governance_kind": "protocol",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "ticket and epic lifecycle states and transitions",
+        "applies_to": ["architect", "runner", "planner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["ticket-lifecycle"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Runner Result Boundaries",
+          "secondary_kind": "contract",
+          "canonical_target": "references/result-format.md"
+        },
+        {
+          "heading": "Failure Taxonomy (Blocker Categories)",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        },
+        {
+          "heading": "More-Evidence Handoff",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        },
+        {
+          "heading": "Permission And Scratch-State Boundary",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/startup-sequence.md",
+      "metadata": {
+        "document_id": "railyard-startup-sequence-v0.8.0",
+        "governance_kind": "protocol",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "project initialization and operating sequence",
+        "applies_to": ["architect", "runner", "planner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["startup-sequence"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Architect Dispatch",
+          "secondary_kind": "policy",
+          "canonical_target": "references/platform-dispatch.md"
+        },
+        {
+          "heading": "Runner Protocol Requirements",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/validator-protocol.md",
+      "metadata": {
+        "document_id": "railyard-validator-protocol-v0.7.0",
+        "governance_kind": "protocol",
+        "version": "0.7.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "Validator role input/output contract",
+        "applies_to": ["validator", "architect"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["validator-protocol"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Validator Input Slots",
+          "secondary_kind": "contract",
+          "canonical_target": "references/validation-contract.md"
+        },
+        {
+          "heading": "Remediation Ownership",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/validator-verdict-handoff-tree.md",
+      "metadata": {
+        "document_id": "railyard-validator-verdict-handoff-tree-v0.7.3",
+        "governance_kind": "protocol",
+        "version": "0.7.3",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "Validator verdict to consumer action mapping",
+        "applies_to": ["validator", "architect", "planner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["validator-verdict-handoff"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "More-Evidence Mapping",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/epic-format.md",
+      "metadata": {
+        "document_id": "railyard-epic-format-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "planner",
+        "scope": "epic document metadata contract",
+        "applies_to": ["planner", "architect"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["epic-metadata-format"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/ticket-format.md",
+      "metadata": {
+        "document_id": "railyard-ticket-format-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "ticket document metadata contract",
+        "applies_to": ["architect", "runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["ticket-metadata-format"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/result-format.md",
+      "metadata": {
+        "document_id": "railyard-result-format-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runner result JSON format contract",
+        "applies_to": ["runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runner-result-format"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/governance-document-taxonomy.md",
+      "metadata": {
+        "document_id": "railyard-governance-document-taxonomy-v1.0.0",
+        "governance_kind": "contract",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "governance document taxonomy and precedence model",
+        "applies_to": ["all-roles"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["governance-document-taxonomy", "governance-metadata-convention", "governance-precedence-model"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/sql-contract.md",
+      "metadata": {
+        "document_id": "railyard-sql-contract-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "SQLite workflow database schema contract",
+        "applies_to": ["runner", "architect"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["sql-schema-contract"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Ticket Columns",
+          "secondary_kind": "schema",
+          "canonical_target": "assets/schemas/governance-document-metadata-v1.schema.json"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/validation-contract.md",
+      "metadata": {
+        "document_id": "railyard-validation-contract-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "validation contract ownership and handoff protocol",
+        "applies_to": ["architect", "validator", "planner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["validation-contract"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Ownership by Role",
+          "secondary_kind": "policy",
+          "canonical_target": "references/roles.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/knowledge-contract.md",
+      "metadata": {
+        "document_id": "railyard-knowledge-contract-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "knowledge entry eligibility and provenance rules",
+        "applies_to": ["knowledge-curator"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["knowledge-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/semantic-validation-contract.md",
+      "metadata": {
+        "document_id": "railyard-semantic-validation-contract-v0.7.4",
+        "governance_kind": "contract",
+        "version": "0.7.4",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "semantic validation contract specification",
+        "applies_to": ["validator"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["semantic-validation-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/runtime-architecture.md",
+      "metadata": {
+        "document_id": "railyard-runtime-architecture-v0.8.0",
+        "governance_kind": "contract",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime architecture design contract",
+        "applies_to": ["runner", "architect"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-architecture"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/runtime-state-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-state-contract-v0.9.0",
+        "governance_kind": "contract",
+        "version": "0.9.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime state management contract",
+        "applies_to": ["runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-state-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/runtime-artifact-visibility-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-artifact-visibility-contract-v1.0.0",
+        "governance_kind": "contract",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime artifact visibility contract",
+        "applies_to": ["runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-artifact-visibility"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/runtime-evidence-export-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-evidence-export-contract-v1.1.0",
+        "governance_kind": "contract",
+        "version": "1.1.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime evidence export contract",
+        "applies_to": ["runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-evidence-export"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/runtime-gate-decision-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-gate-decision-contract-v2.2.0",
+        "governance_kind": "contract",
+        "version": "2.2.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "executable pure-function gate decision contract defining GateEvaluationRequest discriminated union, closed evaluation signal union, evidence canonical projection, re-evaluation protocol, override protocol, recommendation matrix, failure-code matrix, error taxonomy, and full truth table",
+        "applies_to": ["runner", "architect", "validator"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-gate-decision-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-architecture",
+          "canonical_document": "references/runtime-architecture.md"
+        },
+        {
+          "topic": "validator-protocol",
+          "canonical_document": "references/validator-protocol.md"
+        }
+      ]
+    },
+    {
+      "path": "references/runtime-action-policy-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-action-policy-contract-v2.0.0",
+        "governance_kind": "contract",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime action policy: pure-function evaluation of the eight runtime action kinds (stop_stage, stop_run, retry, resume, more_evidence, redesign, human_intervention, terminate) against bounded caller-supplied boundary facts",
+        "applies_to": ["runner", "architect", "system-runtime-consumers"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-action-policy-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-architecture",
+          "canonical_document": "references/runtime-architecture.md"
+        },
+        {
+          "topic": "runtime-gate-decision-contract",
+          "canonical_document": "references/runtime-gate-decision-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "references/runtime-validator-mesh-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-validator-mesh-contract-v1.2.0",
+        "governance_kind": "contract",
+        "version": "1.2.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "public Validator Mesh Contract defining total contribution, offline binding comparison, freshness, representable duplicate/conflict, result/error XOR, and unchanged-output semantics",
+        "applies_to": ["architect", "validator"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-validator-mesh-contract"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-architecture",
+          "canonical_document": "references/runtime-architecture.md"
+        },
+        {
+          "topic": "runtime-gate-decision-contract",
+          "canonical_document": "references/runtime-gate-decision-contract.md"
+        },
+        {
+          "topic": "validator-protocol",
+          "canonical_document": "references/validator-protocol.md"
+        }
+      ]
+    },
+    {
+      "path": "references/runtime-v080-smoke-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-v080-smoke-contract-v1.2.0",
+        "governance_kind": "contract",
+        "version": "1.2.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "frozen public v0.8 smoke scenario contract defining success, failure, recovery, visibility, and zero-write rejection scenarios for the released v0.8 runtime framework",
+        "applies_to": ["runner", "architect", "validator", "planner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-v080-smoke-contract"],
+        "description": "Frozen public v0.8 smoke scenario contract v1.2.0 (remediation revision). Preserves catalog pipeline plus executor call ledger as exact invocation evidence and Sidecar-only RuntimeEvents. Freezes scenarios 003-011 to the catalog's exact create_run, dispatch, evaluate_validator_mesh three-call and one-event boundary; defines their production Mesh inputs/outcomes; forbids post-return output mutation and simulated verdicts; preserves raw-verification independence and scenario-012 deep-copy tamper detection."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-architecture",
+          "canonical_document": "references/runtime-architecture.md"
+        },
+        {
+          "topic": "runtime-state-contract",
+          "canonical_document": "references/runtime-state-contract.md"
+        },
+        {
+          "topic": "runtime-validator-mesh-contract",
+          "canonical_document": "references/runtime-validator-mesh-contract.md"
+        },
+        {
+          "topic": "runtime-gate-decision-contract",
+          "canonical_document": "references/runtime-gate-decision-contract.md"
+        },
+        {
+          "topic": "runtime-action-policy-contract",
+          "canonical_document": "references/runtime-action-policy-contract.md"
+        },
+        {
+          "topic": "runtime-evidence-export-contract",
+          "canonical_document": "references/runtime-evidence-export-contract.md"
+        },
+        {
+          "topic": "runtime-adapter-contract",
+          "canonical_document": "references/runtime-adapter-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "references/runtime-v080-staging-manifest-contract.md",
+      "metadata": {
+        "document_id": "railyard-runtime-v080-staging-manifest-contract-v2.0.0",
+        "governance_kind": "contract",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "public v0.8 staging manifest v2 authority: closed text-free envelope, fixture-local resolution, derivation, remediation, protected-content hygiene, totals, and deterministic validation",
+        "applies_to": ["release-builder", "architect", "validator", "planner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-v080-staging-manifest-contract"],
+        "description": "Version 2.0.0 supersedes v1.0.0 and records v1.1.0 as rejected non-authoritative history. It is declarative only and keeps public manifests text-free and free of lifecycle, identity, and location data."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-v080-staging-manifest-schema",
+          "canonical_document": "assets/schemas/runtime-v080-staging-manifest-v2.schema.json"
+        }
+      ]
+    },
+    {
+      "path": "references/validation-primitive-registry.md",
+      "metadata": {
+        "document_id": "railyard-validation-primitive-registry-v0.7.2",
+        "governance_kind": "registry",
+        "version": "0.7.2",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "validation primitive identifier registry",
+        "applies_to": ["validator"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["validation-primitive-registry"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/helper-commands.md",
+      "metadata": {
+        "document_id": "railyard-helper-commands-v0.8.0",
+        "governance_kind": "registry",
+        "version": "0.8.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "canonical Railyard helper command reference",
+        "applies_to": ["architect", "runner", "planner"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["helper-commands"]
+      },
+      "mixed_sections": [
+        {
+          "heading": "Ticket Helpers",
+          "secondary_kind": "guide",
+          "canonical_target": "README.md"
+        }
+      ],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/model.md",
+      "metadata": {
+        "document_id": "railyard-model-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "abstract mental model of Railyard",
+        "applies_to": ["new-users"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/primitive-coverage-status.md",
+      "metadata": {
+        "document_id": "railyard-primitive-coverage-status-v0.7.2",
+        "governance_kind": "guide",
+        "version": "0.7.2",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "validation primitive implementation coverage status",
+        "applies_to": ["developers"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/schemas/governance-document-metadata-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-governance-document-metadata-schema-v1.0.0",
+        "governance_kind": "schema",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "governance document metadata structural validation",
+        "applies_to": ["all-documents"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["governance-document-metadata-schema"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/schemas/runtime-artifact-visibility-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-artifact-visibility-schema-v1.0.0",
+        "governance_kind": "schema",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime artifact visibility schema",
+        "applies_to": ["runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-artifact-visibility-schema"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/schemas/runtime-evidence-export-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-evidence-export-schema-v1.1.0",
+        "governance_kind": "schema",
+        "version": "1.1.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime evidence export schema",
+        "applies_to": ["runner"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-evidence-export-schema"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/schemas/governance-document-inventory-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-governance-document-inventory-schema-v1.0.0",
+        "governance_kind": "schema",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "governance document inventory structural validation",
+        "applies_to": ["governance-inventory"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["governance-document-inventory-structure"],
+        "status": "active",
+        "description": "JSON Schema Draft 2020-12 for the machine-readable governance document inventory."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/governance-document-inventory.json",
+      "metadata": {
+        "document_id": "railyard-governance-document-inventory-json-v1.0.0",
+        "governance_kind": "registry",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "canonical governance document metadata registry",
+        "applies_to": ["all-governance-documents"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["governance-document-inventory"],
+        "status": "active",
+        "description": "Sole machine-readable governance metadata authority for Railyard public governance documents."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "references/governance-document-inventory.md",
+      "metadata": {
+        "document_id": "railyard-governance-document-inventory-md-v1.0.0",
+        "governance_kind": "guide",
+        "version": "1.0.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "human-readable governance inventory companion",
+        "applies_to": ["human-readers"],
+        "overrideability": "informational",
+        "canonical_for": [],
+        "status": "active",
+        "description": "Human-readable table companion to the machine-readable governance document inventory."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {"topic": "governance-document-inventory", "canonical_document": "references/governance-document-inventory.json"}
+      ]
+    },
+    {
+      "path": "assets/skeleton/.github/agents/railyard-architect.agent.md",
+      "metadata": {
+        "document_id": "railyard-host-agent-architect-profile-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "normative_reference",
+        "owner": "architect",
+        "scope": "host platform architect agent profile",
+        "applies_to": ["platform-agents"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["host-agent-architect-profile"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/.github/agents/railyard-runner.agent.md",
+      "metadata": {
+        "document_id": "railyard-host-agent-runner-profile-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "normative_reference",
+        "owner": "architect",
+        "scope": "host platform runner agent profile",
+        "applies_to": ["platform-agents"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["host-agent-runner-profile"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/.github/agents/railyard-explorer.agent.md",
+      "metadata": {
+        "document_id": "railyard-host-agent-explorer-profile-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "normative_reference",
+        "owner": "architect",
+        "scope": "host platform explorer agent profile",
+        "applies_to": ["platform-agents"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["host-agent-explorer-profile"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/.github/agents/railyard-reviewer.agent.md",
+      "metadata": {
+        "document_id": "railyard-host-agent-reviewer-profile-v0.8.0",
+        "governance_kind": "policy",
+        "version": "0.8.0",
+        "authority_level": "normative_reference",
+        "owner": "architect",
+        "scope": "host platform reviewer agent profile",
+        "applies_to": ["platform-agents"],
+        "overrideability": "stricter_only",
+        "status": "active",
+        "canonical_for": ["host-agent-reviewer-profile"]
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/docs/templates/EPIC.md",
+      "metadata": {
+        "document_id": "railyard-epic-template-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "epic document template",
+        "applies_to": ["template-users"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/docs/templates/TICKET.md",
+      "metadata": {
+        "document_id": "railyard-ticket-template-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "ticket document template",
+        "applies_to": ["template-users"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/docs/templates/RESULT.json",
+      "metadata": {
+        "document_id": "railyard-result-template-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "runner result template",
+        "applies_to": ["template-users"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/skeleton/docs/templates/VALIDATION-CONTRACT.json",
+      "metadata": {
+        "document_id": "railyard-validation-contract-template-v0.8.0",
+        "governance_kind": "guide",
+        "version": "0.8.0",
+        "authority_level": "informational",
+        "owner": "architect",
+        "scope": "validation contract template",
+        "applies_to": ["template-users"],
+        "overrideability": "informational",
+        "status": "active",
+        "canonical_for": []
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/schemas/runtime-validator-mesh-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-validator-mesh-schema-v1.2.0",
+        "governance_kind": "schema",
+        "version": "1.2.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime validator mesh contract structural validation",
+        "applies_to": ["validator", "architect"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["runtime-validator-mesh-schema"],
+        "status": "active",
+        "description": "JSON Schema Draft 2020-12 encoding the frozen Runtime Validator Mesh Contract v1.2.0. Validates all eight public root types including ValidatorMeshDeclaration, ValidatorRequirement, ValidatorDispatchRequest, ValidatorDispatchResult, ValidationReportBinding, ValidatorMeshEvaluationRequest, ValidatorMeshResult, and ValidatorMeshEvaluationError."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-validator-mesh-contract",
+          "canonical_document": "references/runtime-validator-mesh-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "assets/schemas/runtime-v080-staging-manifest-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-v080-staging-manifest-schema-v1.1.0",
+        "governance_kind": "schema",
+        "version": "1.1.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime v0.8 staging manifest contract structural validation",
+        "applies_to": ["release-builder", "architect", "validator"],
+        "overrideability": "non_overridable",
+        "status": "superseded",
+        "canonical_for": ["runtime-v080-staging-manifest-schema-v1-historical"],
+        "description": "Rejected v1.1.0 candidate schema retained byte-identically for historical exclusion. Superseded by assets/schemas/runtime-v080-staging-manifest-v2.schema.json."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-v080-staging-manifest-contract",
+          "canonical_document": "references/runtime-v080-staging-manifest-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "assets/schemas/runtime-v080-staging-manifest-v2.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-v080-staging-manifest-schema-v2.0.0",
+        "governance_kind": "schema",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime v0.8 staging manifest v2 structural validation",
+        "applies_to": ["release-builder", "architect", "validator"],
+        "overrideability": "non_overridable",
+        "status": "active",
+        "canonical_for": ["runtime-v080-staging-manifest-schema"],
+        "description": "Draft 2020-12 schema for the active Runtime v0.8 Staging Manifest Contract v2.0.0. Enforces the closed text-free envelope, closed entry union, SafePath reuse, derivation bindings, remediation target exclusivity, and totals shape."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-v080-staging-manifest-contract",
+          "canonical_document": "references/runtime-v080-staging-manifest-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "assets/schemas/governance-read-routing-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-governance-read-routing-schema-v1.0.0",
+        "governance_kind": "schema",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "governance read-routing registry structural validation",
+        "applies_to": ["governance-routing"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["governance-read-routing-structure"],
+        "status": "active",
+        "description": "JSON Schema Draft 2020-12 for the declarative governance read-routing registry."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    },
+    {
+      "path": "assets/schemas/runtime-gate-decision-v2.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-gate-decision-schema-v2.2.1",
+        "governance_kind": "schema",
+        "version": "2.2.1",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime gate decision contract structural validation",
+        "applies_to": ["gate-engine", "architect", "validator"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["runtime-gate-decision-schema"],
+        "status": "active",
+        "description": "JSON Schema Draft 2020-12 v2.2.1 compatible with the frozen Runtime Gate Decision Contract v2.2.0. Validates GateEvaluationRequest discriminated union, GateDecision, and GateEvaluationError shapes, including validator validation_report presence."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-gate-decision-contract",
+          "canonical_document": "references/runtime-gate-decision-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "assets/schemas/runtime-action-policy-v1.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-action-policy-schema-v1.0.0",
+        "governance_kind": "schema",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime action policy contract structural validation",
+        "applies_to": ["runner", "architect", "validator"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["runtime-action-policy-schema"],
+        "status": "superseded",
+        "description": "JSON Schema Draft 2020-12 encoding the frozen Runtime Action Policy Contract v1.0.0. Validates the eight canonical public types, the RuntimeActionRequest discriminated union over the eight action kinds (stop_stage, stop_run, retry, resume, more_evidence, redesign, human_intervention, terminate), and the embedded GateDecision v2.2.0 snapshot, enforcing closed objects, closed enums, integer/boolean separation, role-conditional retry fields, and architect/human-only resume/redesign/human_intervention/terminate authorization. Superseded by assets/schemas/runtime-action-policy-v2.schema.json (Runtime Action Policy Contract v2.0.0)."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-action-policy-contract",
+          "canonical_document": "references/runtime-action-policy-contract.md"
+        },
+        {
+          "topic": "runtime-gate-decision-contract",
+          "canonical_document": "references/runtime-gate-decision-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "assets/schemas/runtime-action-policy-v2.schema.json",
+      "metadata": {
+        "document_id": "railyard-runtime-action-policy-schema-v2.0.0",
+        "governance_kind": "schema",
+        "version": "2.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "runtime action policy contract v2.0.0 structural validation",
+        "applies_to": ["runner", "architect", "validator"],
+        "overrideability": "non_overridable",
+        "canonical_for": ["runtime-action-policy-schema"],
+        "status": "active",
+        "description": "JSON Schema Draft 2020-12 encoding the frozen Runtime Action Policy Contract v2.0.0. Validates the eight canonical public types, the RuntimeActionRequest discriminated union over the eight action kinds (stop_stage, stop_run, retry, resume, more_evidence, redesign, human_intervention, terminate), and the bounded GateSnapshotBinding referencing the external GateDecision v2.2.0 snapshot, enforcing closed objects, closed enums, integer/boolean separation, role- and source-conditional branch fields, and architect/human-only resume/redesign/human_intervention/terminate authorization."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": [
+        {
+          "topic": "runtime-action-policy-contract",
+          "canonical_document": "references/runtime-action-policy-contract.md"
+        },
+        {
+          "topic": "runtime-gate-decision-contract",
+          "canonical_document": "references/runtime-gate-decision-contract.md"
+        }
+      ]
+    },
+    {
+      "path": "references/governance-read-routing.json",
+      "metadata": {
+        "document_id": "railyard-governance-read-routing-json-v1.0.0",
+        "governance_kind": "registry",
+        "version": "1.0.0",
+        "authority_level": "canonical",
+        "owner": "architect",
+        "scope": "declarative governance read-routing profiles and conditions",
+        "applies_to": ["all-roles"],
+        "overrideability": "stricter_only",
+        "canonical_for": ["governance-read-routing"],
+        "status": "active",
+        "description": "Declarative registry of minimum canonical reads per role, conditional routing rules, and fail-closed ref resolution."
+      },
+      "mixed_sections": [],
+      "disposition": "remain_in_place",
+      "canonical_links": []
+    }
+  ],
+  "exclusions": [
+    {
+      "pattern": "references/roadmap.md",
+      "reason": "Gitignored; future planning, not release governance"
+    },
+    {
+      "pattern": "examples/",
+      "reason": "Test fixtures and examples; not normative governance"
+    },
+    {
+      "pattern": "scripts/",
+      "reason": "Executable code; not declarative governance documents"
+    },
+    {
+      "pattern": "dist/",
+      "reason": "Build/distribution artifacts; derived, not source governance"
+    },
+    {
+      "pattern": "agents/",
+      "reason": "Secondary agent config; covered by skeleton profiles"
+    },
+    {
+      "pattern": ".workflow/",
+      "reason": "Local workflow state; not public release governance"
+    },
+    {
+      "pattern": "CHANGELOG.md",
+      "reason": "Release history; informational, not normative governance"
+    },
+    {
+      "pattern": "LICENSE",
+      "reason": "Legal document; outside governance taxonomy scope"
+    },
+    {
+      "pattern": ".gitignore",
+      "reason": "Tool configuration; not governance document"
+    }
+  ],
+  "build": {
+    "generated_at": "2026-07-31T00:00:00Z",
+    "distributions": {
+      "protocol": 4,
+      "policy": 8,
+      "contract": 18,
+      "schema": 11,
+      "registry": 4,
+      "guide": 9,
+      "total": 54
+    }
+  }
+}

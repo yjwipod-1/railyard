@@ -1,0 +1,1003 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://railyard/schemas/runtime-evidence-export-v1.schema.json",
+  "title": "Runtime Evidence Export Envelope",
+  "description": "JSON Schema for the complete-run export envelope defined by references/runtime-evidence-export-contract.md v1.1.0. Validates a self-contained, digest-bound export of one runtime run as independently verifiable evidence. This schema validates structural and pattern constraints only; it does not verify cryptographic signatures or digests. Production HMAC secrets and private keys MUST NOT appear in a schema-valid export. Receipt verification material is resolved by the verifier through out-of-band trust configuration keyed by key_id per references/runtime-evidence-export-contract.md Sec.4.10.",
+  "type": "object",
+  "required": [
+    "export_version",
+    "export_id",
+    "exported_at",
+    "run_id",
+    "source_stream_head",
+    "events",
+    "receipts",
+    "projection",
+    "visibility",
+    "visibility_basis",
+    "provenance",
+    "export_content_digest"
+  ],
+  "properties": {
+    "export_version": {
+      "type": "string",
+      "const": "1.1.0"
+    },
+    "export_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^export-[0-9a-f-]+$"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_stream_head": {
+      "type": "object",
+      "required": ["event_order", "content_digest"],
+      "properties": {
+        "event_order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/RuntimeEvent"
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Receipt"
+      }
+    },
+    "projection": {
+      "$ref": "#/$defs/RunProjection"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "project", "restricted"]
+    },
+    "visibility_basis": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/VisibilityBasisEntry"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["origin_artifact", "governing_contracts"],
+      "properties": {
+        "origin_artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "governing_contracts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "export_content_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RunProjection"
+      }
+    },
+    "checkpoints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Checkpoint"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["artifact_id", "artifact_kind"],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_version": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        },
+        "locator": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        },
+        "digest": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        }
+      },
+      "additionalProperties": false
+    },
+    "VisibilityContributor": {
+      "type": "object",
+      "description": "A VisibilityContributor as defined by runtime-artifact-visibility-contract v1.0.0 Sec.1.2.",
+      "required": [
+        "contributor_id",
+        "contributor_kind",
+        "contributor_ref",
+        "asserted_visibility",
+        "authority",
+        "classification_evidence"
+      ],
+      "properties": {
+        "contributor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contributor_kind": {
+          "type": "string",
+          "enum": ["source_artifact", "governing_contract", "project_policy", "trigger_provenance"]
+        },
+        "contributor_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "asserted_visibility": {
+          "type": "string",
+          "enum": ["public", "project", "restricted"]
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 1
+        },
+        "classification_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "VisibilityResolution": {
+      "type": "object",
+      "description": "A VisibilityResolution as defined by runtime-artifact-visibility-contract v1.0.0 Sec.1.3.",
+      "required": [
+        "resolution_id",
+        "resolved_at",
+        "contributors",
+        "resolution_rule",
+        "resolved_visibility",
+        "resolution_audit"
+      ],
+      "properties": {
+        "resolution_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "contributors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/VisibilityContributor"
+          }
+        },
+        "resolution_rule": {
+          "type": "string",
+          "const": "most_restrictive"
+        },
+        "resolved_visibility": {
+          "type": "string",
+          "enum": ["public", "project", "restricted"]
+        },
+        "resolution_audit": {
+          "type": "object",
+          "required": [
+            "contributor_count",
+            "restricted_count",
+            "project_count",
+            "public_count",
+            "applied_rule"
+          ],
+          "properties": {
+            "contributor_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "restricted_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "project_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "public_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "applied_rule": {
+              "type": "string",
+              "const": "most_restrictive"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeArtifact": {
+      "type": "object",
+      "description": "A RuntimeArtifact as defined by runtime-artifact-visibility-contract v1.0.0 Sec.1.1.",
+      "required": [
+        "artifact_ref",
+        "origin_run",
+        "produced_by",
+        "source_artifacts",
+        "visibility",
+        "visibility_resolution"
+      ],
+      "properties": {
+        "artifact_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "origin_run": {
+          "type": "string",
+          "minLength": 1
+        },
+        "origin_stage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "produced_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["public", "project", "restricted"]
+        },
+        "visibility_resolution": {
+          "$ref": "#/$defs/VisibilityResolution"
+        }
+      },
+      "additionalProperties": false
+    },
+    "VisibilityBasisEntry": {
+      "type": "object",
+      "required": ["contributor_kind", "contributor", "asserted_visibility", "rationale"],
+      "properties": {
+        "contributor_kind": {
+          "type": "string",
+          "enum": ["contained_artifact", "governing_contract", "project_policy", "trigger_provenance"]
+        },
+        "contributor": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "asserted_visibility": {
+          "type": "string",
+          "enum": ["public", "project", "restricted"]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "RuntimeEvent": {
+      "type": "object",
+      "description": "A stored RuntimeEvent per runtime-state-contract v0.9.0 Sec.2.3. Contains every AppendRequest field plus store-assigned fields. Exactly one of causation_id or causation_chain is required.",
+      "required": [
+        "event_id",
+        "event_type",
+        "event_order",
+        "occurred_at",
+        "run_id",
+        "schema_version",
+        "actor_role",
+        "trigger_artifact",
+        "payload",
+        "reason",
+        "recommended_action",
+        "expected_stream_head",
+        "client_event_id",
+        "prev_event_digest",
+        "prior_state",
+        "next_state",
+        "content_digest"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "run.created",
+            "run.started",
+            "run.stage.started",
+            "run.stage.completed",
+            "run.stage.failed",
+            "run.stage.skipped",
+            "run.gate.evaluated",
+            "run.gate.blocked",
+            "run.gate.overridden",
+            "run.retry.initiated",
+            "run.resumed",
+            "run.redesign",
+            "run.intervention",
+            "run.terminated",
+            "run.completed",
+            "run.failed",
+            "run.blocked",
+            "run.interrupted"
+          ]
+        },
+        "event_order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_version": {
+          "type": "string",
+          "const": "0.9.0"
+        },
+        "actor_role": {
+          "type": "string",
+          "enum": ["runner", "architect", "validator", "planner", "human"]
+        },
+        "actor_identity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trigger_artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "payload": {
+          "type": "object"
+        },
+        "prior_state": {
+          "type": "object"
+        },
+        "next_state": {
+          "type": "object"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommended_action": {
+          "type": "string",
+          "enum": ["none", "retry", "resume", "intervention_required", "more_evidence", "escalate"]
+        },
+        "causation_id": {
+          "type": "string"
+        },
+        "causation_chain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected_stream_head": {
+          "type": "object",
+          "required": ["event_order", "content_digest"],
+          "properties": {
+            "event_order": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "content_digest": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "client_event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prev_event_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "oneOf": [
+        {
+          "required": ["causation_id"],
+          "not": {
+            "required": ["causation_chain"]
+          }
+        },
+        {
+          "required": ["causation_chain"],
+          "not": {
+            "required": ["causation_id"]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "Receipt": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "event_order",
+        "stored_content_digest",
+        "new_stream_head",
+        "signed_receipt"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "stored_content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "new_stream_head": {
+          "type": "object",
+          "required": ["event_order", "content_digest"],
+          "properties": {
+            "event_order": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "content_digest": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "signed_receipt": {
+          "type": "object",
+          "required": ["algorithm", "key_id", "signed_payload", "signature"],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "signed_payload": {
+              "type": "object",
+              "required": ["run_id", "event_order", "content_digest"],
+              "properties": {
+                "run_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "event_order": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "content_digest": {
+                  "type": "string",
+                  "pattern": "^sha256:[a-f0-9]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RunProjection": {
+      "type": "object",
+      "description": "A RunProjection reconstructed from replay of all exported events per runtime-state-contract v0.9.0 Sec.9.",
+      "required": [
+        "run_id",
+        "status",
+        "stage_graph",
+        "visibility_context",
+        "runtime_artifacts",
+        "artifact_refs",
+        "resolved_run_visibility",
+        "stage_states",
+        "gate_decisions",
+        "event_count",
+        "projection_digest",
+        "event_range",
+        "projection_id",
+        "derived_at"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "active", "completed", "failed", "blocked", "interrupted"]
+        },
+        "trigger": {
+          "type": "string",
+          "enum": ["ticket", "ci_pipeline", "external_pipeline", "local_script", "api"]
+        },
+        "executor_identity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "run_provenance": {
+          "type": "object",
+          "required": ["origin_artifact", "governing_contracts"],
+          "properties": {
+            "origin_artifact": {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            "governing_contracts": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/ArtifactRef"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "stage_graph": {
+          "type": "object",
+          "required": ["graph_id", "stages", "edges", "entry_stages", "terminal_stages"],
+          "properties": {
+            "graph_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "stages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["stage_id", "name", "required", "status"],
+                "properties": {
+                  "stage_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["pending", "active", "completed", "failed", "skipped"]
+                  },
+                  "started_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "completed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "failed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "gates": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/Gate"
+                    }
+                  },
+                  "artifacts_produced": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/ArtifactRef"
+                    }
+                  },
+                  "gate_decisions": {
+                    "type": "object"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "edges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["from", "to"],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "to": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "condition": {
+                    "type": "string",
+                    "enum": ["always", "on_pass", "on_fail", "on_skip"]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "entry_stages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "terminal_stages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "visibility_context": {
+          "type": "object",
+          "description": "The immutable visibility context from run.created payload, per runtime-artifact-visibility-contract v1.0.0 Sec.2.1.",
+          "required": [
+            "trigger_visibility",
+            "policy_contributors",
+            "contract_contributors",
+            "run_visibility_resolution",
+            "resolved_run_visibility"
+          ],
+          "properties": {
+            "trigger_visibility": {
+              "$ref": "#/$defs/VisibilityContributor"
+            },
+            "policy_contributors": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/VisibilityContributor"
+              }
+            },
+            "contract_contributors": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/VisibilityContributor"
+              }
+            },
+            "run_visibility_resolution": {
+              "$ref": "#/$defs/VisibilityResolution"
+            },
+            "resolved_run_visibility": {
+              "type": "string",
+              "enum": ["public", "project", "restricted"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "runtime_artifacts": {
+          "type": "array",
+          "description": "Ordered array of full RuntimeArtifact objects produced during the run.",
+          "items": {
+            "$ref": "#/$defs/RuntimeArtifact"
+          }
+        },
+        "artifact_refs": {
+          "type": "array",
+          "description": "Derived identity-only ArtifactRef values from runtime_artifacts.",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "resolved_run_visibility": {
+          "type": "string",
+          "enum": ["public", "project", "restricted"]
+        },
+        "lineage": {
+          "type": "object",
+          "required": [
+            "parent_run_id",
+            "lineage_kind",
+            "lineage_reason",
+            "parent_status",
+            "parent_boundary_event_id",
+            "parent_boundary_event_type",
+            "parent_boundary_event_order"
+          ],
+          "properties": {
+            "parent_run_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lineage_kind": {
+              "type": "string",
+              "enum": ["retry", "resume", "more_evidence", "redesign"]
+            },
+            "lineage_reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parent_status": {
+              "type": "string",
+              "enum": ["pending", "active", "completed", "failed", "blocked", "interrupted"]
+            },
+            "parent_boundary_event_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parent_boundary_event_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parent_boundary_event_order": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "stage_states": {
+          "type": "object"
+        },
+        "gate_decisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GateDecision"
+          }
+        },
+        "gate_decision_history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GateDecision"
+          }
+        },
+        "event_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "latest_event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "latest_event_order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "latest_event_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_range": {
+          "type": "object",
+          "required": ["first_order", "last_order"],
+          "properties": {
+            "first_order": {
+              "type": "integer",
+              "const": 1
+            },
+            "last_order": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "first_event_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "last_event_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "projection_type": {
+          "type": "string",
+          "const": "full_replay"
+        },
+        "projection_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "projection_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "derived_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "final_projection_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "declared_total_event_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "interventions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Gate": {
+      "type": "object",
+      "required": ["gate_id", "gate_type", "required", "failure_behavior"],
+      "properties": {
+        "gate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gate_type": {
+          "type": "string",
+          "enum": ["validator", "artifact_shape", "diff_review", "custom"]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "contract_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "failure_behavior": {
+          "type": "string",
+          "enum": ["halt_stage", "halt_run", "warn", "require_intervention"]
+        },
+        "allow_gate_override": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GateDecision": {
+      "type": "object",
+      "required": [
+        "decision_id",
+        "gate_id",
+        "outcome",
+        "execution_mode",
+        "evidence",
+        "evaluated_at",
+        "evaluated_by"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "enum": ["pass", "fail", "blocked", "inconclusive", "human_review_required"]
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": ["full", "degraded_transport", "degraded_storage"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evaluated_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "degradation_note": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        },
+        "reevaluates_decision_id": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Checkpoint": {
+      "type": "object",
+      "required": ["stage_id", "event_order", "event_id", "artifacts", "content_digest"],
+      "properties": {
+        "stage_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

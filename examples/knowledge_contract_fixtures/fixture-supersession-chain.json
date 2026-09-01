@@ -1,0 +1,86 @@
+{
+  "fixture_id": "knowledge-lifecycle-supersession",
+  "description": "Supersession is represented only by an append-only lifecycle event and deterministic projection.",
+  "expected_outcome": "pass",
+  "artifact_inventory": [
+    {"artifact_id": "supersession-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+    {"artifact_id": "original-ticket", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "replacement-ticket", "artifact_kind": "ticket", "artifact_version": "2.0.0"},
+    {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"},
+    {"artifact_id": "supersession-report", "artifact_kind": "validation_report", "artifact_version": "2.0.0"}
+  ],
+  "entries": [
+    {
+      "entry_id": "supersession-domain",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "public",
+      "title": "Supersession domain",
+      "description": "A public-safe root for a lifecycle supersession example.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "supersession-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "original-ticket", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "supersession-report", "artifact_kind": "validation_report", "artifact_version": "2.0.0"}],
+      "relationships": []
+    },
+    {
+      "entry_id": "original-capability",
+      "entry_type": "technical_fact",
+      "level": "capability",
+      "visibility": "public",
+      "title": "Original capability",
+      "description": "The original accepted content remains immutable after supersession.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "supersession-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "original-ticket", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "supersession-report", "artifact_kind": "validation_report", "artifact_version": "2.0.0"}],
+      "relationships": [{"target_kind": "knowledge_entry", "target_entry_id": "supersession-domain", "relationship": "part_of"}]
+    },
+    {
+      "entry_id": "replacement-capability",
+      "entry_type": "technical_fact",
+      "level": "capability",
+      "visibility": "project",
+      "title": "Replacement capability",
+      "description": "A separately accepted replacement carries its own provenance and visibility.",
+      "version": "2.0.0",
+      "valid_from": "0.8.1",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "supersession-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "replacement-ticket", "artifact_kind": "ticket", "artifact_version": "2.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "supersession-report", "artifact_kind": "validation_report", "artifact_version": "2.0.0"}],
+      "relationships": [{"target_kind": "knowledge_entry", "target_entry_id": "supersession-domain", "relationship": "part_of"}]
+    }
+  ],
+  "lifecycle_events": [
+    {
+      "event_id": "knowledge-event-superseded",
+      "event_type": "knowledge.superseded",
+      "schema_version": "0.8.0",
+      "occurred_at": "2026-01-15T09:30:00Z",
+      "event_order": 1,
+      "causation_chain": [],
+      "actor_role": "knowledge_curator",
+      "trigger_artifact": {"artifact_id": "replacement-ticket", "artifact_kind": "ticket", "artifact_version": "2.0.0"},
+      "affected_entry_ids": ["original-capability"],
+      "prior_state": {"confidence": "high", "review_required": false, "superseded": false, "archived": false, "invalidated": false},
+      "next_state": {"confidence": "high", "review_required": false, "superseded": true, "superseded_by_entry_id": "replacement-capability", "archived": false, "invalidated": false},
+      "reason": "A separately accepted replacement supersedes the original entry.",
+      "propagation_chain": [],
+      "recommended_action": "supersede"
+    }
+  ]
+}

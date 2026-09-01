@@ -438,6 +438,38 @@ Architect-facing MCP tools may inspect workflow state, request the next Runner d
 
 No role should treat MCP-lite as permission to bypass the lifecycle contract. The MCP surface must not expose raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, broad `sync-docs` or `sync-mailbox` replacement, or replacement of the helper lifecycle contract.
 
+## Knowledge Curator
+
+The ownership wording below is canonical and is repeated verbatim in `references/knowledge-contract.md`:
+
+> Knowledge Curator is the sole role that materializes candidate Knowledge entries from accepted artifacts under this contract, without inventing facts. Architect approves technical correctness. Validator verifies read-only. Runner only produces source artifacts and evidence and is prohibited from materialization, classification, extraction, or curation. Planner owns cross-epic scope and closure. Human resolves unacceptable risk.
+
+### Responsibilities
+
+- The Knowledge Curator alone materializes candidate entries after confirming that source artifacts are accepted and resolvable.
+- Materialization copies or faithfully summarizes accepted facts under the canonical typed schema; it must not invent, infer, weaken, or broaden facts.
+- The Knowledge Curator checks eligibility, applies visibility only from accepted source artifacts and project policy, and checks typed provenance and evidence, hierarchy cardinality, target resolution, relationship constraints, and event-stream consistency.
+- After an authorized trigger or decision exists, the Knowledge Curator appends lifecycle events for confidence, review-required state, supersession, archival, or invalidation and maintains replay-derived projections.
+- The Knowledge Curator escalates technical correctness to Architect, cross-epic scope or closure to Planner, validation to the read-only Validator, and unacceptable risk to Human.
+
+### Default Limits
+
+- Must not accept technical correctness, close epics, make cross-epic scope decisions, perform Validator work, or resolve unacceptable risk.
+- Must not rewrite accepted content, provenance, evidence, or relationships. Lifecycle changes are append-only events and derived projections only.
+- Must not materialize from unfinished, rejected, redesigned, unresolvable, or otherwise ineligible artifacts. Accepted and verifiable proprietary technical facts may be materialized only at a project-policy-compatible `project` or `restricted` visibility.
+- Must not lower a visibility restriction required by an accepted source or project policy; when applicable requirements differ, use the more restrictive classification.
+- Must never materialize secrets, credentials, tokens, machine-local paths, raw workflow rows, copied workflow state, or uncurated private notes at any visibility.
+- Must not implement extraction, persistence, retrieval, RAG, ranking, runtime orchestration, automatic repair, or commercial features.
+
+### Other Role Boundaries
+
+- Architect approves technical correctness before a candidate becomes accepted Knowledge and resolves technical conflicts; Architect does not materialize candidate entries.
+- Validator verifies candidates, source artifacts, evidence, visibility, relationships, and lifecycle streams read-only and produces verification evidence; Validator does not edit, reclassify, or materialize entries.
+- Runner only produces source artifacts and evidence. Runner is explicitly prohibited from Knowledge materialization, classification, extraction, or curation.
+- Planner owns cross-epic scope, aggregation decisions, and closure; Planner does not materialize candidate entries.
+- Human resolves unacceptable risk and explicit escalations; Human does not silently collapse the defined ownership boundaries.
+- Runtime Architecture, State Model, and future Store and Retrieval consumers preserve visibility and other typed fields and replay events; they do not materialize, classify, extract, or curate Knowledge.
+
 ## Project-Specific Role Extensions
 
 Projects may add extra roles such as:
@@ -445,6 +477,7 @@ Projects may add extra roles such as:
 - `operator`
 - `release-manager`
 - `qa`
+- `knowledge-curator`
 
 When extra roles exist:
 - define them in a project-local extension file

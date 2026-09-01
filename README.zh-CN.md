@@ -4,6 +4,8 @@
 
 Railyard 是一套给 AI agent 项目用的工作流脚手架。你告诉 Planner 要做什么，Architect 拆成 ticket 分给 Runner 跑，跑完回到 Architect 审，审完回到 Planner 汇总。所有任务状态落在 SQLite 里，不靠聊天记录续命。
 
+本地 v0.8 功能已实现且可确定性验证：运行时状态 reducer、journal、projection、sidecar、evidence export、运行时 adapter、Gate Decision、Action Policy、带 dispatch 和 publish bridge 的 Validator Mesh、staging-manifest authority，以及公开 smoke runner。请参阅下方的“本地 v0.8 验证与发布就绪性”和[smoke 快速上手](examples/runtime_v080_smoke/README.md)。
+
 ## 放在哪里
 
 把 Railyard 代码放到你项目的 `railyard/` 目录下：
@@ -106,6 +108,38 @@ railyard/.workflow/workflow.db
 - **Validator 只读**：Validator 只出报告，不改文件、不改 DB、不做生命周期操作。
 - **状态在 DB 里，不在聊天记录里**：session 关了就关了，下次开新的从 DB 读当前状态继续。
 
+## 本地 v0.8 验证与发布就绪性
+
+从仓库根目录执行这一条本地 v0.8 验证路径。运行时仍只使用标准库；测试和验证路径使用 `requirements-test.txt` 中的两个直接测试依赖。smoke 工作目录必须由调用者提供，并且位于源码 checkout 之外；不要使用源码内的 `.tmp`、`.workflow`、cache 或 evidence 路径。
+
+PowerShell：
+
+```powershell
+$smokeRoot = Join-Path $env:TEMP "Railyard v0.8 smoke"
+python -m pip install -r requirements-test.txt
+python -m compileall -q scripts
+python scripts/validate_artifacts.py --project-root .
+python scripts/test_runtime_v080_ci.py
+python scripts/runtime_v080_regression.py
+python scripts/runtime_v080_smoke.py --tmp-dir $smokeRoot --all run
+```
+
+POSIX shell：
+
+```bash
+smoke_root="${TMPDIR:-/tmp}/railyard v0.8 smoke"
+python -m pip install -r requirements-test.txt
+python -m compileall -q scripts
+python scripts/validate_artifacts.py --project-root .
+python scripts/test_runtime_v080_ci.py
+python scripts/runtime_v080_regression.py
+python scripts/runtime_v080_smoke.py --tmp-dir "$smoke_root" --all run
+```
+
+冻结的 catalog 有 20 个场景。003-011 是 9 个预期的、带类型的非通过 Validator Mesh 结果；另外 11 个覆盖正常、篡改、恢复和可见性路径。正确的全场景 conformance 运行会报告 `total=20`、`passed=20`、`failed=0` 并以 0 退出。带类型的非通过 `final_verdict` 是预期场景数据，不是 smoke 失败。唯一的 smoke CLI 是 `scripts/runtime_v080_smoke.py`；其组件模块是 import API。
+
+仓库已配置 Windows 和 Linux GitHub Actions 来运行这条本地路径。该 hosted CI 配置已在本地验证，但在没有 Human 授权的 staging 和 push 前没有远程执行。Railyard 没有 hosted runtime 或 service、scheduler、proprietary provider 或 model、Knowledge extraction 或 store、vector database、RAG implementation，也没有自动 release、tag、commit 或 push。
+
 ## 继续阅读
 
 以下 reference 是详细的操作契约，需要时按角色查阅：
@@ -119,6 +153,28 @@ railyard/.workflow/workflow.db
 - `references/helper-commands.md` — 全部 helper 脚本命令参考
 - `references/validation-contract.md` — 验证契约体系
 - `references/validator-protocol.md` — Validator dispatch 和报告规范
+- `references/knowledge-contract.md` — Knowledge 契约和知识本体
 - `references/result-format.md` — Runner 结果 JSON 格式
+
+## 治理声明
+
+本 README 为非规范性指南（Guide）。规范性规则可通过以下文件查找：
+
+- [治理文档分类](references/governance-document-taxonomy.md) — 定义文档类型、权威等级及优先级模型。
+- [治理文档清单](references/governance-document-inventory.json) — 所有治理文档的机器可读清单及分类。
+- [治理文档清单](references/governance-document-inventory.md) — JSON 清单的人工可读版本。
+- [治理读路由](references/governance-read-routing.json) — 声明式路由注册表，按角色产出确定性的启动阅读清单。
+
+按角色解析规范性读物：
+
+```powershell
+python scripts/governance_read_router.py --role architect
+```
+
+解析器返回 `status: ready` 并附带排序后的 `normative_reads` 列表，路由配置无效时则返回 `status: blocked`。
+
+Agent 行为的规范性规则请查阅清单中链接的 Protocol、Policy、Contract、Schema、Registry 文档。
+
+---
 
 完整英文文档见 [README.md](README.md)。

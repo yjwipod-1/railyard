@@ -264,6 +264,19 @@ class ValidatorGateRegressionTests(unittest.TestCase):
         self.assertEqual("runner", payload["ticket"]["next_actor"])
         self.assertEqual("runner", payload["spawn"]["role"])
         self.assertEqual("disposable-runner", payload["spawn"]["runner_name"])
+        self.assertEqual("railyard.runner_dispatch.v5", payload["spawn"]["contract"])
+        self.assertIn("governance_route_request", payload["spawn"])
+        self.assertEqual("runner", payload["spawn"]["governance_route_request"]["role"])
+        self.assertIn("governance_route_result", payload["spawn"])
+        self.assertEqual("ready", payload["spawn"]["governance_route_result"]["status"])
+        self.assertIn("normative_reads", payload["spawn"]["governance_route_result"])
+        # Verify 5-file Runner baseline
+        reads = payload["spawn"]["governance_route_result"]["normative_reads"]
+        self.assertIn("SKILL.md", reads)
+        self.assertIn("references/roles.md", reads)
+        self.assertIn("references/startup-sequence.md", reads)
+        self.assertIn("references/ticket-format.md", reads)
+        self.assertIn("references/result-format.md", reads)
         gate = ticket.load_ticket_validator_gate(self.project_root, payload["ticket"], ticket_id)
         self.assertEqual("legacy_missing", gate["state"])
         self.assertIsNone(gate["validator_required"])
@@ -402,6 +415,47 @@ class ValidatorGateRegressionTests(unittest.TestCase):
             validator_report_record=record,
         )
         self.assertEqual("finalised", result["ticket"]["status"])
+
+    def test_governance_typed_flags_affect_dispatch_route(self) -> None:
+        """Runner dispatch with runtime_task should include runtime-architecture in route."""
+        # Write a ticket for ready dispatch
+        ticket_id = "SYSTEM-GOV-001"
+        self.write_ticket(ticket_id, "legacy")
+
+        # Dispatch with runtime_task flag
+        command = [
+            sys.executable, str(SCRIPT_DIR / "architect.py"),
+            "--lane", "system", "--db", str(self.db_path),
+            "--project-root", str(self.project_root),
+            "--runner-name", "gov-runner",
+            "--runtime-task",
+            "dispatch-next-runner",
+        ]
+        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual("ready", payload["status"])
+        route_result = payload["spawn"]["governance_route_result"]
+        self.assertIn("references/runtime-architecture.md", route_result["normative_reads"])
+
+    def test_blocked_governance_route_returns_no_prompt(self) -> None:
+        """Dispatch with malformed contract ref should return blocked status, no prompt."""
+        ticket_id = "SYSTEM-GOV-002"
+        self.write_ticket(ticket_id, "legacy")
+
+        command = [
+            sys.executable, str(SCRIPT_DIR / "architect.py"),
+            "--lane", "system", "--db", str(self.db_path),
+            "--project-root", str(self.project_root),
+            "--runner-name", "gov-blocked",
+            "--contract-ref", "invalid_form=VALUE",
+            "dispatch-next-runner",
+        ]
+        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+        payload = json.loads(completed.stdout)
+        # The spawn should be a blocker, not a prompt
+        self.assertEqual("blocked", payload["spawn"]["status"])
+        self.assertNotIn("prompt", payload["spawn"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,26 @@
+{
+  "fixture_id": "knowledge-scalar-provenance",
+  "description": "An entry that uses a forbidden scalar provenance representation.",
+  "expected_outcome": "fail",
+  "expected_failure_rule": "provenance-shape",
+  "artifact_inventory": [
+    {"artifact_id": "validation-evidence", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}
+  ],
+  "entries": [
+    {
+      "entry_id": "knowledge-scalar-provenance-root",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "public",
+      "title": "Scalar provenance sample",
+      "description": "This neutral sample demonstrates that provenance must be typed.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": "accepted-source",
+      "evidence": [{"artifact_id": "validation-evidence", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": []
+    }
+  ],
+  "lifecycle_events": []
+}

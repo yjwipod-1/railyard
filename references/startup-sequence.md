@@ -68,7 +68,49 @@ migration, and multiple-instance behavior -- is deferred to future architecture
 scope. The current default placement is intentionally preserved until that work
 is complete.
 
-The `.github/agents/` directory contains default Railyard agent profiles for platforms that support VS Code / GitHub Copilot-style custom agents. Platforms that do not read this directory can still use the same profile text as prompt material.
+The `.github/agents/` directory contains default Railyard agent profiles for platforms that support repository-local custom-agent profiles. Platforms that do not read this directory can still use the same profile text as prompt material.
+
+## 1.5. Resolve Startup Reads With Governance Resolver
+
+Every role session resolves its canonical startup reads from the frozen governance read-routing registry. The resolver produces deterministic ordered read lists per role. Prompt text or ticket prose cannot replace resolver output.
+
+### Role examples
+
+```powershell
+python railyard/scripts/governance_read_router.py --role planner
+python railyard/scripts/governance_read_router.py --role architect
+python railyard/scripts/governance_read_router.py --role runner
+python railyard/scripts/governance_read_router.py --role validator
+python railyard/scripts/governance_read_router.py --role knowledge_curator
+```
+
+### Typed flags (caller-declared only)
+
+Flags are explicit caller declarations. They are never inferred from ticket prose, task_type, title, validator_contract_source, or filesystem contents.
+
+```powershell
+python railyard/scripts/governance_read_router.py --role architect --validator-required
+python railyard/scripts/governance_read_router.py --role architect --validation-task
+python railyard/scripts/governance_read_router.py --role architect --validation-task --validation-topic semantic
+python railyard/scripts/governance_read_router.py --role planner --epic-closure
+python railyard/scripts/governance_read_router.py --role architect --governance-task
+python railyard/scripts/governance_read_router.py --role runner --runtime-task
+```
+
+### Explicit refs
+
+```powershell
+python railyard/scripts/governance_read_router.py --role runner --contract-ref path=references/runtime-state-contract.md
+python railyard/scripts/governance_read_router.py --role architect --guide-ref path=references/model.md
+```
+
+### Output behavior
+
+- `normative_reads`: ordered baseline -> matching conditionals (registry order) -> explicit contract refs (caller order), deduplicated first occurrence.
+- `supplemental_guides`: ordered guide refs from caller, always present (may be empty).
+- Paths are repository-relative. When rendering project-facing spawn payloads, prefix with `railyard/`.
+- Unknown, inactive, Guide-as-contract, or malformed refs -> blocked with deterministic reason code and candidates; no heuristic or fuzzy fallback.
+- `overall_verdict=blocked` or configuration errors must stop the session rather than restore a hand-maintained list.
 
 ## 2. Confirm The Schema
 
@@ -103,12 +145,13 @@ Do not start Runner work before the relevant lane Architect has created or appro
 
 ## 4. Runner Protocol Requirements
 
-Before claiming or editing a ticket, every Runner must read the following Railyard protocol files to understand their role, the startup sequence, and the lifecycle:
+Before claiming or editing a ticket, every Runner must resolve their required reads through the governance resolver. The exact ordered list is produced from the frozen governance read-routing registry:
 
-- `railyard/SKILL.md`
-- `railyard/references/roles.md`
-- `railyard/references/startup-sequence.md`
-- `railyard/references/lifecycle.md`
+```powershell
+python railyard/scripts/governance_read_router.py --role runner
+```
+
+This returns the deterministic Runner baseline: SKILL.md, roles.md, startup-sequence.md, ticket-format.md, result-format.md. The Runner reads these files from the Railyard installation (normally `railyard/`). When explicit typed flags are dispatched, conditional reads are appended in registry order and deduplicated by first occurrence.
 
 Failure to read these files before claim or edits is a violation of the Railyard contract. New Runner results should record the actual paths in `protocol_reads`; historical results without `protocol_reads` remain valid.
 
@@ -298,6 +341,17 @@ A ticket with `validator_required: true` must not be accepted based only on
 `scripts/validate_artifacts.py`, Runner verification scripts, or Architect
 self-review. Those checks remain useful evidence, but they do not execute the
 independent Validator role.
+
+### Evidence placement
+
+In split Source/Control operation, Validator reports, reference records, and outbox files are persisted in the Control workspace only. Source must never contain Validator reports or records.
+
+Before `mark-review-result accept`, the Architect verifies:
+1. The Control report exists at the path recorded in the reference record.
+2. The report SHA-256 matches `report_sha256` in the reference record.
+3. No Source copy is relied upon for gate satisfaction.
+
+A Source-only or Source-copied report cannot satisfy the independent Validator gate; only Control evidence with verified hash binding qualifies.
 
 ### Validator dispatch failure boundary
 
@@ -529,13 +583,13 @@ Reference: For the full Validator protocol including input/output schema, verdic
 
 ## 8. Runner Execution
 
-Before claiming or editing a ticket, the Runner reads the required Railyard startup references from the dispatch payload:
+Before claiming or editing a ticket, the Runner resolves canonical reads through the governance resolver:
 
-```text
-railyard/SKILL.md
-railyard/references/roles.md
-railyard/references/startup-sequence.md
+```powershell
+python railyard/scripts/governance_read_router.py --role runner
 ```
+
+The returned `normative_reads` list is authoritative; the Runner reads each file in order from the Railyard installation (normally `railyard/`). When explicit typed flags are dispatched, conditional reads are appended in registry order and deduplicated by first occurrence.
 
 If a project keeps Railyard under another path, the Runner reads the equivalent Railyard files and records the actual paths in `protocol_reads`. If the Runner cannot locate equivalent role/startup references, it stops and reports a blocker rather than guessing the role contract.
 
@@ -598,13 +652,10 @@ In restricted-runner mode, the Runner cannot write Control lifecycle state or Co
 
 ## 9. Architect Review
 
-Before starting or recording review, the Architect reads:
+Before starting or recording review, the Architect resolves canonical reads through the governance resolver:
 
-```text
-railyard/SKILL.md
-railyard/references/roles.md
-railyard/references/startup-sequence.md
-railyard/references/lifecycle.md
+```powershell
+python railyard/scripts/governance_read_router.py --role architect
 ```
 
 Prompt text can add ticket-specific or project-specific review rules, but it does not replace these Railyard protocol reads.
@@ -758,6 +809,10 @@ python railyard/scripts/probe_railyard_mcp_server.py --db .workflow/workflow.db 
 The probe copies the database to a temporary directory, exercises read tools, dispatch, validation tools, and narrow lifecycle write tools, then verifies the live database did not change.
 
 MCP-lite is not a replacement for the helper scripts or the Railyard lifecycle contract. It must not expose raw SQL, force reset, admin mutation, arbitrary source editing, direct ticket Markdown rewrite, or broad `sync-docs` / `sync-mailbox` replacement.
+
+## Knowledge Contract
+
+The v0.8.0 Knowledge Contract (`references/knowledge-contract.md`) defines the public contract for Knowledge entries, eligibility rules, relationship types, provenance, supersession, invalidation hooks, multi-ticket aggregation, and role-based ownership. Architects and Planners should reference this contract when identifying Knowledge-eligible content in accepted tickets and epics.
 
 ## Workflow State Boundary
 

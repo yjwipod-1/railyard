@@ -56,7 +56,7 @@ Use this skill when a project follows a structured operating model with:
 - When dispatching execution, use the current platform's documented execution-capable agent or a project-defined Railyard Runner profile. If no safe execution-capable dispatch path is known, fail fast instead of guessing.
 - Match platform agents by capability, not by name. Runner dispatch requires read, write, execute, scoped file edit, and result JSON capabilities.
 - Do not use read-only or planning platform agents for Runner implementation tickets.
-- Do not treat `.codex/`, `.claude/`, `.cursor/`, `.windsurf/`, or other platform-local configuration as Railyard lifecycle authority.
+- Do not treat platform-local configuration directories as Railyard lifecycle authority.
 - Runner dispatch prompts must require startup reads before claim or edits. New Runner result JSON should include non-empty `protocol_reads` evidence; historical results without it remain valid.
 
 ## Execution Profile
@@ -156,15 +156,21 @@ Future external or runtime-adjacent validation is acknowledged as an extension, 
 
 1. Resolve lane: `Domain` or `System`.
 2. Resolve role: `architect` or `runner`.
+2b. Resolve canonical startup reads:
+    ```powershell
+    python railyard/scripts/governance_read_router.py --role <resolved_role>
+    ```
+    Read `normative_reads` in returned order. `supplemental_guides` are optional.
+    If the resolver is absent, blocked, or configuration-invalid, stop rather than restore a hand-maintained list.
 3. Resolve object type: `Epic` or `Ticket`.
 4. Use the official helper script for that lane and object.
 5. Read the specific inbox or outbox file only after workflow state is known.
 6. Before dispatching new Runner work, list running Runner tickets and recover interrupted no-outbox tickets with `recover-stale`.
 7. If the same intended operation has three same-kind failures for the same ticket, stop and report a blocker.
-8. Architect review reads `SKILL.md`, `references/roles.md`, `references/startup-sequence.md`, and `references/lifecycle.md` before recording review.
+8. Architect review reads `normative_reads` from `governance_read_router.py --role architect` before recording review.
 9. For Runner execution, let the Architect dispatch the next ticket and spawn an execution-capable subagent with the returned prompt when the environment supports subagents and authorization allows it.
 10. Map the returned Runner prompt to the current platform through `references/platform-dispatch.md`; do not require a literal `worker` agent type.
-11. Runner reads the required Railyard role/startup references before claim or edits, then records those paths in `protocol_reads` when available.
+11. Runner resolves `normative_reads` from `governance_read_router.py --role runner` before claim or edits, then records those paths in `protocol_reads` when available.
 12. Runner records the runner outcome through the helper.
 13. Architect inspects the Runner result and validation, then records the review outcome through the helper.
 14. If review rejects a ticket, continue the closed loop by dispatching a Runner again when authorized and under the three-attempt limit; otherwise report a blocker with the exact spawn-ready prompt or dispatch command.
@@ -181,6 +187,17 @@ The optional v0.3 MCP-lite server exists for workflow integration through stdio.
 
 Lane-specific tools must receive an explicit `lane` value. Probes and smoke checks must operate on a copied database and keep temporary files outside `.workflow/` unless a ticket explicitly authorizes a live workflow transition.
 
+## Source/Control Evidence Boundary
+
+In split Source/Control operation:
+
+- **Source repository**: The public governance repository (`railyard/` install). Runner and Validator roles may return JSON-compatible evidence content but must NOT persist reports, records, outbox files, or lifecycle state files under Source.
+- **Control workspace**: The authoritative lifecycle workspace (separate project root). The Architect owns persistence of Validator reports under `evidence/`, hash-bound reference records, and outbox files under `docs/...` using Control vendor helpers exclusively. Direct SQLite writes are prohibited.
+
+Validator report reference record paths are resolved relative to the Control project root. Before recording `mark-review-result accept`, the Architect must verify both the report and record exist in Control and the report SHA-256 matches the record's `report_sha256`. A Source copy of a Validator report never satisfies this gate.
+
+Legacy session evidence in Source may be removed only after confirming durable Control evidence exists with matching SHA bindings for every affected accepted ticket. Control evidence must never be altered during Source cleanup.
+
 ## Recommended Entry Commands
 
 ```powershell
@@ -188,7 +205,35 @@ python railyard/scripts/epic.py --lane domain list-open
 python railyard/scripts/architect.py --lane domain --runner-name domain-runner-1 dispatch-next-runner
 python railyard/scripts/ticket.py --lane domain next --actor runner
 python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-DEMO-001
+python railyard/scripts/governance_read_router.py --role runner
+python railyard/scripts/governance_read_router.py --role architect
 ```
+
+## Public v0.8 Validation And Release Readiness
+
+Run the one supported local v0.8 route from the repository root. The runtime remains stdlib-only; the test and validation route uses the two direct test dependencies in `requirements-test.txt`. Supply a temporary workspace outside Source for the smoke command; never use Source `.tmp`, `.workflow`, cache, or evidence paths.
+
+```powershell
+$smokeRoot = Join-Path $env:TEMP "Railyard v0.8 smoke"
+python -m pip install -r requirements-test.txt
+python -m compileall -q scripts
+python scripts/validate_artifacts.py --project-root .
+python scripts/test_runtime_v080_ci.py
+python scripts/runtime_v080_regression.py
+python scripts/runtime_v080_smoke.py --tmp-dir $smokeRoot --all run
+```
+
+```bash
+smoke_root="${TMPDIR:-/tmp}/railyard v0.8 smoke"
+python -m pip install -r requirements-test.txt
+python -m compileall -q scripts
+python scripts/validate_artifacts.py --project-root .
+python scripts/test_runtime_v080_ci.py
+python scripts/runtime_v080_regression.py
+python scripts/runtime_v080_smoke.py --tmp-dir "$smoke_root" --all run
+```
+
+The frozen catalog contains 20 scenarios: scenarios 003-011 are nine expected typed non-pass Validator Mesh outcomes, while the other 11 cover normal, tamper, recovery, and visibility paths. A conforming run reports `total=20`, `passed=20`, `failed=0`, and exits 0; a typed non-pass `final_verdict` is not a smoke failure. See `examples/runtime_v080_smoke/README.md` for the public quickstart and `references/runtime-v080-smoke-contract.md` for the contract. Windows and Linux GitHub Actions are configured for this route, but hosted execution has not occurred without Human-authorized staging and push. Railyard does not provide a hosted runtime or service, scheduler, proprietary provider or model, Knowledge extraction or store, vector database, RAG implementation, or automatic release, tag, commit, or push.
 
 ## Read Next
 
@@ -207,3 +252,4 @@ python railyard/scripts/ticket.py --lane system show --ticket-id SYSTEM-DEMO-001
 - Validation contract: `references/validation-contract.md`
 - Validation primitive registry: `references/validation-primitive-registry.md`
 - Semantic validation contract: `references/semantic-validation-contract.md`
+- Knowledge Contract: `references/knowledge-contract.md`

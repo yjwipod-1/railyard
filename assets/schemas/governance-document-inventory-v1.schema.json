@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:railyard:schema:governance-document-inventory:v1",
+  "title": "Governance Document Inventory v1",
+  "description": "Machine-readable inventory of all governance documents with their classifications, mixed-section records, dispositions, and canonical links. This is the sole machine-readable governance metadata authority for Railyard. Every in-scope artifact appears in documents; every out-of-scope artifact is covered by an exclusion rule. Documents and exclusions must be disjoint: no document path may appear in exclusions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "inventory_id",
+    "created_at",
+    "schema_version",
+    "documents",
+    "exclusions"
+  ],
+  "properties": {
+    "inventory_id": {
+      "type": "string",
+      "description": "Stable identifier for this inventory instance.",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO 8601 creation timestamp.",
+      "format": "date-time"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of the inventory schema used.",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "description": "Version of this inventory schema.",
+      "minLength": 1
+    },
+    "authority_rule": {
+      "type": "string",
+      "description": "Declares the authority relationship between this inventory and embedded frontmatter in individual documents."
+    },
+    "documents": {
+      "type": "array",
+      "description": "Inventory entries for every in-scope governance document.",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "metadata",
+          "mixed_sections",
+          "disposition",
+          "canonical_links"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative repository path to the governance document. Must start without ./ and use forward slashes.",
+            "pattern": "^[a-zA-Z0-9_\\-/]+\\.[a-zA-Z0-9]+$"
+          },
+          "metadata": {
+            "$ref": "governance-document-metadata-v1.schema.json",
+            "description": "Governance metadata conforming to the governance-document-metadata-v1 schema."
+          },
+          "mixed_sections": {
+            "type": "array",
+            "description": "Sections within this document that belong to a different governance kind than the document's primary kind.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "heading",
+                "secondary_kind",
+                "canonical_target"
+              ],
+              "properties": {
+                "heading": {
+                  "type": "string",
+                  "description": "The heading text that introduces the mixed section.",
+                  "minLength": 1
+                },
+                "secondary_kind": {
+                  "type": "string",
+                  "description": "The governance kind of this section, which differs from the document's primary kind.",
+                  "enum": [
+                    "protocol",
+                    "policy",
+                    "contract",
+                    "schema",
+                    "registry",
+                    "guide"
+                  ]
+                },
+                "canonical_target": {
+                  "type": "string",
+                  "description": "Relative path to the canonical document that owns this section's governance kind."
+                }
+              }
+            }
+          },
+          "disposition": {
+            "type": "string",
+            "description": "How this mixed section or the document as a whole is placed relative to canonical authority.",
+            "enum": [
+              "remain_in_place",
+              "move_to_canonical",
+              "duplicate_in_canonical",
+              "reference_only"
+            ]
+          },
+          "canonical_links": {
+            "type": "array",
+            "description": "Links from this document to canonical authorities for topics it references.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "topic",
+                "canonical_document"
+              ],
+              "properties": {
+                "topic": {
+                  "type": "string",
+                  "description": "The topic for which this link points to the canonical document.",
+                  "minLength": 1
+                },
+                "canonical_document": {
+                  "type": "string",
+                  "description": "Relative path to the canonical document that owns this topic."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Explicitly excluded file patterns with reasons. Every in-scope artifact appears in documents; every out-of-scope artifact is covered by an exclusion rule. Document paths and exclusion patterns must be disjoint.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pattern",
+          "reason"
+        ],
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Glob-like pattern or directory prefix identifying excluded artifacts.",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this pattern is excluded from the governance inventory.",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

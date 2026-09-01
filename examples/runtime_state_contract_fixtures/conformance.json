@@ -1,0 +1,429 @@
+{
+  "contract_version": "0.9.0",
+  "canonical_serialization": {
+    "standard": "RFC 8785 JSON Canonicalization Scheme",
+    "profile": "I-JSON values with integers only; floating-point values are outside this contract",
+    "vectors": [
+      {
+        "name": "empty-object",
+        "value": {},
+        "canonical_utf8": "{}",
+        "sha256": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      {
+        "name": "typed-nested-delimiters",
+        "value": {
+          "array": [null, true, false, 0, -7, 42],
+          "delimiter_string": "a:b,c{}[]",
+          "nested": {
+            "a": [1, {"k": "v"}],
+            "z": null
+          }
+        },
+        "canonical_utf8": "{\"array\":[null,true,false,0,-7,42],\"delimiter_string\":\"a:b,c{}[]\",\"nested\":{\"a\":[1,{\"k\":\"v\"}],\"z\":null}}",
+        "sha256": "sha256:0b8cd4fc84058be18af361dd70b65e9d44e971cd26dede99188690d11323a816"
+      },
+      {
+        "name": "escaping-and-key-order",
+        "value": {
+          "z": "line\nquote\"slash\\",
+          "a": {"b": 2, "a": 1}
+        },
+        "canonical_utf8": "{\"a\":{\"a\":1,\"b\":2},\"z\":\"line\\nquote\\\"slash\\\\\"}",
+        "sha256": "sha256:dbf612d31a596d6c4651103b341aa2c84214ea296d3f5b79197bc14dde18bde7"
+      },
+      {
+        "name": "utf16-key-order-non-bmp-before-bmp-private-use",
+        "value": {
+          "\ue000": "bmp-private-use",
+          "\ud800\udc00": "non-bmp"
+        },
+        "canonical_utf8": "{\"\ud800\udc00\":\"non-bmp\",\"\ue000\":\"bmp-private-use\"}",
+        "sha256": "sha256:188d67278618861de0e2a3dc1f8a3fd25b5a84c186cd332197b2ce466134d180"
+      }
+    ]
+  },
+  "append_protocol": {
+    "zero_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "empty_stream_head": {
+      "event_order": 0,
+      "content_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "append_request": {
+      "required": ["run_id", "event_type", "payload", "actor_role", "actor_identity", "trigger_artifact", "reason", "recommended_action", "expected_stream_head", "client_event_id", "prev_event_digest"],
+      "exactly_one_of": [["causation_id", "causation_chain"]],
+      "expected_stream_head_required": ["event_order", "content_digest"],
+      "allow_extra_fields": false,
+      "client_event_id_scope": "global"
+    },
+    "stored_runtime_event": {
+      "contains_complete_append_request": true,
+      "store_assigned_required": ["event_id", "event_order", "occurred_at", "schema_version", "prior_state", "next_state", "content_digest"],
+      "allow_extra_fields": false,
+      "schema_version": "0.9.0"
+    },
+    "decision_order": [
+      "lookup_global_client_event_id",
+      "return_original_receipt_for_canonical_exact_retry_or_reject_divergent_duplicate",
+      "validate_envelope_shape_needed_to_select_run",
+      "reject_stale_expected_stream_head",
+      "reject_mismatched_prev_event_digest",
+      "validate_complete_request_payload_causation_transition_and_reducer_preconditions",
+      "execute_reducer_before_store",
+      "assign_store_fields_compute_digest_and_atomically_commit_event_idempotency_entry_and_receipt"
+    ],
+    "exact_retry_returns_original_receipt_bytes": true,
+    "divergent_duplicate_across_run_ids": true,
+    "stale_head_rejection": {
+      "required": ["code", "current_stream_head", "last_stored_receipt"],
+      "code": "stale_head",
+      "last_stored_receipt_for_empty_stream": null
+    }
+  },
+  "digest_preimages": {
+    "append_request_equality": {"included": "complete exact-shape AppendRequest", "excluded": [], "operation": "canonical_byte_equality"},
+    "runtime_event": {"included": "complete stored RuntimeEvent including AppendRequest, store fields, prior_state, and next_state", "excluded": ["content_digest"]},
+    "signed_receipt_payload": {"included": ["run_id", "event_order", "content_digest"], "excluded": []},
+    "run_projection": {"included": "every exact-schema field not excluded", "excluded": ["projection_digest", "projection_id", "derived_at"]}
+  },
+  "integrity_threat_model": {
+    "hash_chain_detects": ["accidental_corruption", "mutation_without_digest_recomputation", "event_order_gap", "broken_prev_event_digest_link"],
+    "hash_chain_alone_does_not_prove": ["stream_completeness", "malicious_suffix_rewrite", "malicious_full_chain_rewrite"],
+    "trusted_signed_head_required_for": ["malicious_tail_truncation", "divergent_suffix_replacement", "full_chain_rewriting"],
+    "trusted_head_comparison": ["run_id", "event_order", "content_digest"]
+  },
+  "event_schemas": {
+    "run.created": {"required": ["run_provenance", "trigger", "executor_identity", "run_ordinal", "created_at", "stage_graph", "visibility_context"], "conditional": ["lineage"]},
+    "run.started": {"required": ["started_at", "executor_identity"]},
+    "run.stage.started": {"required": ["stage_id", "started_at", "entry_evidence"]},
+    "run.stage.completed": {"required": ["stage_id", "completed_at", "gate_decisions", "artifacts_produced"]},
+    "run.stage.failed": {"required": ["stage_id", "failed_at", "error", "failure_category", "failure_is_transient", "failure_is_deterministic", "artifacts_produced_before_failure", "retry_eligible"]},
+    "run.stage.skipped": {"required": ["stage_id", "skipped_at", "authorized_by", "reason", "authorizing_intervention_id"]},
+    "run.gate.evaluated": {"required": ["stage_id", "gate_id", "decision_id", "outcome", "execution_mode", "evaluated_at", "evaluated_by", "evidence"], "conditional": ["degradation_note", "reevaluates_decision_id"]},
+    "run.gate.blocked": {"required": ["stage_id", "gate_id", "decision_id", "outcome", "execution_mode", "evaluated_at", "evaluated_by", "evidence", "blocked_reason", "required_evidence"], "conditional": ["degradation_note", "reevaluates_decision_id"]},
+    "run.gate.overridden": {"required": ["stage_id", "gate_id", "new_decision_id", "original_decision_id", "outcome", "execution_mode", "evaluated_at", "evaluated_by", "evidence", "override_reason", "authorized_by", "authorized_at", "authorizing_intervention_id"], "conditional": ["degradation_note"]},
+    "run.retry.initiated": {"required": ["new_run_id", "lineage", "retry_strategy", "current_retry_count", "max_retries", "failure_category", "authorized_by", "authorized_at"], "conditional": ["failure_is_transient", "failure_is_deterministic"]},
+    "run.resumed": {"required": ["new_run_id", "lineage", "checkpoint_event_order", "recovery_action", "authorized_by", "authorized_at"]},
+    "run.redesign": {"required": ["new_run_id", "lineage", "revised_stage_graph", "authorized_by", "authorized_at"]},
+    "run.intervention": {"required": ["intervention_id", "intervention_type", "authorized_by", "reason", "evidence"]},
+    "run.terminated": {"required": ["terminated_at", "terminated_by", "termination_reason", "from_status", "terminal_status"]},
+    "run.completed": {"required": ["completed_at", "terminal_stages_completed", "final_projection_digest", "total_event_count"]},
+    "run.failed": {"required": ["failed_at", "failed_stage_id", "error", "failure_category", "failure_is_transient", "failure_is_deterministic", "retry_eligible"]},
+    "run.blocked": {"required": ["blocked_at", "blocked_reason", "resolution_paths", "required_evidence"]},
+    "run.interrupted": {"required": ["interrupted_at", "last_event_order", "interruption_cause", "checkpoint_available"]}
+  },
+  "reducers": {
+    "run.created": {"allowed_status": null, "next_status": "pending", "reads": ["run_provenance", "trigger", "executor_identity", "run_ordinal", "created_at", "stage_graph", "lineage"], "initializes_visibility": true, "visibility_context_copied": true},
+    "run.started": {"allowed_status": "pending", "next_status": "active", "reads": ["started_at", "executor_identity"]},
+    "run.stage.started": {"allowed_status": "active", "next_status": "active", "reads": ["stage_id", "started_at", "entry_evidence"]},
+    "run.stage.completed": {"allowed_status": "active", "next_status": "active", "reads": ["stage_id", "completed_at", "gate_decisions", "artifacts_produced"], "builds_runtime_artifacts": true, "requires_full_runtime_artifact": true, "no_artifact_normalization": true, "recomputes_resolved_run_visibility": true},
+    "run.stage.failed": {"allowed_status": "active", "next_status": "failed", "reads": ["stage_id", "failed_at", "error", "failure_category", "failure_is_transient", "failure_is_deterministic", "artifacts_produced_before_failure", "retry_eligible"], "builds_runtime_artifacts": true, "requires_full_runtime_artifact": true, "no_artifact_normalization": true, "recomputes_resolved_run_visibility": true},
+    "run.stage.skipped": {"allowed_status": "active", "next_status": "active", "reads": ["stage_id", "skipped_at", "authorized_by", "reason", "authorizing_intervention_id"]},
+    "run.gate.evaluated": {"allowed_status": "active", "next_status": "active", "reads": ["stage_id", "gate_id", "decision_id", "outcome", "execution_mode", "evaluated_at", "evaluated_by", "evidence", "degradation_note", "reevaluates_decision_id"], "reevaluation_policy": "gate_reevaluation"},
+    "run.gate.blocked": {"allowed_status": "active", "next_status": "active", "reads": ["stage_id", "gate_id", "decision_id", "outcome", "execution_mode", "evaluated_at", "evaluated_by", "evidence", "blocked_reason", "required_evidence", "degradation_note", "reevaluates_decision_id"], "reevaluation_policy": "gate_reevaluation"},
+    "run.gate.overridden": {"allowed_status": "active", "next_status": "active", "reads": ["stage_id", "gate_id", "new_decision_id", "original_decision_id", "outcome", "execution_mode", "evaluated_at", "evaluated_by", "evidence", "override_reason", "authorized_by", "authorized_at", "authorizing_intervention_id", "degradation_note"]},
+    "run.retry.initiated": {"allowed_status": "failed", "next_status": "failed", "reads": ["new_run_id", "lineage", "retry_strategy", "current_retry_count", "max_retries", "failure_category", "authorized_by", "authorized_at", "failure_is_transient", "failure_is_deterministic"], "authorization_policy": "auto_retry_policy"},
+    "run.resumed": {"allowed_status": "interrupted", "next_status": "interrupted", "reads": ["new_run_id", "lineage", "checkpoint_event_order", "recovery_action", "authorized_by", "authorized_at"]},
+    "run.redesign": {"allowed_status": ["failed", "blocked"], "next_status": "failed", "reads": ["new_run_id", "lineage", "revised_stage_graph", "authorized_by", "authorized_at"], "effect_policy": "redesign_policy"},
+    "run.intervention": {"allowed_status": ["active", "blocked", "interrupted"], "next_status": "unchanged", "reads": ["intervention_id", "intervention_type", "authorized_by", "reason", "evidence"]},
+    "run.terminated": {"allowed_status": ["pending", "active", "interrupted"], "next_status": "payload.terminal_status", "reads": ["terminated_at", "terminated_by", "termination_reason", "from_status", "terminal_status"]},
+    "run.completed": {"allowed_status": "active", "next_status": "completed", "reads": ["completed_at", "terminal_stages_completed", "final_projection_digest", "total_event_count"]},
+    "run.failed": {"allowed_status": "active", "next_status": "failed", "reads": ["failed_at", "failed_stage_id", "error", "failure_category", "failure_is_transient", "failure_is_deterministic", "retry_eligible"]},
+    "run.blocked": {"allowed_status": "active", "next_status": "blocked", "reads": ["blocked_at", "blocked_reason", "resolution_paths", "required_evidence"]},
+    "run.interrupted": {"allowed_status": "active", "next_status": "interrupted", "reads": ["interrupted_at", "last_event_order", "interruption_cause", "checkpoint_available"]}
+  },
+  "lineage_boundaries": {
+    "retry": {"parent_status": "failed", "parent_boundary_event_type": "run.failed"},
+    "retry_stage_failed": {"lineage_kind": "retry", "parent_status": "failed", "parent_boundary_event_type": "run.stage.failed"},
+    "retry_terminated_failed": {"lineage_kind": "retry", "parent_status": "failed", "parent_boundary_event_type": "run.terminated", "terminal_status": "failed"},
+    "resume": {"parent_status": "interrupted", "parent_boundary_event_type": "run.interrupted"},
+    "more_evidence": {"parent_status": "blocked", "parent_boundary_event_type": "run.blocked"},
+    "more_evidence_terminated_blocked": {"lineage_kind": "more_evidence", "parent_status": "blocked", "parent_boundary_event_type": "run.terminated", "terminal_status": "blocked"},
+    "redesign_failed": {"lineage_kind": "redesign", "parent_status": "failed", "parent_boundary_event_type": "run.failed"},
+    "redesign_stage_failed": {"lineage_kind": "redesign", "parent_status": "failed", "parent_boundary_event_type": "run.stage.failed"},
+    "redesign_terminated_failed": {"lineage_kind": "redesign", "parent_status": "failed", "parent_boundary_event_type": "run.terminated", "terminal_status": "failed"},
+    "redesign_blocked": {"lineage_kind": "redesign", "parent_status": "blocked", "parent_boundary_event_type": "run.blocked"},
+    "redesign_terminated_blocked": {"lineage_kind": "redesign", "parent_status": "blocked", "parent_boundary_event_type": "run.terminated", "terminal_status": "blocked"}
+  },
+  "lineage_policy": {
+    "requires_immediate_parent": true,
+    "requires_latest_pre_action_boundary": true,
+    "binds_boundary_fields": ["parent_boundary_event_id", "parent_boundary_event_type", "parent_boundary_event_order"],
+    "terminated_boundary_constraint_field": "terminal_status",
+    "child_genesis_repeats_complete_lineage": true,
+    "interrupted_is_terminal": false
+  },
+  "projection_digest_excludes": ["projection_digest", "projection_id", "derived_at"],
+  "projection_schema": {
+    "required": ["run_id", "status", "created_at", "started_at", "run_provenance", "trigger", "executor_identity", "run_ordinal", "stage_graph", "lineage", "stage_states", "current_stage_id", "artifact_refs", "interventions", "audit_events", "child_actions", "events_count", "visibility_context", "runtime_artifacts", "resolved_run_visibility"],
+    "properties": {
+      "visibility_context": {"type": "object"},
+      "runtime_artifacts": {"type": "array"},
+      "artifact_refs": {"type": "array"},
+      "resolved_run_visibility": {"type": "string", "enum": ["public", "project", "restricted"]}
+    }
+  },
+  "append_receipt": {
+    "required": ["event_id", "event_order", "stored_content_digest", "new_stream_head", "signed_receipt"],
+    "signed_receipt_required": ["algorithm", "key_id", "signed_payload", "signature"],
+    "new_stream_head_required": ["event_order", "content_digest"],
+    "signed_payload_required": ["run_id", "event_order", "content_digest"],
+    "verification_registry": {"HMAC-SHA256": ["conformance-key-1"]}
+  },
+  "receipt_integrity_profile": {
+    "signature_encodings": {"HMAC-SHA256": "lowercase_hex_64"},
+    "verification_bindings": ["caller_expected_run_id", "signed_payload_to_new_stream_head", "top_level_event_order_to_new_stream_head", "stored_content_digest_to_new_stream_head"]
+  },
+  "stage_graph": {
+    "graph_id": "graph-conformance",
+    "stages": [
+      {"stage_id": "build", "name": "Build", "required": true, "status": "pending", "gates": [{"gate_id": "gate-required", "gate_type": "validator", "required": true, "contract_ref": {"artifact_id": "runtime-state-validator-gate-contract", "artifact_kind": "contract", "artifact_version": "0.9.0", "locator": "references/runtime-state-contract.md#8-required-stage-and-required-gate-invariants"}, "failure_behavior": "halt_run"}]},
+      {"stage_id": "publish", "name": "Publish", "required": false, "status": "pending", "gates": []}
+    ],
+    "edges": [{"from": "build", "to": "publish", "condition": "on_pass"}],
+    "entry_stages": ["build"],
+    "terminal_stages": ["publish"]
+  },
+  "stage_graph_validation": {
+    "exact_top_level_fields": ["graph_id", "stages", "edges", "entry_stages", "terminal_stages"],
+    "requires_unique_stage_ids": true,
+    "requires_resolved_edge_entry_terminal_ids": true,
+    "requires_acyclic_graph": true,
+    "genesis_stage_status": "pending",
+    "validator_gate_requires_typed_contract_ref": true
+  },
+  "auto_retry_policy": {
+    "authorized_by": "system",
+    "required_retry_strategy": "full",
+    "required_failure_category": "command_failed",
+    "required_true_fields": ["failure_is_transient", "failure_is_deterministic"],
+    "parent_projection_match_fields": ["failure_category", "failure_is_transient", "failure_is_deterministic"],
+    "retry_count_rule": "current_retry_count < max_retries <= 3"
+  },
+  "redesign_policy": {
+    "allowed_parent_statuses": ["failed", "blocked"],
+    "resulting_parent_status": "failed",
+    "termination_time_field": "authorized_at",
+    "termination_reason_field": "lineage.lineage_reason",
+    "child_stage_graph_field": "revised_stage_graph"
+  },
+  "gate_reevaluation": {
+    "event_types": ["run.gate.evaluated", "run.gate.blocked"],
+    "prior_decision_reference_field": "reevaluates_decision_id",
+    "reference_must_equal_current_decision": true,
+    "requires_new_decision_id": true,
+    "requires_new_evidence": true,
+    "new_evidence_rule": "at least one typed ArtifactRef absent from the referenced decision",
+    "preserves_immutable_history": true,
+    "updates_current_decision_pointer": true,
+    "required_pass_requires_non_empty_evidence": true
+  },
+  "run_provenance": {
+    "origin_artifact": {"artifact_id": "request-public-001", "artifact_kind": "request_artifact"},
+    "governing_contracts": [{"artifact_id": "runtime-architecture", "artifact_kind": "contract", "artifact_version": "0.8.0"}],
+    "additional_sources": []
+  },
+  "visibility": {
+    "contract_version": "0.9.0",
+    "resolution_rule": "most_restrictive",
+    "cases": [
+      {
+        "case_id": "visibility-public-single",
+        "description": "Single public artifact from public source resolves to public.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-01", "contributor_kind": "source_artifact", "asserted_visibility": "public"}
+        ],
+        "expected_resolved": "public",
+        "expected_audit": {"restricted_count": 0, "project_count": 0, "public_count": 1}
+      },
+      {
+        "case_id": "visibility-project-single",
+        "description": "Single project artifact from project source resolves to project.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-02", "contributor_kind": "source_artifact", "asserted_visibility": "project"}
+        ],
+        "expected_resolved": "project",
+        "expected_audit": {"restricted_count": 0, "project_count": 1, "public_count": 0}
+      },
+      {
+        "case_id": "visibility-restricted-single",
+        "description": "Single restricted artifact from restricted source resolves to restricted.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-03", "contributor_kind": "source_artifact", "asserted_visibility": "restricted"}
+        ],
+        "expected_resolved": "restricted",
+        "expected_audit": {"restricted_count": 1, "project_count": 0, "public_count": 0}
+      },
+      {
+        "case_id": "visibility-aggregate-most-restrictive",
+        "description": "Artifact aggregating public + project + restricted resolves to restricted.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-04", "contributor_kind": "source_artifact", "asserted_visibility": "public"},
+          {"contributor_id": "fixture-contrib-05", "contributor_kind": "source_artifact", "asserted_visibility": "project"},
+          {"contributor_id": "fixture-contrib-06", "contributor_kind": "governing_contract", "asserted_visibility": "restricted"}
+        ],
+        "expected_resolved": "restricted",
+        "expected_audit": {"restricted_count": 1, "project_count": 1, "public_count": 1}
+      },
+      {
+        "case_id": "visibility-missing-evidence-rejected",
+        "description": "Contributor with empty evidence is rejected.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-07", "contributor_kind": "source_artifact", "asserted_visibility": "public", "evidence_empty": true}
+        ],
+        "expected_rejected": true,
+        "expected_failure": "visibility_no_evidence"
+      },
+      {
+        "case_id": "visibility-conflicting-contributor-rejected",
+        "description": "Duplicate contributor_ids with different asserted visibility are rejected.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-08", "contributor_kind": "source_artifact", "asserted_visibility": "public"},
+          {"contributor_id": "fixture-contrib-08", "contributor_kind": "source_artifact", "asserted_visibility": "project"}
+        ],
+        "expected_rejected": true,
+        "expected_failure": "visibility_contributor_conflict"
+      },
+      {
+        "case_id": "visibility-downgrade-rejected",
+        "description": "Envelope visibility less restrictive than resolved basis is rejected.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-09", "contributor_kind": "project_policy", "asserted_visibility": "project"}
+        ],
+        "envelope_visibility": "public",
+        "expected_resolved": "project",
+        "expected_rejected": true,
+        "expected_failure": "visibility_downgrade"
+      },
+      {
+        "case_id": "visibility-invalid-value-rejected",
+        "description": "Contributor with invalid asserted_visibility value 'secret' is rejected.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-10", "contributor_kind": "source_artifact", "asserted_visibility": "secret"}
+        ],
+        "expected_rejected": true,
+        "expected_failure": "visibility_invalid_value"
+      },
+      {
+        "case_id": "visibility-omitted-restricted-rejected",
+        "description": "A restricted contributor was omitted from the resolution set: the resolved visibility would be project but the full set includes restricted.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-11", "contributor_kind": "source_artifact", "asserted_visibility": "project"},
+          {"contributor_id": "fixture-contrib-12", "contributor_kind": "governing_contract", "asserted_visibility": "restricted", "omitted": true}
+        ],
+        "expected_resolved": "restricted",
+        "expected_audit": {"restricted_count": 1, "project_count": 1, "public_count": 0}
+      },
+      {
+        "case_id": "visibility-context-without-artifacts",
+        "description": "Run with visibility_context but no produced artifacts: context records trigger/policy/contract inputs.",
+        "contributors": [],
+        "visibility_context": {
+          "trigger_visibility": "project",
+          "policy_contributors": [
+            {"contributor_kind": "project_policy", "asserted_visibility": "project"}
+          ],
+          "contract_contributors": [
+            {"contributor_kind": "governing_contract", "asserted_visibility": "public"}
+          ]
+        },
+        "expected_resolved": "project",
+        "expected_audit": {"restricted_count": 0, "project_count": 2, "public_count": 1}
+      },
+      {
+        "case_id": "visibility-run-public-to-project",
+        "description": "Run starts public via visibility_context, artifact is project -> resolved_run_visibility tightens to project.",
+        "contributors": [],
+        "visibility_context": {
+          "trigger_visibility": "public",
+          "policy_contributors": [
+            {"contributor_kind": "project_policy", "asserted_visibility": "public"}
+          ],
+          "contract_contributors": [
+            {"contributor_kind": "governing_contract", "asserted_visibility": "public"}
+          ]
+        },
+        "artifact_visibilities": ["project"],
+        "expected_resolved": "project",
+        "expected_run_visibility": "project"
+      },
+      {
+        "case_id": "visibility-multiple-artifacts",
+        "description": "Two artifacts at public and restricted -> resolved is restricted (most restrictive).",
+        "contributors": [],
+        "visibility_context": {
+          "trigger_visibility": "public",
+          "policy_contributors": [
+            {"contributor_kind": "project_policy", "asserted_visibility": "public"}
+          ],
+          "contract_contributors": [
+            {"contributor_kind": "governing_contract", "asserted_visibility": "public"}
+          ]
+        },
+        "artifact_visibilities": ["public", "restricted"],
+        "expected_resolved": "restricted",
+        "expected_run_visibility": "restricted"
+      },
+      {
+        "case_id": "visibility-failed-stage-partial",
+        "description": "Stage fails with partial artifacts at project visibility, resolved_run_visibility tightens from public to project.",
+        "contributors": [],
+        "visibility_context": {
+          "trigger_visibility": "public",
+          "policy_contributors": [
+            {"contributor_kind": "project_policy", "asserted_visibility": "public"}
+          ],
+          "contract_contributors": [
+            {"contributor_kind": "governing_contract", "asserted_visibility": "public"}
+          ]
+        },
+        "artifact_visibilities": ["project"],
+        "stage_failed": true,
+        "expected_resolved": "project",
+        "expected_run_visibility": "project"
+      },
+      {
+        "case_id": "visibility-source-contributor-omission",
+        "description": "Artifact source_artifact ref doesn't appear in resolution contributors -> rejected.",
+        "contributors": [],
+        "expected_rejected": true,
+        "expected_failure": "source_contributor_omission"
+      },
+      {
+        "case_id": "visibility-origin-mismatch",
+        "description": "Artifact origin_run != run_id -> rejected.",
+        "contributors": [],
+        "expected_rejected": true,
+        "expected_failure": "origin_mismatch"
+      },
+      {
+        "case_id": "visibility-malformed-audit",
+        "description": "resolution_audit counts don't match actual contributor distribution -> rejected.",
+        "contributors": [
+          {"contributor_id": "fixture-contrib-malformed", "contributor_kind": "source_artifact", "asserted_visibility": "restricted"}
+        ],
+        "expected_resolved": "restricted",
+        "expected_audit": {"restricted_count": 2, "project_count": 0, "public_count": 0},
+        "expected_rejected": true,
+        "expected_failure": "malformed_audit"
+      },
+      {
+        "case_id": "visibility-replay-stable-digest",
+        "description": "Same events replayed produce identical projection digest including visibility fields.",
+        "contributors": [],
+        "visibility_context": {
+          "trigger_visibility": "public",
+          "policy_contributors": [
+            {"contributor_kind": "project_policy", "asserted_visibility": "public"}
+          ],
+          "contract_contributors": [
+            {"contributor_kind": "governing_contract", "asserted_visibility": "public"}
+          ]
+        },
+        "artifact_visibilities": ["public"],
+        "expected_resolved": "public",
+        "expected_replay_stable": true
+      }
+    ]
+  }
+}

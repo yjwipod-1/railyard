@@ -218,6 +218,8 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
             "railyard/SKILL.md",
             "railyard/references/roles.md",
             "railyard/references/startup-sequence.md",
+            "railyard/references/ticket-format.md",
+            "railyard/references/result-format.md",
         ],
         "confidence": "medium",
         "evidence": [],
@@ -437,7 +439,7 @@ async def run_probe(
         dispatch = await call_tool(server, "dispatch_next_runner", {"lane": "system", "runner_name": "probe-runner"})
         require(dispatch["status"] == "ready", "dispatch_next_runner did not return ready")
         require(dispatch["ticket"]["ticket_id"] == PROBE_TICKET_ID, "dispatch_next_runner returned wrong ticket")
-        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v4", "dispatch_next_runner returned wrong dispatch contract")
+        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v5", "dispatch_next_runner returned wrong dispatch contract")
         require(dispatch["spawn"]["agent_type"] is None, "dispatch_next_runner must not hardcode platform agent_type")
         require(dispatch["spawn"]["fallback_profile"] == "railyard-runner", "dispatch_next_runner omitted fallback profile")
         require(
@@ -459,11 +461,17 @@ async def run_probe(
         require(dispatch["spawn"]["runner_name"] == "probe-runner", "dispatch_next_runner omitted runner_name")
         startup_reads = dispatch["spawn"].get("required_startup_reads")
         require(isinstance(startup_reads, list) and startup_reads, "dispatch_next_runner omitted required_startup_reads")
+        require("railyard/SKILL.md" in startup_reads, "dispatch_next_runner omitted SKILL.md startup read")
         require("railyard/references/roles.md" in startup_reads, "dispatch_next_runner omitted roles.md startup read")
-        require(
-            "railyard/references/startup-sequence.md" in startup_reads,
-            "dispatch_next_runner omitted startup-sequence.md startup read",
-        )
+        require("railyard/references/startup-sequence.md" in startup_reads, "dispatch_next_runner omitted startup-sequence.md startup read")
+        require("railyard/references/ticket-format.md" in startup_reads, "dispatch_next_runner omitted ticket-format.md startup read")
+        require("railyard/references/result-format.md" in startup_reads, "dispatch_next_runner omitted result-format.md startup read")
+        route_request = dispatch["spawn"].get("governance_route_request")
+        require(isinstance(route_request, dict) and route_request.get("role") == "runner",
+               "dispatch_next_runner spawn missing governance_route_request")
+        route_result = dispatch["spawn"].get("governance_route_result")
+        require(isinstance(route_result, dict) and route_result.get("status") == "ready",
+               "dispatch_next_runner spawn missing or non-ready governance_route_result")
         prompt = dispatch["spawn"].get("prompt")
         require(isinstance(prompt, str) and "Before claiming or editing anything" in prompt, "runner prompt omitted startup read gate")
         require("protocol_reads" in prompt, "runner prompt omitted protocol_reads result evidence")
@@ -500,6 +508,8 @@ async def run_probe(
                 "railyard/SKILL.md",
                 "railyard/references/roles.md",
                 "railyard/references/startup-sequence.md",
+                "railyard/references/ticket-format.md",
+                "railyard/references/result-format.md",
             ],
             "confidence": "medium",
             "evidence": [],
@@ -539,6 +549,8 @@ async def run_probe(
                             "railyard/SKILL.md",
                             "railyard/references/roles.md",
                             "railyard/references/startup-sequence.md",
+                            "railyard/references/ticket-format.md",
+                            "railyard/references/result-format.md",
                         ],
                         "confidence": "medium",
                         "evidence": [],

@@ -8,6 +8,13 @@ import re
 import sys
 from typing import Any
 
+# Ensure scripts directory is importable for direct execution
+_scripts_dir = pathlib.Path(__file__).resolve().parent
+if str(_scripts_dir.parent) not in sys.path:
+    sys.path.insert(0, str(_scripts_dir.parent))
+
+from scripts.governance_read_router import validate_governance_configuration, GovernanceRoutingConfigurationError
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -101,6 +108,57 @@ SEMANTIC_SCOPE_FIELD_BY_CLAIM_TYPE = {
     "completeness": "completeness_scope",
     "plausibility": "plausibility_rules",
 }
+# Frozen Knowledge Contract fixture fields (v0.8.0)
+KNOWLEDGE_ENTRY_COMMON_FIELDS = {
+    "entry_id", "entry_type", "level", "visibility", "title", "description",
+    "version", "valid_from", "immutable", "provenance", "evidence", "relationships",
+}
+KNOWLEDGE_ENTRY_OPTIONAL_FIELDS = {"evidence_notes"}
+KNOWLEDGE_CONSTRAINT_EXTRA_FIELDS = {"constraint_kind", "scope"}
+KNOWLEDGE_PROVENANCE_REQUIRED_FIELDS = {
+    "origin_epic", "source_tickets", "governing_contract",
+}
+KNOWLEDGE_PROVENANCE_OPTIONAL_FIELDS = {"additional_sources"}
+ARTIFACT_REF_REQUIRED_FIELDS = {"artifact_id", "artifact_kind"}
+ARTIFACT_REF_OPTIONAL_FIELDS = {"artifact_version", "locator", "digest"}
+VALID_KNOWLEDGE_LEVELS = {"domain", "capability", "feature", "behavior"}
+VALID_KNOWLEDGE_ENTRY_TYPES = {"technical_fact", "constraint"}
+VALID_KNOWLEDGE_CONSTRAINT_KINDS = {"invariant", "guard", "rule"}
+VALID_KNOWLEDGE_VISIBILITIES = {"public", "project", "restricted"}
+VALID_KNOWLEDGE_RELATIONSHIPS = {
+    "part_of", "depends_on", "constrained_by", "implemented_by",
+    "verified_by", "introduced_by",
+}
+KNOWLEDGE_RELATIONSHIP_FIELDS = {
+    "target_kind", "relationship", "scope_note", "target_entry_id", "target_artifact",
+}
+VALID_KNOWLEDGE_EVENT_TYPES = {
+    "knowledge.confidence_changed", "knowledge.review_required",
+    "knowledge.superseded", "knowledge.archived", "knowledge.invalidated",
+}
+VALID_KNOWLEDGE_ACTOR_ROLES = {
+    "knowledge_curator", "architect", "validator", "planner", "human",
+}
+VALID_KNOWLEDGE_ACTIONS = {
+    "none", "review", "supersede", "archive", "restore", "human_decision",
+}
+KNOWLEDGE_EVENT_REQUIRED_FIELDS = {
+    "event_id", "event_type", "schema_version", "occurred_at", "event_order",
+    "actor_role", "trigger_artifact", "affected_entry_ids", "prior_state",
+    "next_state", "reason", "propagation_chain", "recommended_action",
+}
+KNOWLEDGE_EVENT_CAUSATION_FIELDS = {"causation_id", "causation_chain"}
+KNOWLEDGE_STATE_REQUIRED_FIELDS = {
+    "confidence", "review_required", "superseded", "archived", "invalidated",
+}
+KNOWLEDGE_STATE_OPTIONAL_FIELDS = {"superseded_by_entry_id"}
+VALID_KNOWLEDGE_CONFIDENCE = {"high", "medium", "low"}
+LEGACY_KNOWLEDGE_ENTRY_FIELDS = {
+    "confidence", "functionality_relationships", "supersedes", "superseded_by", "valid_until",
+}
+VALID_KNOWLEDGE_FIXTURE_OUTCOMES = {"pass", "fail"}
+# Level rank for hierarchy checks
+_KNOWLEDGE_LEVEL_RANK = {"domain": 1, "capability": 2, "feature": 3, "behavior": 4}
 PUBLIC_TEXT_ROOT_FILES = {"README.md", "README.zh-CN.md", "CHANGELOG.md", "SKILL.md"}
 LOCALIZED_PUBLIC_TEXT_FILES = {"README.zh-CN.md"}
 PUBLIC_TEXT_FORBIDDEN_SUBSTRINGS = {
@@ -721,6 +779,572 @@ def validate_example_validator_report_func(data: dict[str, Any]) -> None:
                 )
 
 
+def validate_knowledge_fixture(data: dict[str, Any], fixture_path: pathlib.Path) -> None:
+    """Validate a self-contained fixture against the frozen Knowledge Contract."""
+    if not isinstance(data, dict):
+        raise ValidationError("knowledge fixture must be an object")
+    for field in ("fixture_id", "description"):
+        if not isinstance(data.get(field), str) or not data[field].strip():
+            raise ValidationError(f"{field} must be a non-empty string")
+    expected_outcome = data.get("expected_outcome")
+    if not isinstance(expected_outcome, str) or expected_outcome not in VALID_KNOWLEDGE_FIXTURE_OUTCOMES:
+        raise ValidationError(
+            f"expected_outcome must be one of {sorted(VALID_KNOWLEDGE_FIXTURE_OUTCOMES)}, got {expected_outcome!r}"
+        )
+    expected_rule = data.get("expected_failure_rule")
+    if expected_outcome == "fail" and (not isinstance(expected_rule, str) or not expected_rule.strip()):
+        raise ValidationError("expected_outcome=fail requires a non-empty expected_failure_rule")
+    if expected_outcome == "pass" and "expected_failure_rule" in data:
+        raise ValidationError("expected_outcome=pass forbids expected_failure_rule")
+
+    entry_list = data.get("entries")
+    if not isinstance(entry_list, list) or not entry_list:
+        raise ValidationError("entries must be a non-empty array")
+    events = data.get("lifecycle_events")
+    if not isinstance(events, list):
+        raise ValidationError("lifecycle_events must be an array")
+    inventory = data.get("artifact_inventory")
+    if not isinstance(inventory, list) or not inventory:
+        raise ValidationError("artifact_inventory must be a non-empty array")
+
+    observed_rules: list[str] = []
+    artifact_identities: set[tuple[str, str, str | None]] = set()
+    for index, artifact in enumerate(inventory):
+        observed_rules.extend(_check_artifact_ref(artifact, f"artifact_inventory[{index}]"))
+        identity = _artifact_identity(artifact)
+        if identity is not None:
+            if identity in artifact_identities:
+                observed_rules.append("duplicate-artifact-identity")
+            artifact_identities.add(identity)
+
+    entry_ids = [
+        entry.get("entry_id") for entry in entry_list
+        if isinstance(entry, dict) and isinstance(entry.get("entry_id"), str) and entry["entry_id"].strip()
+    ]
+    corpus_entry_ids = set(entry_ids)
+    if len(entry_ids) != len(corpus_entry_ids):
+        observed_rules.append("duplicate-entry-identity")
+
+    for idx, entry in enumerate(entry_list):
+        observed_rules.extend(
+            _check_knowledge_entry(entry, idx, corpus_entry_ids, inventory)
+        )
+    observed_rules.extend(_check_cross_entry_semantics(entry_list))
+    observed_rules.extend(
+        _check_knowledge_lifecycle(events, corpus_entry_ids, inventory)
+    )
+
+    seen: set[str] = set()
+    unique_rules = [rule for rule in observed_rules if not (rule in seen or seen.add(rule))]
+    if expected_outcome == "pass":
+        if unique_rules:
+            raise ValidationError(
+                f"expected_outcome=pass but observed rules: {', '.join(unique_rules)}"
+            )
+    elif unique_rules != [expected_rule]:
+        raise ValidationError(
+            f"expected_failure_rule={expected_rule!r}; observed rules: "
+            f"{', '.join(unique_rules) if unique_rules else '(none)'}"
+        )
+
+
+def _artifact_identity(value: Any) -> tuple[str, str, str | None] | None:
+    if not isinstance(value, dict):
+        return None
+    artifact_id = value.get("artifact_id")
+    artifact_kind = value.get("artifact_kind")
+    version = value.get("artifact_version")
+    if not isinstance(artifact_id, str) or not artifact_id.strip():
+        return None
+    if not isinstance(artifact_kind, str) or not artifact_kind.strip():
+        return None
+    if version is not None and (not isinstance(version, str) or not version.strip()):
+        return None
+    return artifact_kind, artifact_id, version
+
+
+def _check_artifact_ref(value: Any, path: str) -> list[str]:
+    del path
+    if not isinstance(value, dict):
+        return ["artifact-ref-shape"]
+    allowed = ARTIFACT_REF_REQUIRED_FIELDS | ARTIFACT_REF_OPTIONAL_FIELDS
+    if set(value) - allowed or missing_fields(value, ARTIFACT_REF_REQUIRED_FIELDS):
+        return ["artifact-ref-shape"]
+    for field in allowed & set(value):
+        if not isinstance(value[field], str) or not value[field].strip():
+            return ["artifact-ref-shape"]
+    locator = value.get("locator")
+    if isinstance(locator, str) and (
+        LOCAL_PATH_PATTERN.search(locator) or locator.startswith(("/", "\\"))
+    ):
+        return ["artifact-ref-portability"]
+    digest = value.get("digest")
+    if isinstance(digest, str) and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]*:[A-Fa-f0-9]+", digest):
+        return ["artifact-ref-digest"]
+    return []
+
+
+def _check_resolved_artifact_ref(
+    value: Any,
+    path: str,
+    artifact_inventory: list[Any],
+) -> list[str]:
+    rules = _check_artifact_ref(value, path)
+    identity = _artifact_identity(value)
+    if not rules and identity is not None:
+        kind, artifact_id, version = identity
+        candidates = [
+            candidate for candidate in artifact_inventory
+            if (candidate_identity := _artifact_identity(candidate)) is not None
+            and candidate_identity[0] == kind and candidate_identity[1] == artifact_id
+            and (version is None or candidate_identity[2] == version)
+        ]
+        if len(candidates) != 1:
+            rules.append("artifact-ref-resolution")
+        else:
+            for supplement in ("locator", "digest"):
+                if supplement in value and supplement in candidates[0] and value[supplement] != candidates[0][supplement]:
+                    rules.append("artifact-ref-supplement-mismatch")
+                    break
+    return rules
+
+
+def _check_knowledge_entry(
+    entry: dict[str, Any],
+    index: int,
+    corpus_entry_ids: set[str],
+    artifact_inventory: list[Any],
+) -> list[str]:
+    """Return contract rule IDs violated by one accepted entry."""
+    prefix = f"entries[{index}]"
+    rules: list[str] = []
+    if not isinstance(entry, dict):
+        return ["entry-shape"]
+    legacy = set(entry) & LEGACY_KNOWLEDGE_ENTRY_FIELDS
+    if legacy:
+        rules.append("legacy-entry-field")
+    entry_type = entry.get("entry_type")
+    allowed = KNOWLEDGE_ENTRY_COMMON_FIELDS | KNOWLEDGE_ENTRY_OPTIONAL_FIELDS
+    if entry_type == "constraint":
+        allowed |= KNOWLEDGE_CONSTRAINT_EXTRA_FIELDS
+    if set(entry) - allowed - LEGACY_KNOWLEDGE_ENTRY_FIELDS:
+        rules.append("entry-noncanonical-field")
+    missing = missing_fields(entry, KNOWLEDGE_ENTRY_COMMON_FIELDS)
+    if missing:
+        for field in missing:
+            rules.append("visibility-required" if field == "visibility" else f"required-field-{field}")
+    if not isinstance(entry_type, str) or entry_type not in VALID_KNOWLEDGE_ENTRY_TYPES:
+        rules.append("entry-type-enum")
+    level = entry.get("level")
+    if not isinstance(level, str) or level not in VALID_KNOWLEDGE_LEVELS:
+        rules.append("level-enum")
+    visibility = entry.get("visibility")
+    if not isinstance(visibility, str) or visibility not in VALID_KNOWLEDGE_VISIBILITIES:
+        rules.append("visibility-enum")
+    for field in ("entry_id", "title", "description", "version", "valid_from"):
+        if field in entry and (not isinstance(entry[field], str) or not entry[field].strip()):
+            rules.append(f"required-field-{field}")
+    if isinstance(entry.get("valid_from"), str) and entry["valid_from"].strip() and not _is_valid_from(entry["valid_from"]):
+        rules.append("valid-from-format")
+    if not isinstance(entry.get("immutable"), bool):
+        rules.append("immutable-type")
+    notes = entry.get("evidence_notes")
+    if notes is not None and (
+        not isinstance(notes, list)
+        or not all(isinstance(note, str) and note.strip() for note in notes)
+    ):
+        rules.append("evidence-notes-shape")
+
+    evidence = entry.get("evidence")
+    if not isinstance(evidence, list) or not evidence:
+        rules.append("evidence-required")
+    else:
+        evidence_ids: list[tuple[str, str, str | None]] = []
+        for evidx, ref in enumerate(evidence):
+            rules.extend(_check_resolved_artifact_ref(ref, f"{prefix}.evidence[{evidx}]", artifact_inventory))
+            identity = _artifact_identity(ref)
+            if identity is not None:
+                evidence_ids.append(identity)
+        if len(evidence_ids) != len(set(evidence_ids)):
+            rules.append("duplicate-artifact-reference")
+
+    if entry_type == "constraint":
+        if missing_fields(entry, KNOWLEDGE_CONSTRAINT_EXTRA_FIELDS):
+            rules.append("constraint-required-fields")
+        constraint_kind = entry.get("constraint_kind")
+        if not isinstance(constraint_kind, str) or constraint_kind not in VALID_KNOWLEDGE_CONSTRAINT_KINDS:
+            rules.append("constraint-kind-enum")
+        if "scope" in entry and (not isinstance(entry["scope"], str) or not entry["scope"].strip()):
+            rules.append("constraint-required-fields")
+
+    provenance = entry.get("provenance")
+    if not isinstance(provenance, dict):
+        rules.append("provenance-shape")
+    else:
+        allowed_prov = KNOWLEDGE_PROVENANCE_REQUIRED_FIELDS | KNOWLEDGE_PROVENANCE_OPTIONAL_FIELDS
+        if set(provenance) - allowed_prov:
+            rules.append("provenance-noncanonical-field")
+        if missing_fields(provenance, KNOWLEDGE_PROVENANCE_REQUIRED_FIELDS):
+            rules.append("provenance-required-fields")
+        origin = provenance.get("origin_epic")
+        rules.extend(_check_resolved_artifact_ref(origin, f"{prefix}.provenance.origin_epic", artifact_inventory))
+        if isinstance(origin, dict) and origin.get("artifact_kind") != "epic":
+            rules.append("provenance-artifact-kind")
+        governing = provenance.get("governing_contract")
+        rules.extend(_check_resolved_artifact_ref(governing, f"{prefix}.provenance.governing_contract", artifact_inventory))
+        if isinstance(governing, dict) and (
+            not isinstance(governing.get("artifact_kind"), str)
+            or governing.get("artifact_kind") not in {"contract", "reference"}
+        ):
+            rules.append("provenance-artifact-kind")
+        for field, required, kinds in (
+            ("source_tickets", True, {"ticket"}),
+            ("additional_sources", False, None),
+        ):
+            refs = provenance.get(field)
+            if refs is None and not required:
+                continue
+            if not isinstance(refs, list) or (required and not refs):
+                rules.append("provenance-source-array")
+                continue
+            identities: list[tuple[str, str, str | None]] = []
+            for refidx, ref in enumerate(refs):
+                rules.extend(_check_resolved_artifact_ref(ref, f"{prefix}.provenance.{field}[{refidx}]", artifact_inventory))
+                if kinds and isinstance(ref, dict) and (
+                    not isinstance(ref.get("artifact_kind"), str) or ref.get("artifact_kind") not in kinds
+                ):
+                    rules.append("provenance-artifact-kind")
+                identity = _artifact_identity(ref)
+                if identity is not None:
+                    identities.append(identity)
+            if len(identities) != len(set(identities)):
+                rules.append("duplicate-artifact-reference")
+
+    relationships = entry.get("relationships")
+    if not isinstance(relationships, list):
+        rules.append("relationships-shape")
+    else:
+        for ridx, rel in enumerate(relationships):
+            if not isinstance(rel, dict):
+                rules.append("relationship-shape")
+                continue
+            if set(rel) - KNOWLEDGE_RELATIONSHIP_FIELDS:
+                rules.append("relationship-shape")
+            if "scope_note" in rel and (
+                not isinstance(rel["scope_note"], str) or not rel["scope_note"].strip()
+            ):
+                rules.append("relationship-shape")
+            target_kind = rel.get("target_kind")
+            relationship = rel.get("relationship")
+            if target_kind not in ("knowledge_entry", "runtime_artifact"):
+                rules.append("relationship-target-kind")
+                continue
+            if not isinstance(relationship, str) or relationship not in VALID_KNOWLEDGE_RELATIONSHIPS:
+                rules.append("relationship-type-enum")
+                continue
+            if target_kind == "knowledge_entry":
+                target_id = rel.get("target_entry_id")
+                if "target_artifact" in rel or not isinstance(target_id, str) or not target_id.strip():
+                    rules.append("relationship-branch-collision")
+                elif target_id not in corpus_entry_ids:
+                    rules.append("relationship-target-resolution")
+                elif target_id == entry.get("entry_id"):
+                    rules.append("relationship-self-target")
+            else:
+                target_artifact = rel.get("target_artifact")
+                if "target_entry_id" in rel or target_artifact is None:
+                    rules.append("relationship-branch-collision")
+                else:
+                    rules.extend(_check_resolved_artifact_ref(target_artifact, f"{prefix}.relationships[{ridx}].target_artifact", artifact_inventory))
+            if relationship in {"part_of", "depends_on", "constrained_by"} and target_kind != "knowledge_entry":
+                rules.append("relationship-target-constraint")
+            if relationship in {"implemented_by", "verified_by", "introduced_by"} and target_kind != "runtime_artifact":
+                rules.append("relationship-target-constraint")
+            if target_kind == "runtime_artifact" and isinstance(rel.get("target_artifact"), dict):
+                kind = rel["target_artifact"].get("artifact_kind")
+                allowed_kinds = {
+                    "implemented_by": {"ticket", "script", "reference"},
+                    "verified_by": {"validation_report"},
+                    "introduced_by": {"epic", "ticket"},
+                }.get(relationship)
+                if allowed_kinds is not None and (not isinstance(kind, str) or kind not in allowed_kinds):
+                    rules.append("relationship-artifact-kind")
+    return rules
+
+
+def _check_cross_entry_semantics(
+    entry_list: list[dict[str, Any]],
+) -> list[str]:
+    """Check relationship target typing, hierarchy cardinality, roots, and cycles."""
+    rules: list[str] = []
+    entries_by_id = {
+        entry["entry_id"]: entry for entry in entry_list
+        if isinstance(entry, dict) and isinstance(entry.get("entry_id"), str)
+    }
+    part_graph: dict[str, list[str]] = {}
+    depends_graph: dict[str, list[str]] = {}
+    for entry in entry_list:
+        if not isinstance(entry, dict):
+            continue
+        source_id = entry.get("entry_id", "")
+        source_level = entry.get("level")
+        rels = entry.get("relationships", [])
+        if not isinstance(rels, list):
+            continue
+        parents: list[str] = []
+        for rel in rels:
+            if isinstance(rel, dict) and rel.get("target_kind") == "knowledge_entry":
+                target_id = rel.get("target_entry_id")
+                target = entries_by_id.get(target_id) if isinstance(target_id, str) else None
+                if rel.get("relationship") == "part_of" and isinstance(target_id, str):
+                    parents.append(target_id)
+                    part_graph.setdefault(source_id, []).append(target_id)
+                    target_level = target.get("level") if target else None
+                    if isinstance(source_level, str) and isinstance(target_level, str) and source_level in _KNOWLEDGE_LEVEL_RANK and target_level in _KNOWLEDGE_LEVEL_RANK:
+                        if _KNOWLEDGE_LEVEL_RANK[target_level] != _KNOWLEDGE_LEVEL_RANK[source_level] - 1:
+                            rules.append("hierarchy-adjacency")
+                if rel.get("relationship") == "depends_on" and isinstance(target_id, str):
+                    depends_graph.setdefault(source_id, []).append(target_id)
+                if rel.get("relationship") == "constrained_by" and target is not None:
+                    if target.get("entry_type") != "constraint":
+                        rules.append("constrained-by-target-type")
+        if source_level == "domain" and parents:
+            rules.append("hierarchy-root-parent")
+        elif isinstance(source_level, str) and source_level in {"capability", "feature", "behavior"} and len(parents) != 1:
+            rules.append("hierarchy-parent-cardinality")
+    if _has_cycle(part_graph):
+        rules.append("part-of-cycle")
+    if _has_cycle(depends_graph):
+        rules.append("depends-on-cycle")
+    for source_id in entries_by_id:
+        if not _part_of_terminates_at_domain(source_id, part_graph, entries_by_id):
+            rules.append("hierarchy-root-resolution")
+    return rules
+
+
+def _part_of_terminates_at_domain(
+    source_id: str,
+    graph: dict[str, list[str]],
+    entries_by_id: dict[str, dict[str, Any]],
+) -> bool:
+    seen: set[str] = set()
+    current = source_id
+    while current not in seen:
+        seen.add(current)
+        entry = entries_by_id.get(current)
+        if entry is None:
+            return False
+        parents = graph.get(current, [])
+        if entry.get("level") == "domain":
+            return not parents
+        if len(parents) != 1:
+            return False
+        current = parents[0]
+    return False
+
+
+def _check_knowledge_state(state: Any, corpus_entry_ids: set[str]) -> list[str]:
+    if not isinstance(state, dict):
+        return ["lifecycle-state-shape"]
+    allowed = KNOWLEDGE_STATE_REQUIRED_FIELDS | KNOWLEDGE_STATE_OPTIONAL_FIELDS
+    if set(state) - allowed or missing_fields(state, KNOWLEDGE_STATE_REQUIRED_FIELDS):
+        return ["lifecycle-state-shape"]
+    rules: list[str] = []
+    confidence = state.get("confidence")
+    if not isinstance(confidence, str) or confidence not in VALID_KNOWLEDGE_CONFIDENCE:
+        rules.append("lifecycle-state-shape")
+    for field in ("review_required", "superseded", "archived", "invalidated"):
+        if not isinstance(state.get(field), bool):
+            rules.append("lifecycle-state-shape")
+    replacement = state.get("superseded_by_entry_id")
+    if state.get("superseded") is True:
+        if not isinstance(replacement, str) or replacement not in corpus_entry_ids:
+            rules.append("lifecycle-supersession-target")
+    elif "superseded_by_entry_id" in state:
+        rules.append("lifecycle-supersession-target")
+    return rules
+
+
+def _is_iso_timestamp(value: Any) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    try:
+        from datetime import datetime
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return "T" in value
+    except ValueError:
+        return False
+
+
+def _is_valid_from(value: str) -> bool:
+    if re.fullmatch(r"v?\d+(?:\.\d+){1,3}(?:[-+][0-9A-Za-z.-]+)?", value):
+        return True
+    try:
+        from datetime import date, datetime
+        if "T" in value:
+            datetime.fromisoformat(value.replace("Z", "+00:00"))
+        else:
+            date.fromisoformat(value)
+        return True
+    except ValueError:
+        return False
+
+
+def _check_knowledge_lifecycle(
+    events: list[Any],
+    corpus_entry_ids: set[str],
+    artifact_inventory: list[Any],
+) -> list[str]:
+    rules: list[str] = []
+    event_ids: list[str] = []
+    orders: list[int] = []
+    parsed_events: list[dict[str, Any]] = []
+    for index, event in enumerate(events):
+        if not isinstance(event, dict):
+            rules.append("lifecycle-event-shape")
+            continue
+        parsed_events.append(event)
+        allowed = KNOWLEDGE_EVENT_REQUIRED_FIELDS | KNOWLEDGE_EVENT_CAUSATION_FIELDS
+        if set(event) - allowed or missing_fields(event, KNOWLEDGE_EVENT_REQUIRED_FIELDS):
+            rules.append("lifecycle-event-shape")
+        for field in ("event_id", "schema_version", "reason"):
+            if not isinstance(event.get(field), str) or not event[field].strip():
+                rules.append("lifecycle-event-shape")
+        event_type = event.get("event_type")
+        if not isinstance(event_type, str) or event_type not in VALID_KNOWLEDGE_EVENT_TYPES:
+            rules.append("lifecycle-event-type")
+        actor_role = event.get("actor_role")
+        if not isinstance(actor_role, str) or actor_role not in VALID_KNOWLEDGE_ACTOR_ROLES:
+            rules.append("lifecycle-actor-role")
+        recommended_action = event.get("recommended_action")
+        if not isinstance(recommended_action, str) or recommended_action not in VALID_KNOWLEDGE_ACTIONS:
+            rules.append("lifecycle-recommended-action")
+        if not _is_iso_timestamp(event.get("occurred_at")):
+            rules.append("lifecycle-occurred-at")
+        order = event.get("event_order")
+        if not isinstance(order, int) or isinstance(order, bool) or order <= 0:
+            rules.append("lifecycle-event-order")
+        else:
+            orders.append(order)
+        event_id = event.get("event_id")
+        if isinstance(event_id, str) and event_id.strip():
+            event_ids.append(event_id)
+        has_id = "causation_id" in event
+        has_chain = "causation_chain" in event
+        if has_id == has_chain:
+            rules.append("lifecycle-causation-xor")
+        affected = event.get("affected_entry_ids")
+        propagation = event.get("propagation_chain")
+        if not isinstance(affected, list) or not affected or not all(
+            isinstance(value, str) and value in corpus_entry_ids for value in affected
+        ) or len(affected) != len(set(affected)):
+            rules.append("lifecycle-affected-entry-resolution")
+        if not isinstance(propagation, list) or not all(
+            isinstance(value, str) and value in corpus_entry_ids for value in propagation
+        ) or len(propagation) != len(set(propagation)):
+            rules.append("lifecycle-propagation-resolution")
+        elif isinstance(affected, list) and set(propagation) & set(affected):
+            rules.append("lifecycle-propagation-resolution")
+        rules.extend(_check_resolved_artifact_ref(event.get("trigger_artifact"), f"lifecycle_events[{index}].trigger_artifact", artifact_inventory))
+        rules.extend(_check_knowledge_state(event.get("prior_state"), corpus_entry_ids))
+        rules.extend(_check_knowledge_state(event.get("next_state"), corpus_entry_ids))
+        if event.get("prior_state") == event.get("next_state"):
+            rules.append("lifecycle-no-state-change")
+        if isinstance(event.get("prior_state"), dict) and isinstance(event.get("next_state"), dict):
+            transition_field = {
+                "knowledge.confidence_changed": "confidence",
+                "knowledge.review_required": "review_required",
+                "knowledge.superseded": "superseded",
+                "knowledge.archived": "archived",
+                "knowledge.invalidated": "invalidated",
+            }.get(event_type) if isinstance(event_type, str) else None
+            if transition_field and event["prior_state"].get(transition_field) == event["next_state"].get(transition_field):
+                rules.append("lifecycle-event-transition")
+
+    if len(event_ids) != len(set(event_ids)):
+        rules.append("duplicate-event-identity")
+    if len(orders) != len(set(orders)) or orders != sorted(orders):
+        rules.append("lifecycle-event-order")
+
+    seen_ids: list[str] = []
+    for index, event in enumerate(parsed_events):
+        if "causation_chain" in event:
+            chain = event.get("causation_chain")
+            if not isinstance(chain, list) or not all(isinstance(value, str) for value in chain):
+                rules.append("lifecycle-causation")
+            elif index == 0 and chain:
+                rules.append("lifecycle-causation")
+            elif index > 0 and (
+                not chain
+                or len(chain) != len(set(chain))
+                or any(value not in seen_ids for value in chain)
+                or [seen_ids.index(value) for value in chain] != sorted(seen_ids.index(value) for value in chain)
+            ):
+                rules.append("lifecycle-causation")
+        elif "causation_id" in event:
+            causation_id = event.get("causation_id")
+            if index == 0 or not isinstance(causation_id, str) or not seen_ids or causation_id != seen_ids[-1]:
+                rules.append("lifecycle-causation")
+        event_id = event.get("event_id")
+        if isinstance(event_id, str):
+            seen_ids.append(event_id)
+
+    def replay() -> tuple[dict[str, dict[str, Any]], dict[str, list[str]], bool]:
+        projection: dict[str, dict[str, Any]] = {}
+        supersession: dict[str, list[str]] = {}
+        consistent = True
+        for event in sorted(
+            parsed_events,
+            key=lambda item: item.get("event_order")
+            if isinstance(item.get("event_order"), int) and not isinstance(item.get("event_order"), bool)
+            else 0,
+        ):
+            affected = event.get("affected_entry_ids")
+            prior = event.get("prior_state")
+            next_state = event.get("next_state")
+            if not isinstance(affected, list) or not isinstance(prior, dict) or not isinstance(next_state, dict):
+                continue
+            for entry_id in affected:
+                if entry_id in projection and projection[entry_id] != prior:
+                    consistent = False
+                projection[entry_id] = dict(next_state)
+                replacement = next_state.get("superseded_by_entry_id")
+                if next_state.get("superseded") is True and isinstance(replacement, str):
+                    supersession.setdefault(entry_id, []).append(replacement)
+        return projection, supersession, consistent
+
+    projection_one, supersession_graph, consistent = replay()
+    projection_two, _, _ = replay()
+    if not consistent or projection_one != projection_two:
+        rules.append("lifecycle-replay-transition")
+    if _has_cycle(supersession_graph):
+        rules.append("lifecycle-supersession-cycle")
+    return rules
+
+
+def _has_cycle(graph: dict[str, list[str]]) -> bool:
+    """Detect if a directed graph has a cycle using DFS."""
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color: dict[str, int] = {}
+
+    def dfs(node: str) -> bool:
+        color[node] = GRAY
+        for neighbor in graph.get(node, []):
+            if color.get(neighbor, WHITE) == GRAY:
+                return True
+            if color.get(neighbor, WHITE) == WHITE:
+                if dfs(neighbor):
+                    return True
+        color[node] = BLACK
+        return False
+
+    for node in graph:
+        if color.get(node, WHITE) == WHITE:
+            if dfs(node):
+                return True
+    return False
+
+
 def validate_primitive_fixture(
     data: dict[str, Any],
     fixture_dir: pathlib.Path,
@@ -1093,6 +1717,14 @@ def collect_artifacts(project_root: pathlib.Path) -> list[tuple[str, pathlib.Pat
                 ("semantic-fixture", path)
                 for path in sorted(semantic_fixture_dir.glob("fixture-semantic-*.json"))
             )
+    # Validate Knowledge Contract calibration fixtures under examples
+    if examples.exists():
+        knowledge_fixture_dir = examples / "knowledge_contract_fixtures"
+        if knowledge_fixture_dir.exists():
+            artifacts.extend(
+                ("knowledge-fixture", path)
+                for path in sorted(knowledge_fixture_dir.glob("fixture-*.json"))
+            )
     # Validate Validator usage example inputs and reports under examples
     if examples.exists():
         for item in sorted(examples.iterdir()):
@@ -1134,6 +1766,10 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         payload = load_json(path)
         validate_semantic_fixture(payload)
 
+    def validate_knowledge_fixture_func(path: pathlib.Path) -> None:
+        payload = load_json(path)
+        validate_knowledge_fixture(payload, path)
+
     validators = {
         "public-text": lambda path: validate_public_text(path, project_root),
         "ticket": validate_ticket,
@@ -1147,6 +1783,7 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         "example-validator-report": validate_example_validator_report,
         "primitive-fixture": validate_primitive_fixture_func,
         "semantic-fixture": validate_semantic_fixture_func,
+        "knowledge-fixture": validate_knowledge_fixture_func,
     }
     checked: list[dict[str, str]] = []
     errors: list[dict[str, str]] = []
@@ -1161,6 +1798,14 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         else:
             checked.append({"kind": kind, "path": relative(path, project_root)})
 
+    governance_config_status = "ok"
+    governance_config_error = None
+    try:
+        validate_governance_configuration(project_root)
+    except GovernanceRoutingConfigurationError as exc:
+        governance_config_status = "failed"
+        governance_config_error = str(exc)
+
     return {
         "status": "ok" if not errors else "failed",
         "validation_kind": "artifact_shape",
@@ -1169,6 +1814,11 @@ def run_validation(project_root: pathlib.Path) -> dict[str, Any]:
         "counts": counts,
         "checked": checked,
         "errors": errors,
+        "governance_config": {
+            "status": governance_config_status,
+            "error": governance_config_error,
+            "independent_validator_evidence": False,
+        },
     }
 
 
