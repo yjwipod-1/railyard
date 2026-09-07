@@ -89,6 +89,18 @@ def _source_transient_state(root: pathlib.Path) -> set[str]:
     return findings
 
 
+def _source_workflow_state(root: pathlib.Path) -> dict[str, tuple[int, str] | None]:
+    """Capture state which the MCP probe must never create or modify in Source."""
+    findings: dict[str, tuple[int, str] | None] = {}
+    sensitive_names = {".workflow", ".railyard-workflow.json", "__pycache__"}
+    for path in sorted(root.rglob("*")):
+        relative = pathlib.PurePosixPath(path.relative_to(root).as_posix())
+        if not (set(relative.parts) & sensitive_names or path.suffix in {".pyc", ".pyo"}):
+            continue
+        findings[relative.as_posix()] = (_sha256(path) and path.stat().st_size, _sha256(path)) if path.is_file() else None
+    return findings
+
+
 def _run(command: list[str], cwd: pathlib.Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(command, cwd=str(cwd), env=env, text=True, capture_output=True, timeout=180)
 
@@ -99,6 +111,20 @@ def _load_regression_module():
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
+    return module
+
+
+def _load_mcp_probe_module():
+    spec = importlib.util.spec_from_file_location(
+        "probe_railyard_mcp_server_ci_probe", ROOT / "scripts" / "probe_railyard_mcp_server.py")
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    scripts_directory = str(ROOT / "scripts")
+    sys.path.insert(0, scripts_directory)
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.pop(0)
     return module
 
 
@@ -186,14 +212,58 @@ class RuntimeV080CIContractTests(unittest.TestCase):
         optional_install_end = text.index("- name:", optional_install_start + 1)
         optional_probe_start = optional_install_end
         optional_probe_end = len(text)
+        optional_initialize_start = text.index("- name: Initialize optional MCP-lite probe database")
+        optional_initialize_end = text.index("- name:", optional_initialize_start + 1)
+        self.assertIn("--initialize-test-db", text[optional_initialize_start:optional_initialize_end])
+        self.assertIn("--temp-root \"${{ runner.temp }}/railyard-ci-mcp\"", text[optional_initialize_start:optional_initialize_end])
+        self.assertIn("--db \"${{ runner.temp }}/railyard-ci-mcp/workflow.db\"", text[optional_initialize_start:optional_initialize_end])
         self.assertIn("if: hashFiles('requirements-mcp.txt') != ''", text[optional_install_start:optional_install_end])
-        self.assertIn("continue-on-error: true", text[optional_install_start:optional_install_end])
+        self.assertNotIn("continue-on-error", text[optional_install_start:optional_install_end])
         self.assertIn("run: python -m pip install -r requirements-mcp.txt", text[optional_install_start:optional_install_end])
         self.assertIn("if: hashFiles('requirements-mcp.txt') != ''", text[optional_probe_start:optional_probe_end])
-        self.assertIn("continue-on-error: true", text[optional_probe_start:optional_probe_end])
+        self.assertNotIn("continue-on-error", text[optional_probe_start:optional_probe_end])
         self.assertIn("run: python scripts/probe_railyard_mcp_server.py", text[optional_probe_start:optional_probe_end])
-        self.assertEqual(optional_gate.count("continue-on-error: true"), 2)
+        self.assertIn("--temp-root \"${{ runner.temp }}/railyard-ci-mcp\"", text[optional_probe_start:optional_probe_end])
+        self.assertIn("--db \"${{ runner.temp }}/railyard-ci-mcp/workflow.db\"", text[optional_probe_start:optional_probe_end])
+        self.assertNotIn("continue-on-error", optional_gate)
         self.assertNotIn("requirements-test.txt", optional_gate)
+
+    def test_mcp_probe_initialization_is_isolated_and_fail_closed(self) -> None:
+        probe = _load_mcp_probe_module()
+        source_state_before = _source_workflow_state(ROOT)
+        source_transient_before = _source_transient_state(ROOT)
+        with tempfile.TemporaryDirectory(prefix="railyard mcp probe isolation ") as temporary:
+            temporary_root = pathlib.Path(temporary)
+            isolated_root = temporary_root / "isolated root"
+            database = isolated_root / "fixture" / "workflow.db"
+            initialized = probe.initialize_test_db(isolated_root, database, ROOT)
+            self.assertEqual(initialized["mode"], "initialize-test-db")
+            self.assertTrue(database.is_file())
+
+            with self.assertRaises(probe.ProbeFailure):
+                probe.initialize_test_db(isolated_root, database, ROOT)
+            with self.assertRaises(probe.ProbeFailure):
+                probe.initialize_test_db(isolated_root, temporary_root / "outside.db", ROOT)
+            with self.assertRaises(probe.ProbeFailure):
+                probe.initialize_test_db(ROOT / "probe-state", ROOT / "probe-state" / "workflow.db", ROOT)
+
+            environment = os.environ.copy()
+            environment["PYTHONDONTWRITEBYTECODE"] = "1"
+            environment["PYTHONPYCACHEPREFIX"] = str(temporary_root / "python cache")
+            initialization_failure = _run(
+                [sys.executable, "scripts/probe_railyard_mcp_server.py", "--initialize-test-db",
+                 "--temp-root", str(isolated_root), "--db", str(database), "--project-root", str(ROOT)],
+                ROOT, environment,
+            )
+            self.assertNotEqual(initialization_failure.returncode, 0)
+            probe_failure = _run(
+                [sys.executable, "scripts/probe_railyard_mcp_server.py", "--temp-root", str(isolated_root),
+                 "--db", str(isolated_root / "missing.db"), "--project-root", str(ROOT)],
+                ROOT, environment,
+            )
+            self.assertNotEqual(probe_failure.returncode, 0)
+        self.assertEqual(_source_workflow_state(ROOT), source_state_before)
+        self.assertEqual(_source_transient_state(ROOT), source_transient_before)
 
     def test_core_test_requirements_manifest_is_exact(self) -> None:
         requirements = ROOT / "requirements-test.txt"
@@ -299,7 +369,7 @@ class RuntimeV080CIContractTests(unittest.TestCase):
     def test_clean_copy_executes_public_validation_without_source_pollution(self) -> None:
         before = _manifest(ROOT)
         transient_before = _source_transient_state(ROOT)
-        self.assertFalse((ROOT / ".workflow").exists(), "Source .workflow must be absent")
+        workflow_state_before = _source_workflow_state(ROOT)
         with tempfile.TemporaryDirectory(prefix="railyard v080 ci ") as temporary:
             temporary_root = pathlib.Path(temporary)
             clean_root = temporary_root / "clean product tree"
@@ -338,7 +408,7 @@ class RuntimeV080CIContractTests(unittest.TestCase):
             self.assertTrue(all(path.is_relative_to(smoke_root) for path in smoke_root.rglob("*")))
         self.assertEqual(_manifest(ROOT), before)
         self.assertEqual(_source_transient_state(ROOT), transient_before)
-        self.assertFalse((ROOT / ".workflow").exists())
+        self.assertEqual(_source_workflow_state(ROOT), workflow_state_before)
 
 
 if __name__ == "__main__":
