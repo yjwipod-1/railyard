@@ -524,6 +524,7 @@ def _build_action_policy_request(action_kind: str, inputs: dict, binding: dict) 
     }
 
     if action_kind == "more_evidence":
+        request["boundary_facts"]["evidence_gap_reason"] = "missing_evidence"
         snapshot_digest = inputs["gate_snapshot_digest"]
         request.update({
             "gate_snapshot_binding": {
@@ -549,7 +550,6 @@ def _build_action_policy_request(action_kind: str, inputs: dict, binding: dict) 
                     "required": True,
                 }
             ],
-            "authorization": None,
         })
     elif action_kind == "retry":
         request.update({
@@ -568,8 +568,6 @@ def _build_action_policy_request(action_kind: str, inputs: dict, binding: dict) 
             "proposed_child_run_id": inputs["proposed_child_run_id"],
             "retry_strategy": inputs["retry_strategy"],
             "failure_category": inputs["failure_category"],
-            "transient": inputs["transient"],
-            "deterministic": inputs["deterministic"],
             "authorization": {
                 "authorized_by": inputs["authorized_by"],
                 "authorized_at": inputs["authorized_at"],
@@ -577,6 +575,9 @@ def _build_action_policy_request(action_kind: str, inputs: dict, binding: dict) 
                 "reason": inputs["auth_reason"],
             },
         })
+        if inputs["authorized_by"] == "system":
+            request["transient"] = inputs["transient"]
+            request["deterministic"] = inputs["deterministic"]
     elif action_kind == "resume":
         request.update({
             "boundary_facts": {
@@ -593,6 +594,8 @@ def _build_action_policy_request(action_kind: str, inputs: dict, binding: dict) 
             },
         })
     elif action_kind == "redesign":
+        # Redesign acts on the caller-supplied parent run, never the proposed child.
+        request["run_id"] = inputs["parent_run_id"]
         request.update({
             "proposed_child_lineage": {
                 "parent_run_id": inputs["parent_lineage_parent"],
@@ -699,15 +702,9 @@ def _adapter_append_event(inputs, binding, sidecar_state, tmp_dir, catalog):
     else:  # run.stage.completed (commit_stage)
         decision_id = sidecar_state.get("_last_decision_id", f"dec-{run_id}")
         gate_decisions = [{"decision_id": decision_id}]
-        artifacts = []
-        export_result = sidecar_state.get("_export_result")
-        if export_result:
-            artifacts.append({
-                "artifact_id": f"export-{run_id}",
-                "artifact_kind": "evidence_export",
-                "artifact_version": "1.1.0",
-                "digest": export_result.get("export_content_digest", ""),
-            })
+        # The artifact is explicit scenario data before the completion event is
+        # built.  Completion is what records it; it is not used to invent it.
+        artifacts = [_build_runtime_artifact(inputs)]
         request = _build_stage_completed_request(
             run_id, inputs["stage_id"], prev_digest, head_order,
             inputs["completed_at"], gate_decisions, artifacts, inputs)
@@ -717,6 +714,51 @@ def _adapter_append_event(inputs, binding, sidecar_state, tmp_dir, catalog):
     request = _build_append_request(event_type, payload, run_id, prev_digest, head_order, inputs)
     return (sidecar.append_event, (request,), {},
             {"operation": "append_event", "event_type": event_type, "request": request})
+
+
+def _build_runtime_artifact(inputs: dict) -> dict:
+    """Build the complete, caller-derived RuntimeArtifact for stage completion."""
+    visibility = inputs["visibility"]
+    source_ref = {
+        "artifact_id": inputs["artifact_id"],
+        "artifact_kind": "artifact",
+        "artifact_version": "1.2.0",
+    }
+    contributor = {
+        "contributor_id": f"smoke-source-{inputs['artifact_id']}",
+        "contributor_kind": "source_artifact",
+        "contributor_ref": source_ref,
+        "asserted_visibility": visibility,
+        "authority": "Smoke scenario input",
+        "classification_evidence": [copy.deepcopy(source_ref)],
+    }
+    return {
+        "artifact_ref": {
+            "artifact_id": inputs["artifact_id"],
+            "artifact_kind": "artifact",
+            "artifact_version": "1.2.0",
+            "digest": "sha256:" + _mesh_digest(inputs, "runtime-artifact"),
+        },
+        "origin_run": inputs["run_id"],
+        "origin_stage": inputs["stage_id"],
+        "produced_by": inputs["executor_identity"],
+        "source_artifacts": [copy.deepcopy(source_ref)],
+        "visibility": visibility,
+        "visibility_resolution": {
+            "resolution_id": f"artifact-res-{inputs['resolution_id_seed']}",
+            "resolved_at": inputs["completed_at"],
+            "contributors": [contributor],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": visibility,
+            "resolution_audit": {
+                "contributor_count": 1,
+                "restricted_count": 1 if visibility == "restricted" else 0,
+                "project_count": 1 if visibility == "project" else 0,
+                "public_count": 1 if visibility == "public" else 0,
+                "applied_rule": "most_restrictive",
+            },
+        },
+    }
 
 
 def _build_dispatch_args(inputs, binding):
@@ -1018,7 +1060,11 @@ def _verify_gate_integrity(output):
     if not isinstance(output, dict):
         results.append({"rule": "gate_shape", "status": "fail"})
         return results
-    shape_ok = all(k in output for k in ("gate_id", "decision_id"))
+    # Gate Decision v2.2 returns a decision XOR a typed evaluation error.
+    decision_ok = all(k in output for k in ("gate_id", "decision_id", "outcome", "execution_mode"))
+    gate_error_ok = all(k in output for k in ("gate_id", "decision_id", "error_code", "error_description", "run_context"))
+    bridge_error_ok = all(k in output for k in ("mesh_eval_id", "mesh_id", "error_code", "error_description", "run_context"))
+    shape_ok = decision_ok or gate_error_ok or bridge_error_ok
     results.append({"rule": "gate_shape", "status": "pass" if shape_ok else "fail"})
     return results
 
@@ -1044,7 +1090,10 @@ def _verify_action_integrity(output):
     if not isinstance(output, dict):
         results.append({"rule": "action_shape", "status": "fail"})
         return results
-    shape_ok = all(k in output for k in ("action_kind", "action_allowed"))
+    # RuntimeActionDecision v2 uses disposition and branch reason fields.
+    shape_ok = (all(k in output for k in ("action_kind", "disposition", "reason_code"))
+                and output.get("action_kind") in {
+                    "more_evidence", "retry", "resume", "redesign", "human_intervention"})
     results.append({"rule": "action_shape", "status": "pass" if shape_ok else "fail"})
     return results
 
@@ -1196,6 +1245,29 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
         operation = entry["operation"]
         binding = entry.get("input_binding", {})
 
+        # Scenario 012 is a verifier-owned exported-evidence tamper path.  The
+        # final publish is deliberately suppressed after proving a deep-copy
+        # mismatch; no production output or production callable is mutated.
+        if binding.get("suppress_after_export_tamper"):
+            original = sidecar_state.get("_export_result")
+            original_before = _sha256_obj(original)
+            probe = copy.deepcopy(original)
+            if isinstance(probe, dict) and probe.get("events"):
+                probe["events"][0]["event_id"] = "tampered-by-verifier"
+            expected = _export_digest_oracle(probe)
+            detected = isinstance(probe, dict) and expected != probe.get("export_content_digest")
+            verification_results.extend([
+                {"rule": "export_tamper_detected", "status": "pass" if detected else "fail", "step_id": step_id},
+                {"rule": "export_original_unchanged", "status": "pass" if _sha256_obj(original) == original_before else "fail", "step_id": step_id},
+                {"rule": "publish_suppressed", "status": "pass" if detected else "fail", "step_id": step_id},
+            ])
+            call_ledger.append({"step_id": step_id, "component": component, "operation": operation,
+                                "actual_callable": f"{_publish_to_gate.__module__}.{_publish_to_gate.__qualname__}",
+                                "invocation_count": 0, "status": "suppressed",
+                                "input_digest": _sha256_obj(binding), "output_kind": "publish_to_gate",
+                                "semantic_output_digest": "", "raw_verification_status": "not_applicable"})
+            continue
+
         adapter = ADAPTERS.get((component, operation))
         production = PRODUCTION_CALLABLE.get((component, operation))
 
@@ -1282,7 +1354,9 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
         except Exception:
             pass
 
-    scenario_status = "pass" if not failed else "fail"
+    verification_failed = any(v.get("status") in {"fail", "blocked", "inconclusive"}
+                              for v in verification_results)
+    scenario_status = "pass" if not failed and not verification_failed else "fail"
 
     final_verdict = None
     mesh_result = sidecar_state.get("_mesh_result", {})
@@ -1386,9 +1460,19 @@ def _all_mode_exit_code(results: list, catalog: dict) -> int:
         and len(scenario_ids) == expected_total
         and len(set(scenario_ids)) == expected_total
         and passed == expected_total
+        and all(not any(v.get("status") in {"fail", "blocked", "inconclusive"}
+                        for v in result.get("verification_results", [])) for result in results)
     ):
         return 0
     return 1
+
+
+def _export_digest_oracle(envelope: dict | None) -> str | None:
+    """Independent stdlib oracle for an exported-evidence content digest."""
+    if not isinstance(envelope, dict):
+        return None
+    preimage = {key: value for key, value in envelope.items() if key != "export_content_digest"}
+    return "sha256:" + hashlib.sha256(_canon(preimage).encode("utf-8")).hexdigest()
 
 
 def load_catalog() -> dict:

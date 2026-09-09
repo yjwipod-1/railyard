@@ -142,7 +142,7 @@ class CatalogValidationTests(unittest.TestCase):
     def test_catalog_frozen_contract_hash(self):
         self.assertEqual(
             self.catalog["contract_sha256"],
-            "bf9229c247674cbd0328645871fd498ca47a0a126f5d91c0a5389e1627e69ee3",
+            "6ea9a2d3981c3d67a3e98b164425d4246e532d8e7836ea54b57d9803aea5e582",
             "Smoke contract hash must match frozen value"
         )
 
@@ -313,8 +313,9 @@ class SingleScenarioTests(unittest.TestCase):
                 self.assertGreater(len(ledger), 0,
                                    f"{sid}: call ledger empty")
                 for entry in ledger:
-                    self.assertEqual(entry.get("invocation_count"), 1,
-                                     f"{sid}: invocation_count != 1")
+                    expected_count = 0 if entry.get("status") == "suppressed" else 1
+                    self.assertEqual(entry.get("invocation_count"), expected_count,
+                                     f"{sid}: invocation_count != {expected_count}")
                     if entry.get("status") == "ok":
                         self.assertTrue("." in entry.get("actual_callable", ""),
                                         f"{sid}: actual_callable not FQN")
@@ -341,10 +342,21 @@ class SingleScenarioTests(unittest.TestCase):
             self.assertEqual(len(actual_steps), len(set(actual_steps)),
                              f"{sid}: duplicate step_ids in call ledger")
 
-            # Verify all invocation counts are 1
+            # Scenario 012 records its verifier-owned suppressed final publish.
             for entry in r.get("call_ledger", []):
-                self.assertEqual(entry.get("invocation_count"), 1,
-                                 f"{sid}: invocation_count != 1 for {entry['step_id']}")
+                expected_count = 0 if entry.get("status") == "suppressed" else 1
+                self.assertEqual(entry.get("invocation_count"), expected_count,
+                                 f"{sid}: invocation_count != {expected_count} for {entry['step_id']}")
+
+    def test_scenario_012_tamper_preserves_original_and_suppresses_publish(self):
+        _, result, _ = self._run_scenario("v080-scenario-012")
+        ledger = result["result"]["call_ledger"]
+        publish = next(entry for entry in ledger if entry["step_id"] == "publish")
+        self.assertEqual((publish["status"], publish["invocation_count"]), ("suppressed", 0))
+        verdicts = {entry["rule"]: entry["status"] for entry in result["result"]["verification_results"]}
+        self.assertEqual(verdicts["export_tamper_detected"], "pass")
+        self.assertEqual(verdicts["export_original_unchanged"], "pass")
+        self.assertEqual(verdicts["publish_suppressed"], "pass")
 
 
 # ---------------------------------------------------------------------------
@@ -2058,6 +2070,22 @@ class ValidatorMeshV12RegressionTests(unittest.TestCase):
             for index in range(1, 21)
         ]
         self.assertNotEqual(self.module._all_mode_exit_code(results, self.catalog), 0)
+
+    def test_failed_raw_verification_forces_scenario_and_all_failure(self):
+        with tempfile.TemporaryDirectory(prefix="smoke raw verification failure ") as temporary:
+            scenario = next(item for item in self.catalog["scenarios"]
+                            if item["scenario_id"] == "v080-scenario-001")
+            original = self.module._verify_raw_evidence
+            try:
+                self.module._verify_raw_evidence = lambda *args: [{"rule": "forced", "status": "fail"}]
+                result = self.module._execute_pipeline(scenario, pathlib.Path(temporary))
+            finally:
+                self.module._verify_raw_evidence = original
+        self.assertEqual(result["scenario_status"], "fail")
+        synthetic = [dict(result, scenario_id=f"v080-scenario-{index:03d}", scenario_status="pass")
+                     for index in range(1, 21)]
+        synthetic[0] = result
+        self.assertNotEqual(self.module._all_mode_exit_code(synthetic, self.catalog), 0)
 
 
 # ---------------------------------------------------------------------------

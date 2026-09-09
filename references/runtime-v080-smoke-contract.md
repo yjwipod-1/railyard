@@ -1,14 +1,14 @@
 # Runtime v0.8 Smoke Scenario Contract
 
-**Document ID**: railyard-runtime-v080-smoke-contract-v1.2.0
+**Document ID**: railyard-runtime-v080-smoke-contract-v1.3.0
 
-**Version**: 1.2.0
+**Version**: 1.3.0
 
 ## 1. Purpose and Boundary
 
 This contract fixes the previously identified smoke authority boundary. It is a catalog-facing specification for the frozen `examples/runtime_v080_smoke/conformance.json` catalog and the immutable production callable shapes. It does not modify the catalog, executor, Mesh evaluator, sidecar, schemas, tests, or runtime behavior.
 
-The smoke executor records the exact production call ledger and exposes the production `ValidatorMeshResult` or `ValidatorMeshEvaluationError` unchanged. It may project stable fields into a summary, but it MUST NOT replace or simulate a verdict, recommendation, failure code, requirement result, freshness assessment, or error. Raw verification remains independent from stable summary projection under the deterministic stable-summary boundary. The scenario-012 deep-copy tamper correction remains unchanged.
+The smoke executor records the exact production call ledger and exposes the production `ValidatorMeshResult` or `ValidatorMeshEvaluationError` unchanged. It may project stable fields into a summary, but it MUST NOT replace or simulate a verdict, recommendation, failure code, requirement result, freshness assessment, or error. Every non-empty raw verification result is authoritative: `fail`, `blocked`, or `inconclusive` makes the scenario fail and makes `--all` nonzero. Expected typed non-pass Mesh verdicts remain scenario data, not raw verification failures.
 
 ## 2. Call and RuntimeEvent Boundary
 
@@ -80,7 +80,9 @@ The related Mesh v1.0 defects are resolved by `references/runtime-validator-mesh
 
 ## 7. Scenario 012 and Later Scenarios
 
-Scenario 012 retains v1.1.0's correction: the smoke verifier creates and mutates a deep copy of a valid exported envelope, detects the digest mismatch itself, preserves the original production output, and suppresses the final publish operation when appropriate. No production output is mutated.
+Scenario 012 creates and mutates only a verifier-owned deep copy of a valid exported envelope, detects the digest mismatch with an independent standard-library oracle, preserves the original production output byte-for-byte, and suppresses the final publish production call with invocation count zero. No production output is mutated.
+
+Every successful completion prepares a non-empty, typed `RuntimeArtifact` from explicit scenario facts before the completion request is built. The completion event records that artifact, and the subsequent export and publish retain its identity, provenance, visibility, causation, GateDecision linkage, lineage, and export digest.
 
 Scenarios 013-020 retain their frozen catalog operations, dependencies, raw-verification rules, stable-summary boundary, and visibility/recovery meanings. This remediation only changes the authority text for Mesh failure semantics and records the exact catalog matrix in Section 3.
 
@@ -91,7 +93,8 @@ Scenarios 013-020 retain their frozen catalog operations, dependencies, raw-veri
 | 1.0.0 | 2026-07-31 | Initial 20-scenario smoke contract. |
 | 1.1.0 | 2026-08-02 | Established catalog call-ledger authority, Sidecar RuntimeEvent boundary, and scenario-012 verifier correction. |
 | 1.2.0 | 2026-08-03 | Made scenarios 003-011 exactly three calls and one event, froze their Mesh input/outcome matrix, prohibited post-return output mutation and simulated verdicts, and recorded the exact 20-scenario catalog matrix. |
+| 1.3.0 | 2026-09-09 | Made raw verification fail closed, aligned Action and Gate shape checks with their accepted contracts, required a caller-derived RuntimeArtifact before completion, and restored the scenario-012 deep-copy tamper and zero-publish proof. |
 
 ## 9. Versioning and Hygiene
 
-This contract is version `1.2.0`. It is public and ASCII-only. It introduces no runtime, lifecycle, release, schema, test, catalog, or Control authority and authorizes no output mutation after a production return.
+This contract is version `1.3.0`. It is public and ASCII-only. It introduces no runtime, lifecycle, release, schema, test, catalog, or Control authority and authorizes no output mutation after a production return.

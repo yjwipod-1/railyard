@@ -13,7 +13,7 @@
   "overrideability": "non_overridable",
   "status": "active",
   "contract_ref": "references/runtime-v080-smoke-contract.md",
-  "contract_sha256": "bf9229c247674cbd0328645871fd498ca47a0a126f5d91c0a5389e1627e69ee3",
+  "contract_sha256": "6ea9a2d3981c3d67a3e98b164425d4246e532d8e7836ea54b57d9803aea5e582",
   "scenario_count": 20,
   "shared_inputs": {
     "signer_key_base64": "c21va2UtcnVubmVyLWRldGVybWluaXN0aWMta2V5LXYwODA=",
@@ -877,7 +877,7 @@
     },
     {
       "scenario_id": "v080-scenario-012",
-      "description": "Publish gate decision path exercised through full pipeline (tamper_evidence step removed as undeclared nested call; integrity-only repair)",
+        "description": "Exported-evidence deep-copy tamper detection with final publish suppression",
       "trigger_kind": "ticket",
       "dependencies": [],
       "inputs": {
@@ -980,13 +980,14 @@
           "operation": "export_run",
           "input_binding": {}
         },
-        {
-          "step_id": "publish",
+          {
+            "step_id": "publish",
           "component": "runtime_publish_gate",
           "operation": "publish_to_gate",
-          "input_binding": {
-            "stage_id": "current"
-          }
+            "input_binding": {
+              "stage_id": "current",
+              "suppress_after_export_tamper": true
+            }
         }
       ],
       "governing_contracts": [
