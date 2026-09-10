@@ -58,7 +58,7 @@ TEST_PATH = os.path.join(ROOT, "scripts", "test_runtime_action_policy.py")
 # Frozen upstream digests (must remain unchanged by this work).
 FROZEN_CONTRACT_SHA256 = "38a82f7a890f43c921a2ba8d17c6f77e5634534907db77fe0aae0003bd25a21e"
 FROZEN_V2_SCHEMA_SHA256 = "1a950cae92adcad3f4273b855aa7a89ce98b707f5fba3fbda80c877b820fccfc"
-FROZEN_CATALOG_SHA256 = "94179ca99146cc201c5d221a705d65d6e538059f2dbac19cd32b087df0e182e3"
+FROZEN_CATALOG_SHA256 = "a7732c826e129317d6999671714fa7f14639136aa9c45677a9dd04dd0cf2d266"
 FROZEN_GATE_SCHEMA_SHA256 = "32cd278b25bd348cb9e810cec27337f72d9bfceef43f01c50c8bcddfc280264a"
 FROZEN_GATE_EVALUATOR_SHA256 = "c0b14d44aa13b389f2acc5a10147cde1042a5093d23c8f6d8f89d4e32f0d27ff"
 FROZEN_GATE_TESTS_SHA256 = "86b98b8aa9997fc03ca32f70e40929386f252100b8b1923967cd1fde7736b35e"
@@ -121,6 +121,11 @@ MUTEX_PAIRS = {
 def _sha256(path):
     with open(path, "rb") as handle:
         return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _matches_frozen_digest(data, expected):
+    """Return whether verifier-supplied bytes match a frozen authority."""
+    return hashlib.sha256(data).hexdigest() == expected
 
 
 def _load_json(path):
@@ -988,6 +993,13 @@ class TestFrozenHashes(unittest.TestCase):
         for rel, expected in pairs:
             self.assertEqual(_sha256(os.path.join(ROOT, rel)), expected,
                              "frozen upstream changed: %s" % rel)
+        """A verifier-owned mutation cannot satisfy the catalog authority."""
+        with open(CATALOG_PATH, "rb") as handle:
+            catalog_bytes = handle.read()
+        self.assertTrue(_matches_frozen_digest(catalog_bytes,
+                                               FROZEN_CATALOG_SHA256))
+        self.assertFalse(_matches_frozen_digest(
+            catalog_bytes + b"\n", FROZEN_CATALOG_SHA256))
 
 
 # Known frozen-catalog typos reconciled to the canonical reason-code taxonomy

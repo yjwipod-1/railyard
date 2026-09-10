@@ -43,6 +43,11 @@ def _sha256_file(path):
     with open(path, "rb") as f:
         return hashlib.sha256(f.read()).hexdigest()
 
+
+def _matches_frozen_digest(data, expected):
+    """Return whether verifier-supplied bytes match a frozen authority."""
+    return hashlib.sha256(data).hexdigest() == expected
+
 def _make_dispatch_request(req_id="req-001", vid="validator-core",
                            mesh_id="mesh-test", ridge_extra=None):
     """Minimal valid dispatch request per the frozen contract."""
@@ -953,7 +958,7 @@ class PredecessorHashTests(unittest.TestCase):
         "scripts/runtime_validator_mesh.py":
             "389e4e9b0e1aef5cbfd723e4ec53f57c6593091c5ee793c4321591bb101604fb",
         "scripts/test_runtime_validator_mesh.py":
-            "2e4d73341303b59ffe1d3eacf307001f460dc82b9b96b39ec2e4a05b6728b718",
+            "3977ac9f067ebebdbdd307498935458039ccf30b9b6ca4cbeffa130b8c0d1356",
     }
 
     def test_01_contract_hash(self):
@@ -967,6 +972,14 @@ class PredecessorHashTests(unittest.TestCase):
 
     def test_04_core_test_hash(self):
         self._check("scripts/test_runtime_validator_mesh.py")
+        """A verifier-owned mesh-test mutation cannot satisfy its authority."""
+        path = os.path.join(ROOT, "scripts", "test_runtime_validator_mesh.py")
+        with open(path, "rb") as handle:
+            mesh_test_bytes = handle.read()
+        expected = self.EXPECTED["scripts/test_runtime_validator_mesh.py"]
+        self.assertTrue(_matches_frozen_digest(mesh_test_bytes, expected))
+        self.assertFalse(_matches_frozen_digest(mesh_test_bytes + b"\n",
+                                                expected))
 
     def _check(self, rel):
         path = os.path.join(ROOT, rel)

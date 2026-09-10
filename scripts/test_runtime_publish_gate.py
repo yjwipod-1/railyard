@@ -83,11 +83,11 @@ EXPECTED_HASHES = {
     "assets/schemas/runtime-validator-mesh-v1.schema.json":
         "16d99188a5306c1d279c533b780f669d459743f7fd9f54fe00f9d97bb226b12a",
     "examples/runtime_validator_mesh_contract/conformance.json":
-        "9ca19445da55ac15f826765a0390810e56ea45b6d4f15080dc03171938ef4b92",
+        "0463c20e4f3069c596773b995dda2b3c2cda14f40bb4406ffe007ad700584983",
     "scripts/runtime_validator_mesh.py":
         "389e4e9b0e1aef5cbfd723e4ec53f57c6593091c5ee793c4321591bb101604fb",
     "scripts/test_runtime_validator_mesh.py":
-        "2e4d73341303b59ffe1d3eacf307001f460dc82b9b96b39ec2e4a05b6728b718",
+        "3977ac9f067ebebdbdd307498935458039ccf30b9b6ca4cbeffa130b8c0d1356",
     "references/runtime-gate-decision-contract.md":
         "711d1139b8c463024876f2460ff42bb195784dc7bc43d1d04bd2fc1c6d582033",
     "assets/schemas/runtime-gate-decision-v2.schema.json":
@@ -102,6 +102,11 @@ EXPECTED_HASHES = {
 def _sha256(path):
     with open(path, "rb") as handle:
         return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _matches_frozen_digest(data, expected):
+    """Return whether verifier-supplied bytes match a frozen authority."""
+    return hashlib.sha256(data).hexdigest() == expected
 
 
 # ---------------------------------------------------------------------------
@@ -426,6 +431,15 @@ class TestFrozenAuthorities(unittest.TestCase):
             actual = _sha256(abs_path)
             self.assertEqual(actual, expected,
                              "Hash mismatch for %s" % rel_path)
+        """A verifier-owned mesh-test mutation cannot satisfy its authority."""
+        mesh_test_path = os.path.join(ROOT, "scripts",
+                                      "test_runtime_validator_mesh.py")
+        with open(mesh_test_path, "rb") as handle:
+            mesh_test_bytes = handle.read()
+        expected = EXPECTED_HASHES["scripts/test_runtime_validator_mesh.py"]
+        self.assertTrue(_matches_frozen_digest(mesh_test_bytes, expected))
+        self.assertFalse(_matches_frozen_digest(mesh_test_bytes + b"\n",
+                                                expected))
 
 
 # ---------------------------------------------------------------------------

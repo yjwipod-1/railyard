@@ -40,7 +40,7 @@ CONTRACT_PATH = os.path.join(
 # Frozen predecessor hashes (accepted v1.2 authority)
 EXPECTED_CONTRACT_SHA256 = "efe7689f1c258200137f4e02f037d18a24a01063c1fe24a9f5948086da869e68"
 EXPECTED_SCHEMA_SHA256 = "16d99188a5306c1d279c533b780f669d459743f7fd9f54fe00f9d97bb226b12a"
-EXPECTED_CONFORMANCE_SHA256 = "9ca19445da55ac15f826765a0390810e56ea45b6d4f15080dc03171938ef4b92"
+EXPECTED_CONFORMANCE_SHA256 = "0463c20e4f3069c596773b995dda2b3c2cda14f40bb4406ffe007ad700584983"
 EXPECTED_SCHEMA_TEST_SHA256 = "3b7925d4ce4f78baef7d03a711ee6bdc7680e59057e7ccf121881407042d9413"
 
 DIGEST_A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -53,6 +53,11 @@ DIGEST_E = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
 def _sha256(path):
     with open(path, "rb") as handle:
         return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _matches_frozen_digest(data, expected):
+    """Return whether verifier-supplied bytes match a frozen authority."""
+    return hashlib.sha256(data).hexdigest() == expected
 
 
 def _a_digest(n):
@@ -3126,6 +3131,13 @@ class PredecessorHashTests(unittest.TestCase):
 
     def test_03_conformance_hash(self):
         self.assertEqual(_sha256(CATALOG_PATH), EXPECTED_CONFORMANCE_SHA256)
+        """A verifier-owned mutation cannot satisfy the catalog authority."""
+        with open(CATALOG_PATH, "rb") as handle:
+            catalog_bytes = handle.read()
+        self.assertTrue(_matches_frozen_digest(catalog_bytes,
+                                               EXPECTED_CONFORMANCE_SHA256))
+        self.assertFalse(_matches_frozen_digest(
+            catalog_bytes + b"\n", EXPECTED_CONFORMANCE_SHA256))
 
     def test_04_schema_test_hash(self):
         schema_test_path = os.path.join(

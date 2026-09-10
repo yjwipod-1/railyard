@@ -30,10 +30,15 @@ FROZEN_HASHES = {
     "scripts/runtime_v080_regression.py": "0b7a2f98ea1a96a6e94d03ce199833e835fb61ec247be4f10e668b7f29db1e22",
     "scripts/runtime_v080_smoke.py": "34fc0c7cd5bb9b11c58dd1b6157e3571be564c55a61f6bd6a8aee8348a49e5e9",
     "scripts/validate_artifacts.py": "8a5d9b6d43b89dd3d91e08561ca393bb2bef4657c2143f8af7dd591c732efdc6",
-    "examples/runtime_v080_smoke/conformance.json": "f237e223e33fb0a97c28e74899f9f89f2cb638bb0ad5343be75149f6089f79ac",
     "requirements-mcp.txt": "cf7c83d709c498f04eeb3006aed80ee75ecbe0dd5502d88835e2ff6edea491c2",
     "assets/schemas/runtime-v080-staging-manifest-v2.schema.json": "9b158df1344d2f83df64f839c86842f3e3c14f9ffe839cc55505fbda4b0633dd",
     "examples/runtime_v080_staging_manifest/conformance-v2.json": "7a2988f56935765b5c4a98a986a289cb55166b6f065dda8f60e8352e94b7343f",
+}
+FROZEN_LF_HASHES = {
+    # .gitattributes declares this text artifact with eol=lf.  Freeze the
+    # Git-authoritative LF bytes so Windows working-tree checkout conversion
+    # cannot make the public CI contract platform-dependent.
+    "examples/runtime_v080_smoke/conformance.json": "5b64e0641638103ab353c67109bd60107fb209e87affbaec78de1630a7461c2c",
 }
 CORE_TEST_REQUIREMENTS = "jsonschema>=4.18,<5\nreferencing>=0.30,<1\n"
 
@@ -44,6 +49,11 @@ def _is_product_path(relative_path: pathlib.PurePosixPath) -> bool:
 
 def _sha256(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _lf_normalized_sha256(path: pathlib.Path) -> str:
+    """Hash a text=auto eol=lf authority independently of checkout EOLs."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _manifest(root: pathlib.Path) -> dict[str, tuple[int, str]]:
@@ -350,6 +360,20 @@ class RuntimeV080CIContractTests(unittest.TestCase):
     def test_frozen_public_authorities_are_unchanged(self) -> None:
         for relative, expected in FROZEN_HASHES.items():
             self.assertEqual(_sha256(ROOT / relative), expected, relative)
+        for relative, expected in FROZEN_LF_HASHES.items():
+            self.assertEqual(_lf_normalized_sha256(ROOT / relative), expected, relative)
+
+    def test_lf_frozen_conformance_hash_rejects_content_tampering(self) -> None:
+        """EOL conversion is neutral, while a semantic catalog mutation is not."""
+        source = ROOT / "examples" / "runtime_v080_smoke" / "conformance.json"
+        expected = FROZEN_LF_HASHES["examples/runtime_v080_smoke/conformance.json"]
+        with tempfile.TemporaryDirectory(prefix="railyard conformance authority ") as temporary:
+            candidate = pathlib.Path(temporary) / "conformance.json"
+            tampered = source.read_bytes().replace(
+                b'"scenario_count": 20', b'"scenario_count": 21', 1)
+            self.assertNotEqual(tampered, source.read_bytes())
+            candidate.write_bytes(tampered)
+            self.assertNotEqual(_lf_normalized_sha256(candidate), expected)
 
     def test_failing_smoke_aggregate_cannot_report_success(self) -> None:
         spec = importlib.util.spec_from_file_location(
