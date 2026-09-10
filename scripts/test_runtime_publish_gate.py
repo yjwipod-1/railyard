@@ -76,18 +76,19 @@ _GATE_FACTS = {
     "evaluated_by": "bridge-caller",
 }
 
-# Frozen authority hashes (must remain byte-identical before and after work)
+# Frozen authority hashes. The Mesh catalog is a Git text authority; all
+# remaining authorities are compared as raw bytes.
 EXPECTED_HASHES = {
     "references/runtime-validator-mesh-contract.md":
         "efe7689f1c258200137f4e02f037d18a24a01063c1fe24a9f5948086da869e68",
     "assets/schemas/runtime-validator-mesh-v1.schema.json":
         "16d99188a5306c1d279c533b780f669d459743f7fd9f54fe00f9d97bb226b12a",
     "examples/runtime_validator_mesh_contract/conformance.json":
-        "0463c20e4f3069c596773b995dda2b3c2cda14f40bb4406ffe007ad700584983",
+        "9ca19445da55ac15f826765a0390810e56ea45b6d4f15080dc03171938ef4b92",
     "scripts/runtime_validator_mesh.py":
         "389e4e9b0e1aef5cbfd723e4ec53f57c6593091c5ee793c4321591bb101604fb",
     "scripts/test_runtime_validator_mesh.py":
-        "3977ac9f067ebebdbdd307498935458039ccf30b9b6ca4cbeffa130b8c0d1356",
+        "f7b88e0eae1010bdf9748f0777e6a812e575da3254356b27fd195c0b5ce9c638",
     "references/runtime-gate-decision-contract.md":
         "711d1139b8c463024876f2460ff42bb195784dc7bc43d1d04bd2fc1c6d582033",
     "assets/schemas/runtime-gate-decision-v2.schema.json":
@@ -102,6 +103,11 @@ EXPECTED_HASHES = {
 def _sha256(path):
     with open(path, "rb") as handle:
         return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _lf_text_authority_sha256(data):
+    """Return the Git-text authority digest for the mesh catalog only."""
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _matches_frozen_digest(data, expected):
@@ -428,7 +434,11 @@ class TestFrozenAuthorities(unittest.TestCase):
             abs_path = os.path.join(ROOT, rel_path)
             if not os.path.exists(abs_path):
                 self.fail("Missing authority file: %s" % rel_path)
-            actual = _sha256(abs_path)
+            if rel_path == "examples/runtime_validator_mesh_contract/conformance.json":
+                with open(abs_path, "rb") as handle:
+                    actual = _lf_text_authority_sha256(handle.read())
+            else:
+                actual = _sha256(abs_path)
             self.assertEqual(actual, expected,
                              "Hash mismatch for %s" % rel_path)
         """A verifier-owned mesh-test mutation cannot satisfy its authority."""

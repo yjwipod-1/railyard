@@ -58,7 +58,9 @@ TEST_PATH = os.path.join(ROOT, "scripts", "test_runtime_action_policy.py")
 # Frozen upstream digests (must remain unchanged by this work).
 FROZEN_CONTRACT_SHA256 = "38a82f7a890f43c921a2ba8d17c6f77e5634534907db77fe0aae0003bd25a21e"
 FROZEN_V2_SCHEMA_SHA256 = "1a950cae92adcad3f4273b855aa7a89ce98b707f5fba3fbda80c877b820fccfc"
-FROZEN_CATALOG_SHA256 = "a7732c826e129317d6999671714fa7f14639136aa9c45677a9dd04dd0cf2d266"
+# This JSON catalog is a Git text authority. Its digest is computed over
+# canonical LF bytes so Windows checkout line endings cannot change authority.
+FROZEN_CATALOG_SHA256 = "94179ca99146cc201c5d221a705d65d6e538059f2dbac19cd32b087df0e182e3"
 FROZEN_GATE_SCHEMA_SHA256 = "32cd278b25bd348cb9e810cec27337f72d9bfceef43f01c50c8bcddfc280264a"
 FROZEN_GATE_EVALUATOR_SHA256 = "c0b14d44aa13b389f2acc5a10147cde1042a5093d23c8f6d8f89d4e32f0d27ff"
 FROZEN_GATE_TESTS_SHA256 = "86b98b8aa9997fc03ca32f70e40929386f252100b8b1923967cd1fde7736b35e"
@@ -121,6 +123,11 @@ MUTEX_PAIRS = {
 def _sha256(path):
     with open(path, "rb") as handle:
         return hashlib.sha256(handle.read()).hexdigest()
+
+
+def _lf_text_authority_sha256(data):
+    """Return the Git-text authority digest for this catalog's bytes only."""
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _matches_frozen_digest(data, expected):
@@ -991,15 +998,29 @@ class TestFrozenHashes(unittest.TestCase):
             ("scripts/test_runtime_gate_decision.py", FROZEN_GATE_TESTS_SHA256),
         ]
         for rel, expected in pairs:
-            self.assertEqual(_sha256(os.path.join(ROOT, rel)), expected,
+            path = os.path.join(ROOT, rel)
+            if rel == "examples/runtime_action_policy_contract/conformance-v2.json":
+                with open(path, "rb") as handle:
+                    actual = _lf_text_authority_sha256(handle.read())
+            else:
+                actual = _sha256(path)
+            self.assertEqual(actual, expected,
                              "frozen upstream changed: %s" % rel)
-        """A verifier-owned mutation cannot satisfy the catalog authority."""
+        """The text catalog permits EOL conversion but rejects content changes."""
         with open(CATALOG_PATH, "rb") as handle:
             catalog_bytes = handle.read()
-        self.assertTrue(_matches_frozen_digest(catalog_bytes,
-                                               FROZEN_CATALOG_SHA256))
+        catalog_lf = catalog_bytes.replace(b"\r\n", b"\n")
+        catalog_crlf = catalog_lf.replace(b"\n", b"\r\n")
+        self.assertEqual(_lf_text_authority_sha256(catalog_lf),
+                         FROZEN_CATALOG_SHA256)
+        self.assertEqual(_lf_text_authority_sha256(catalog_crlf),
+                         FROZEN_CATALOG_SHA256)
+        mutated = catalog_lf.replace(
+            b'"contract_version": "2.0.0"',
+            b'"contract_version": "2.0.1"', 1)
+        self.assertNotEqual(mutated, catalog_lf)
         self.assertFalse(_matches_frozen_digest(
-            catalog_bytes + b"\n", FROZEN_CATALOG_SHA256))
+            mutated.replace(b"\r\n", b"\n"), FROZEN_CATALOG_SHA256))
 
 
 # Known frozen-catalog typos reconciled to the canonical reason-code taxonomy

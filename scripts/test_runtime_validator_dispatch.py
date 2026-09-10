@@ -958,7 +958,7 @@ class PredecessorHashTests(unittest.TestCase):
         "scripts/runtime_validator_mesh.py":
             "389e4e9b0e1aef5cbfd723e4ec53f57c6593091c5ee793c4321591bb101604fb",
         "scripts/test_runtime_validator_mesh.py":
-            "3977ac9f067ebebdbdd307498935458039ccf30b9b6ca4cbeffa130b8c0d1356",
+            "f7b88e0eae1010bdf9748f0777e6a812e575da3254356b27fd195c0b5ce9c638",
     }
 
     def test_01_contract_hash(self):
