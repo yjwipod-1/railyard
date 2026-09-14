@@ -28,7 +28,7 @@ EXCLUDED_SEGMENTS = frozenset({
 })
 FROZEN_HASHES = {
     "scripts/runtime_v080_regression.py": "0b7a2f98ea1a96a6e94d03ce199833e835fb61ec247be4f10e668b7f29db1e22",
-    "scripts/runtime_v080_smoke.py": "34fc0c7cd5bb9b11c58dd1b6157e3571be564c55a61f6bd6a8aee8348a49e5e9",
+    "scripts/runtime_v080_smoke.py": "121e718d66aeb026e8d0c2d13b5fb5b012eac80559dcb470c86f5514dab9b7b0",
     "scripts/validate_artifacts.py": "8a5d9b6d43b89dd3d91e08561ca393bb2bef4657c2143f8af7dd591c732efdc6",
     "requirements-mcp.txt": "cf7c83d709c498f04eeb3006aed80ee75ecbe0dd5502d88835e2ff6edea491c2",
     "assets/schemas/runtime-v080-staging-manifest-v2.schema.json": "9b158df1344d2f83df64f839c86842f3e3c14f9ffe839cc55505fbda4b0633dd",
@@ -38,7 +38,7 @@ FROZEN_LF_HASHES = {
     # .gitattributes declares this text artifact with eol=lf.  Freeze the
     # Git-authoritative LF bytes so Windows working-tree checkout conversion
     # cannot make the public CI contract platform-dependent.
-    "examples/runtime_v080_smoke/conformance.json": "5b64e0641638103ab353c67109bd60107fb209e87affbaec78de1630a7461c2c",
+    "examples/runtime_v080_smoke/conformance.json": "97916177a5424cb0c06eb157a610c87a9040ab381873b7fed72a2795b4748839",
 }
 CORE_TEST_REQUIREMENTS = "jsonschema>=4.18,<5\nreferencing>=0.30,<1\n"
 

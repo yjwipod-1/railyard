@@ -77,6 +77,19 @@ def _sha256_obj(o) -> str:
     return hashlib.sha256(_canon(o).encode("utf-8")).hexdigest()
 
 
+def _stdlib_sha256_prefixed(value: object) -> str:
+    """Return the independent stdlib SHA-256 oracle value for *value*.
+
+    The smoke executor deliberately does not delegate expected digest truth to a
+    production digest helper.  The catalog uses ASCII-safe values, so the
+    deterministic JSON representation below is the portable oracle preimage
+    used by the smoke checks.
+    """
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":"),
+                         ensure_ascii=False).encode("utf-8")
+    return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
 def _derive_db_path(run_id: str, tmp_dir: pathlib.Path) -> str:
     return str(tmp_dir / f"{run_id}.db")
 
@@ -584,8 +597,10 @@ def _build_action_policy_request(action_kind: str, inputs: dict, binding: dict) 
                 **request["boundary_facts"],
                 "checkpoint_available": inputs["checkpoint_available"],
                 "interruption_cause": inputs["interruption_cause"],
+                "checkpoint_event_order": inputs["checkpoint_event_order"],
             },
             "proposed_child_run_id": inputs["proposed_child_run_id"],
+            "checkpoint": copy.deepcopy(inputs["checkpoint"]),
             "authorization": {
                 "authorized_by": inputs["authorized_by"],
                 "authorized_at": inputs["authorized_at"],
@@ -1115,9 +1130,17 @@ def _extract_state_facts(sidecar_state, inputs):
     if isinstance(head_order, int):
         facts["event_count"] = head_order
     action_result = sidecar_state.get("_action_policy_result")
-    if isinstance(action_result, dict) and "action_allowed" in action_result:
-        facts["action_allowed"] = action_result["action_allowed"]
+    if isinstance(action_result, dict):
+        for key in ("action_allowed", "action_kind", "disposition", "reason_code",
+                    "checkpoint_evidence", "authorization"):
+            if key in action_result:
+                facts[f"action_{key}"] = copy.deepcopy(action_result[key])
     return facts
+
+
+def _surface_snapshot(sidecar_state: dict, inputs: dict) -> dict:
+    """Capture the full protected five-surface state at an execution boundary."""
+    return _protected_surfaces(sidecar_state, inputs)
 
 
 # ---------------------------------------------------------------------------
@@ -1184,6 +1207,47 @@ def _validate_scenario(scenario: dict, catalog: dict) -> None:
     # Resolved signer must be present (fail-fast before any DB/create).
     _resolve_signer_key(inputs, catalog)
 
+    expectations = catalog.get("scenario_expectations", {})
+    expected = expectations.get(scenario.get("scenario_id")) if isinstance(expectations, dict) else None
+    if not isinstance(expected, dict):
+        raise ScenarioInputError(
+            f"{scenario['scenario_id']}: missing contract-derived scenario expectation"
+        )
+    if not isinstance(expected.get("typed_outcome"), str):
+        raise ScenarioInputError(
+            f"{scenario['scenario_id']}: expected typed_outcome is missing or invalid"
+        )
+    for key in ("observable_side_effects", "prohibited_side_effects"):
+        value = expected.get(key)
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            raise ScenarioInputError(
+                f"{scenario['scenario_id']}: {key} must be an ordered string list"
+            )
+
+    rule_ids = scenario.get("verification_rule_ids")
+    if not isinstance(rule_ids, list) or not rule_ids or not all(isinstance(rule, str) for rule in rule_ids):
+        raise ScenarioInputError(
+            f"{scenario['scenario_id']}: verification_rule_ids must be a non-empty string list"
+        )
+    if len(rule_ids) != len(set(rule_ids)):
+        raise ScenarioInputError(
+            f"{scenario['scenario_id']}: duplicate verification_rule_id"
+        )
+
+    expectation = catalog.get("scenario_expectations", {}).get(scenario["scenario_id"])
+    required_expectation_keys = {
+        "typed_outcome", "observable_side_effects", "prohibited_side_effects"
+    }
+    if (not isinstance(expectation, dict)
+            or set(expectation) != required_expectation_keys
+            or not isinstance(expectation["observable_side_effects"], list)
+            or not isinstance(expectation["prohibited_side_effects"], list)
+            or not isinstance(scenario.get("verification_rule_ids"), list)
+            or not scenario["verification_rule_ids"]):
+        raise ScenarioInputError(
+            f"{scenario['scenario_id']}: incomplete contract-derived expectation"
+        )
+
     # Every step must map to exactly one adapter, and every input the step
     # requires must be present in the explicit scenario inputs. This runs
     # BEFORE any database is opened or any production callable is invoked.
@@ -1203,6 +1267,239 @@ def _validate_scenario(scenario: dict, catalog: dict) -> None:
                 f"{scenario['scenario_id']} step '{entry['step_id']}': "
                 f"missing required explicit input {exc}"
             ) from exc
+
+
+def _protected_surfaces(sidecar_state: dict, inputs: dict) -> dict:
+    """Capture the five protected surfaces without mutating runtime state."""
+    sidecar = sidecar_state.get("_sidecar")
+    run_id = inputs["run_id"]
+    journal = sidecar.read_events(run_id) if sidecar is not None else []
+    projection = sidecar.get_run(run_id) if journal else {}
+    # get_run() includes a fresh replay envelope on every read.  Its generated
+    # id, timestamp, and digest describe that read, not persisted runtime
+    # state, so they cannot participate in a zero-write equality proof.
+    if isinstance(projection, dict):
+        projection = copy.deepcopy(projection)
+        for volatile_key in ("projection_digest", "projection_id", "derived_at"):
+            projection.pop(volatile_key, None)
+    return {
+        "journal": copy.deepcopy(journal),
+        "projection": projection,
+        # Dispatch returns report bindings but does not persist or rewrite them.
+        "report_set": copy.deepcopy(sidecar_state.get("_dispatch_results", [])),
+        "runtime_artifacts": copy.deepcopy(projection.get("runtime_artifacts", [])),
+        "export_evidence": copy.deepcopy(sidecar_state.get("_export_result")),
+    }
+
+
+def _surface_digests(surfaces: dict) -> dict:
+    return {name: _stdlib_sha256_prefixed(value) for name, value in surfaces.items()}
+
+
+def _expected_event_types(scenario: dict) -> list[str]:
+    return [
+        step.get("input_binding", {}).get("event_type")
+        for step in scenario.get("pipeline", [])
+        if step.get("component") == "runtime_state_sidecar"
+        and step.get("operation") in {"create_run", "append_event", "commit_stage"}
+    ]
+
+
+def _identity_provenance_digest_check(sidecar_state: dict, inputs: dict) -> bool:
+    """Verify the complete-flow identity boundary with stdlib-only digests.
+
+    This is intentionally independent from production digest helpers: it checks
+    the report binding's canonical digest, GateDecision identity, the completed
+    RuntimeArtifact, and the exported envelope digest as separate facts.
+    """
+    mesh = sidecar_state.get("_mesh_result")
+    gate = sidecar_state.get("_gate_result")
+    export = sidecar_state.get("_export_result")
+    sidecar = sidecar_state.get("_sidecar")
+    if not all(isinstance(value, dict) for value in (mesh, gate, export)) or sidecar is None:
+        return False
+    bindings = mesh.get("report_bindings")
+    if not isinstance(bindings, list) or len(bindings) != 1:
+        return False
+    report_ref = bindings[0].get("report_ref", {}) if isinstance(bindings[0], dict) else {}
+    expected_report_digest = hashlib.sha256(json.dumps({
+        "purpose": "report", "run_id": inputs["run_id"],
+        "contract_id": inputs["contract_id"], "artifact_id": inputs["artifact_id"],
+    }, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()
+    if report_ref.get("digest") != expected_report_digest:
+        return False
+    if bindings[0].get("report_sha256") != expected_report_digest:
+        return False
+    # The Validator Mesh keeps the report digest in raw binding evidence.  The
+    # Gate is deliberately narrower: its ArtifactRefs are identity projections
+    # and may not grow report or digest fields.
+    gate_evidence = gate.get("evidence", [])
+    if not isinstance(gate_evidence, list) or not gate_evidence:
+        return False
+    for artifact_ref in gate_evidence:
+        if not isinstance(artifact_ref, dict):
+            return False
+        if set(artifact_ref) - {"artifact_id", "artifact_kind", "artifact_version"}:
+            return False
+        if not isinstance(artifact_ref.get("artifact_id"), str) or not isinstance(
+                artifact_ref.get("artifact_kind"), str):
+            return False
+    if gate.get("decision_id") != mesh.get("mesh_eval_id", "") + "-gate-decision":
+        return False
+    projection = sidecar.get_run(inputs["run_id"])
+    artifacts = projection.get("runtime_artifacts", []) if isinstance(projection, dict) else []
+    if len(artifacts) != 1:
+        return False
+    artifact = artifacts[0]
+    if not isinstance(artifact, dict) or artifact.get("origin_run") != inputs["run_id"]:
+        return False
+    if artifact.get("origin_stage") != inputs["stage_id"]:
+        return False
+    if artifact.get("visibility") != inputs["visibility"]:
+        return False
+    export_preimage = {key: value for key, value in export.items()
+                       if key != "export_content_digest"}
+    return _stdlib_sha256_prefixed(export_preimage) == export.get("export_content_digest")
+
+
+def _execute_catalog_oracles(scenario: dict, catalog: dict, result: dict,
+                             sidecar_state: dict, boundary_proof: list) -> list[dict]:
+    """Run every declared catalog oracle once, with no permissive fallback."""
+    scenario_id = scenario["scenario_id"]
+    expected = catalog["scenario_expectations"][scenario_id]
+    declared = list(scenario["verification_rule_ids"])
+    required = {"typed_outcome_match", "observable_side_effects_match",
+                "prohibited_side_effects_absent"}
+    if not required.issubset(declared):
+        return [{"rule": "missing_verification_rule_id", "status": "fail",
+                 "step_id": "catalog"}]
+    if len(declared) != len(set(declared)):
+        return [{"rule": "duplicate_verification_rule_id", "status": "fail",
+                 "step_id": "catalog", "detail": {"scenario_id": scenario_id}}]
+
+    ledger = result["call_ledger"]
+    sidecar = sidecar_state.get("_sidecar")
+    events = sidecar.read_events(result["state_facts"]["run_id"]) if sidecar is not None else []
+    event_types = [event.get("event_type") for event in events if isinstance(event, dict)]
+    projection = sidecar.get_run(result["state_facts"]["run_id"]) if sidecar is not None else {}
+    operation_names = [entry.get("operation") for entry in ledger if entry.get("invocation_count") == 1]
+    action = sidecar_state.get("_action_policy_result", {})
+
+    def typed_outcome() -> bool:
+        outcome = expected["typed_outcome"]
+        if outcome.startswith("action_authorized_"):
+            return isinstance(action, dict) and action.get("disposition") == "authorized" \
+                and action.get("reason_code") == outcome
+        return result.get("final_verdict") == outcome
+
+    def observable_side_effects() -> bool:
+        declared_effects = expected["observable_side_effects"]
+        expected_events = [item for item in declared_effects if item.startswith("run.")]
+        expected_operations = [item for item in declared_effects if not item.startswith("run.")]
+        return event_types == expected_events and all(
+            operation_names.count(operation) == 1 for operation in expected_operations)
+
+    def prohibited_side_effects() -> bool:
+        return not any(operation in expected["prohibited_side_effects"]
+                       for operation in operation_names)
+
+    def call_ledger_match() -> bool:
+        pipeline = scenario.get("pipeline", [])
+        expected_steps = [step.get("step_id") for step in pipeline]
+        actual_steps = [entry.get("step_id") for entry in ledger]
+        expected_counts = [0 if step.get("input_binding", {}).get("suppress_after_export_tamper")
+                           else 1 for step in pipeline]
+        return actual_steps == expected_steps and [entry.get("invocation_count") for entry in ledger] == expected_counts
+
+    def semantic_input_origin() -> bool:
+        return all(entry.get("input_digest") == _sha256_obj(step.get("input_binding", {}))
+                   for entry, step in zip(ledger, scenario.get("pipeline", [])))
+
+    def journal_sequence() -> bool:
+        return event_types == [item for item in expected["observable_side_effects"]
+                               if item.startswith("run.")]
+
+    def projection_pass() -> bool:
+        if not isinstance(projection, dict):
+            return False
+        stages = projection.get("stage_states")
+        if not isinstance(stages, dict) or not stages:
+            return False
+        return projection.get("current_stage_id") is None and all(
+            isinstance(stage, dict) and stage.get("status") == "completed"
+            for stage in stages.values())
+
+    def ticket_provenance() -> bool:
+        provenance = projection.get("run_provenance", {}) if isinstance(projection, dict) else {}
+        origin = provenance.get("origin_artifact", {}) if isinstance(provenance, dict) else {}
+        return origin.get("artifact_id") == scenario["inputs"].get("ticket_id") \
+            and origin.get("artifact_kind") == "ticket"
+
+    def no_ticket_leak() -> bool:
+        provenance = projection.get("run_provenance", {}) if isinstance(projection, dict) else {}
+        origin = provenance.get("origin_artifact", {}) if isinstance(provenance, dict) else {}
+        return origin.get("artifact_kind") != "ticket" and not scenario["inputs"].get("ticket_id")
+
+    def non_success_boundary() -> bool:
+        return bool(boundary_proof) and all(
+            proof.get("all_five_surfaces_equal") is True
+            and proof.get("prohibited_downstream_call_count") == 0
+            and set(proof["before"]) == {
+                "journal", "projection", "report_set", "runtime_artifacts", "export_evidence"}
+            and proof["before"] == proof["after"] for proof in boundary_proof)
+
+    def recovery_steps() -> bool:
+        if not call_ledger_match():
+            return False
+        return all(entry.get("invocation_count") == 1 for entry in ledger)
+
+    def no_gate_override() -> bool:
+        return not (isinstance(action, dict) and action.get("reason_code") == "human_override_prohibited") \
+            and not isinstance(sidecar_state.get("_gate_result", {}).get("override_authorization"), dict)
+
+    def visibility(expected_visibility: str) -> bool:
+        export = sidecar_state.get("_export_result", {})
+        return isinstance(projection, dict) and projection.get("resolved_run_visibility") == expected_visibility \
+            and isinstance(export, dict) and export.get("visibility") == expected_visibility
+
+    registry = {
+        "call_ledger_match": call_ledger_match,
+        "semantic_input_origin": semantic_input_origin,
+        "no_forbidden_calls": prohibited_side_effects,
+        "journal_sequence": journal_sequence,
+        "projection_pass": projection_pass,
+        "ticket_provenance_preserved": ticket_provenance,
+        "no_ticket_provenance_leak": no_ticket_leak,
+        "journal_stops_after_evaluate": non_success_boundary,
+        "zero_write_surfaces": non_success_boundary,
+        "recovery_all_steps_executed": recovery_steps,
+        "no_gate_override": no_gate_override,
+        "visibility_public_preserved": lambda: visibility("public"),
+        "visibility_project_preserved": lambda: visibility("project"),
+        "visibility_restricted_preserved": lambda: visibility("restricted"),
+        "identity_provenance_digest_preserved": lambda: _identity_provenance_digest_check(
+            sidecar_state, scenario["inputs"]),
+        "typed_outcome_match": typed_outcome,
+        "observable_side_effects_match": observable_side_effects,
+        "prohibited_side_effects_absent": prohibited_side_effects,
+    }
+    results = []
+    for rule_id in declared:
+        oracle = registry.get(rule_id)
+        if oracle is None:
+            results.append({"rule": rule_id, "status": "fail", "step_id": "catalog",
+                            "detail": {"reason": "unknown_or_inapplicable_rule"}})
+            continue
+        try:
+            passed = oracle()
+        except Exception as exc:  # fail closed on a checker fault
+            results.append({"rule": rule_id, "status": "fail", "step_id": "catalog",
+                            "detail": {"reason": "oracle_error", "type": type(exc).__name__}})
+            continue
+        results.append({"rule": rule_id, "status": "pass" if passed else "fail",
+                        "step_id": "catalog"})
+
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -1232,6 +1529,7 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
     sidecar_state: dict = {}
     call_counts: dict = {}
     verification_results: list = []
+    boundary_snapshots: list = []
     verify_state: dict = {
         "last_event_order": 0,
         "signer_key": _resolve_signer_key(inputs, catalog),
@@ -1294,6 +1592,15 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
         input_digest = _sha256_obj(binding)
         fqn = f"{production.__module__}.{production.__qualname__}"
 
+        expectation = catalog["scenario_expectations"][scenario_id]
+        is_non_success_boundary = (
+            operation == "evaluate_validator_mesh"
+            and expectation.get("typed_outcome") in {
+                "fail", "blocked", "inconclusive", "human_review_required"
+            }
+        )
+        before_boundary = _surface_snapshot(sidecar_state, inputs)
+
         # Derive invocation count from observed engine call accounting.
         before = call_counts.get(fqn, 0)
         try:
@@ -1306,8 +1613,20 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
         call_counts[fqn] = before + 1
         invocation_count = call_counts[fqn] - before  # == 1 by construction
 
-        # Carry results forward in runtime-only state for the next step.
+        # Snapshot immediately after the production operation, before carrying
+        # an allowed return value into the downstream in-memory state.
+        after_boundary = _surface_snapshot(sidecar_state, inputs)
         _propagate(component, operation, output, sidecar_state)
+
+        if is_non_success_boundary:
+            boundary_snapshots.append({
+                "step_id": step_id,
+                "before": _surface_digests(before_boundary),
+                "after": _surface_digests(after_boundary),
+                "all_five_surfaces_equal": before_boundary == after_boundary,
+                "setup_step_ids": [item["step_id"] for item in call_ledger],
+                "ledger_index": len(call_ledger),
+            })
 
         # (a) Raw cryptographic verification (per-run, uses actual production
         # return including store-assigned event_id/occurred_at/signatures).
@@ -1347,17 +1666,6 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
             failed = True
             break
 
-    sidecar = sidecar_state.get("_sidecar")
-    if sidecar is not None:
-        try:
-            sidecar.close()
-        except Exception:
-            pass
-
-    verification_failed = any(v.get("status") in {"fail", "blocked", "inconclusive"}
-                              for v in verification_results)
-    scenario_status = "pass" if not failed and not verification_failed else "fail"
-
     final_verdict = None
     mesh_result = sidecar_state.get("_mesh_result", {})
     if isinstance(mesh_result, dict):
@@ -1366,21 +1674,39 @@ def _execute_pipeline(scenario: dict, tmp_dir: pathlib.Path) -> dict:
             final_verdict = verdict
 
     state_facts = _extract_state_facts(sidecar_state, inputs)
-
-    return {
+    result = {
         "scenario_id": scenario_id,
-        "scenario_status": scenario_status,
+        "scenario_status": "fail",
         "final_verdict": final_verdict,
         "call_ledger": call_ledger,
         "state_facts": state_facts,
         "verification_results": verification_results,
+        "boundary_snapshots": boundary_snapshots,
     }
+    for proof in boundary_snapshots:
+        later = call_ledger[proof["ledger_index"] + 1:]
+        proof["prohibited_downstream_call_count"] = sum(
+            item.get("invocation_count", 0) for item in later)
+    catalog_results = _execute_catalog_oracles(
+        scenario, catalog, result, sidecar_state, boundary_snapshots)
+    result["declared_rule_results"] = [
+        {"rule_id": item["rule"], "status": item["status"]}
+        for item in catalog_results]
+    verification_results.extend(catalog_results)
+    verification_failed = any(v.get("status") != "pass" for v in verification_results)
+    result["scenario_status"] = "pass" if not failed and not verification_failed else "fail"
+    sidecar = sidecar_state.get("_sidecar")
+    if sidecar is not None:
+        sidecar.close()
+
+    return result
 
 
 def _propagate(component: str, operation: str, output: dict, sidecar_state: dict) -> None:
     """Capture a production callable's output in runtime-only state for the next
     pipeline step. This is NOT a production call."""
     if operation == "create_run" and isinstance(output, dict):
+        sidecar_state["_run_id"] = output.get("run_id", sidecar_state.get("_run_id", ""))
         nd = output.get("new_stream_head", {}).get("content_digest")
         if nd is not None:
             sidecar_state["prev_digest"] = nd

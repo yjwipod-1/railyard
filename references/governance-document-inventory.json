@@ -607,9 +607,9 @@
     {
       "path": "references/runtime-v080-smoke-contract.md",
       "metadata": {
-        "document_id": "railyard-runtime-v080-smoke-contract-v1.2.0",
+        "document_id": "railyard-runtime-v080-smoke-contract-v1.5.0",
         "governance_kind": "contract",
-        "version": "1.2.0",
+        "version": "1.5.0",
         "authority_level": "canonical",
         "owner": "architect",
         "scope": "frozen public v0.8 smoke scenario contract defining success, failure, recovery, visibility, and zero-write rejection scenarios for the released v0.8 runtime framework",
@@ -617,7 +617,7 @@
         "overrideability": "non_overridable",
         "status": "active",
         "canonical_for": ["runtime-v080-smoke-contract"],
-        "description": "Frozen public v0.8 smoke scenario contract v1.2.0 (remediation revision). Preserves catalog pipeline plus executor call ledger as exact invocation evidence and Sidecar-only RuntimeEvents. Freezes scenarios 003-011 to the catalog's exact create_run, dispatch, evaluate_validator_mesh three-call and one-event boundary; defines their production Mesh inputs/outcomes; forbids post-return output mutation and simulated verdicts; preserves raw-verification independence and scenario-012 deep-copy tamper detection."
+        "description": "Frozen public v0.8 smoke scenario contract v1.5.0. Preserves catalog pipeline and executor call ledger as invocation evidence and Sidecar-only RuntimeEvents. Freezes contract-derived typed outcomes, observable and prohibited side effects, and executable fail-closed verification rules for every scenario; preserves raw-verification independence, canonical five-surface non-success boundaries, contract-correct Mesh-to-Gate digest handling, and authorized checkpoint resume semantics."
       },
       "mixed_sections": [],
       "disposition": "remain_in_place",

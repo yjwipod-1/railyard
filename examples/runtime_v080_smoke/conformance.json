@@ -13,12 +13,257 @@
   "overrideability": "non_overridable",
   "status": "active",
   "contract_ref": "references/runtime-v080-smoke-contract.md",
-  "contract_sha256": "6ea9a2d3981c3d67a3e98b164425d4246e532d8e7836ea54b57d9803aea5e582",
+  "contract_sha256": "709843f7bcbabc5508333974a7f92f17d28372a5a43b84c561265e455394f020",
   "scenario_count": 20,
   "shared_inputs": {
     "signer_key_base64": "c21va2UtcnVubmVyLWRldGVybWluaXN0aWMta2V5LXYwODA=",
     "id_prefix": "s",
     "id_start": 1
+  },
+  "scenario_expectations": {
+    "v080-scenario-001": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-002": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-003": {
+      "typed_outcome": "blocked",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-004": {
+      "typed_outcome": "fail",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-005": {
+      "typed_outcome": "blocked",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-006": {
+      "typed_outcome": "inconclusive",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-007": {
+      "typed_outcome": "human_review_required",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-008": {
+      "typed_outcome": "blocked",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-009": {
+      "typed_outcome": "blocked",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-010": {
+      "typed_outcome": "blocked",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-011": {
+      "typed_outcome": "blocked",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run",
+        "evaluate_runtime_action"
+      ]
+    },
+    "v080-scenario-012": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-013": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-014": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run"
+      ]
+    },
+    "v080-scenario-015": {
+      "typed_outcome": "action_authorized_resume",
+      "observable_side_effects": [
+        "run.created",
+        "export_run",
+        "publish_to_gate"
+      ],
+      "prohibited_side_effects": [
+        "dispatch",
+        "evaluate_validator_mesh",
+        "append_event",
+        "commit_stage"
+      ]
+    },
+    "v080-scenario-016": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created"
+      ],
+      "prohibited_side_effects": [
+        "publish_to_gate",
+        "append_event",
+        "commit_stage",
+        "export_run"
+      ]
+    },
+    "v080-scenario-017": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-018": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-019": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    },
+    "v080-scenario-020": {
+      "typed_outcome": "pass",
+      "observable_side_effects": [
+        "run.created",
+        "run.started",
+        "run.stage.started",
+        "run.gate.evaluated",
+        "run.stage.completed"
+      ],
+      "prohibited_side_effects": []
+    }
   },
   "scenarios": [
     {
@@ -147,7 +392,11 @@
         "no_forbidden_calls",
         "journal_sequence",
         "projection_pass",
-        "ticket_provenance_preserved"
+        "ticket_provenance_preserved",
+        "identity_provenance_digest_preserved",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -276,7 +525,11 @@
         "no_forbidden_calls",
         "journal_sequence",
         "projection_pass",
-        "no_ticket_provenance_leak"
+        "no_ticket_provenance_leak",
+        "identity_provenance_digest_preserved",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -344,7 +597,10 @@
         "semantic_input_origin",
         "no_forbidden_calls",
         "journal_stops_after_evaluate",
-        "zero_write_surfaces"
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -410,7 +666,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -476,7 +736,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -542,7 +806,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -608,7 +876,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -674,7 +946,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -740,7 +1016,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -806,7 +1086,11 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -872,12 +1156,16 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "journal_stops_after_evaluate"
+        "journal_stops_after_evaluate",
+        "zero_write_surfaces",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
       "scenario_id": "v080-scenario-012",
-        "description": "Exported-evidence deep-copy tamper detection with final publish suppression",
+      "description": "Exported-evidence deep-copy tamper detection with final publish suppression",
       "trigger_kind": "ticket",
       "dependencies": [],
       "inputs": {
@@ -980,14 +1268,14 @@
           "operation": "export_run",
           "input_binding": {}
         },
-          {
-            "step_id": "publish",
+        {
+          "step_id": "publish",
           "component": "runtime_publish_gate",
           "operation": "publish_to_gate",
-            "input_binding": {
-              "stage_id": "current",
-              "suppress_after_export_tamper": true
-            }
+          "input_binding": {
+            "stage_id": "current",
+            "suppress_after_export_tamper": true
+          }
         }
       ],
       "governing_contracts": [
@@ -998,7 +1286,10 @@
       "verification_rule_ids": [
         "call_ledger_match",
         "semantic_input_origin",
-        "no_forbidden_calls"
+        "no_forbidden_calls",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1148,7 +1439,10 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "recovery_all_steps_executed"
+        "recovery_all_steps_executed",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1244,7 +1538,10 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "recovery_all_steps_executed"
+        "recovery_all_steps_executed",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1265,7 +1562,24 @@
         "decision_id_seed": 1200,
         "parent_run_id": "v080-run-001",
         "parent_run_status": "interrupted",
-        "checkpoint_available": false,
+        "checkpoint_available": true,
+        "checkpoint_event_order": 1,
+        "checkpoint": {
+          "checkpoint_ref": {
+            "artifact_id": "checkpoint-015",
+            "artifact_kind": "checkpoint"
+          },
+          "checkpoint_event_order": 1,
+          "checkpoint_stage_id": "current",
+          "recovery_action": "replay_from_checkpoint",
+          "artifacts_produced_before_checkpoint": [
+            {
+              "artifact_id": "artifact-001",
+              "artifact_kind": "artifact",
+              "artifact_version": "1.2.0"
+            }
+          ]
+        },
         "interruption_cause": "session_lost",
         "proposed_child_run_id": "v080-run-015-child",
         "evaluated_at_action": "2026-07-15T00:00:01.000000+00:00",
@@ -1321,7 +1635,10 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "recovery_all_steps_executed"
+        "recovery_all_steps_executed",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1412,7 +1729,10 @@
         "call_ledger_match",
         "semantic_input_origin",
         "no_forbidden_calls",
-        "recovery_all_steps_executed"
+        "recovery_all_steps_executed",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1565,7 +1885,10 @@
         "semantic_input_origin",
         "no_forbidden_calls",
         "recovery_all_steps_executed",
-        "no_gate_override"
+        "no_gate_override",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1693,7 +2016,11 @@
         "no_forbidden_calls",
         "journal_sequence",
         "projection_pass",
-        "visibility_public_preserved"
+        "visibility_public_preserved",
+        "identity_provenance_digest_preserved",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1820,7 +2147,11 @@
         "no_forbidden_calls",
         "journal_sequence",
         "projection_pass",
-        "visibility_project_preserved"
+        "visibility_project_preserved",
+        "identity_provenance_digest_preserved",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     },
     {
@@ -1948,7 +2279,11 @@
         "no_forbidden_calls",
         "journal_sequence",
         "projection_pass",
-        "visibility_restricted_preserved"
+        "visibility_restricted_preserved",
+        "identity_provenance_digest_preserved",
+        "typed_outcome_match",
+        "observable_side_effects_match",
+        "prohibited_side_effects_absent"
       ]
     }
   ],

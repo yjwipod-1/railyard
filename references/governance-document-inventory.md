@@ -34,7 +34,7 @@ Human-readable companion to the machine-readable inventory at `references/govern
 | references/runtime-gate-decision-contract.md | contract | canonical | non_overridable | runtime-gate-decision-contract | active | none |
 | references/runtime-action-policy-contract.md | contract | canonical | non_overridable | runtime-action-policy-contract | active | none |
 | references/runtime-validator-mesh-contract.md (v1.2.0) | contract | canonical | non_overridable | runtime-validator-mesh-contract | active | none |
-| references/runtime-v080-smoke-contract.md (v1.2.0) | contract | canonical | non_overridable | runtime-v080-smoke-contract | active | none |
+| references/runtime-v080-smoke-contract.md (v1.5.0) | contract | canonical | non_overridable | runtime-v080-smoke-contract | active | none |
 | references/runtime-v080-staging-manifest-contract.md (v2.0.0; supersedes v1.0.0; v1.1.0 rejected) | contract | canonical | non_overridable | runtime-v080-staging-manifest-contract | active | none |
 | references/validation-primitive-registry.md | registry | canonical | stricter_only | validation-primitive-registry | active | none |
 | references/helper-commands.md | registry | canonical | stricter_only | helper-commands | active | Ticket Helpers (guide -> README) |

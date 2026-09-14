@@ -142,7 +142,7 @@ class CatalogValidationTests(unittest.TestCase):
     def test_catalog_frozen_contract_hash(self):
         self.assertEqual(
             self.catalog["contract_sha256"],
-            "6ea9a2d3981c3d67a3e98b164425d4246e532d8e7836ea54b57d9803aea5e582",
+            "709843f7bcbabc5508333974a7f92f17d28372a5a43b84c561265e455394f020",
             "Smoke contract hash must match frozen value"
         )
 
@@ -153,6 +153,17 @@ class CatalogValidationTests(unittest.TestCase):
                             f"{s['scenario_id']} missing inputs dict")
             self.assertTrue(len(inputs) > 0,
                             f"{s['scenario_id']} has empty inputs")
+
+    def test_every_scenario_has_contract_derived_expectation(self):
+        expectations = self.catalog.get("scenario_expectations", {})
+        self.assertEqual(set(expectations), {s["scenario_id"] for s in self.catalog["scenarios"]})
+        for scenario in self.catalog["scenarios"]:
+            expectation = expectations[scenario["scenario_id"]]
+            self.assertEqual(set(expectation), {
+                "typed_outcome", "observable_side_effects", "prohibited_side_effects"})
+            self.assertTrue(scenario["verification_rule_ids"])
+            self.assertEqual(len(scenario["verification_rule_ids"]),
+                             len(set(scenario["verification_rule_ids"])))
 
     def test_every_pipeline_entry_has_step_id(self):
         for s in self.catalog.get("scenarios", []):
@@ -357,6 +368,16 @@ class SingleScenarioTests(unittest.TestCase):
         self.assertEqual(verdicts["export_tamper_detected"], "pass")
         self.assertEqual(verdicts["export_original_unchanged"], "pass")
         self.assertEqual(verdicts["publish_suppressed"], "pass")
+
+    def test_scenario_015_is_an_authorized_checkpoint_resume(self):
+        _, result, _ = self._run_scenario("v080-scenario-015")
+        scenario = result["result"]
+        self.assertEqual(scenario["scenario_status"], "pass")
+        self.assertEqual([item["step_id"] for item in scenario["call_ledger"]],
+                         ["init_run", "action_policy_resume", "export_evidence", "publish"])
+        declared = {item["rule_id"]: item["status"]
+                    for item in scenario["declared_rule_results"]}
+        self.assertEqual(declared["recovery_all_steps_executed"], "pass")
 
 
 # ---------------------------------------------------------------------------
@@ -721,29 +742,24 @@ class SourceScanTests(unittest.TestCase):
 
 class InventoryFreezeTests(unittest.TestCase):
 
-    def test_only_three_scoped_files_changed(self):
+    def test_inventory_reconciles_smoke_contract_version(self):
         inv_path = ROOT / "references" / "governance-document-inventory.json"
         inv_hash = _sha256_file(inv_path)
-        expected_inv = "20627eaabb9e8dcee9db3a2afb9433d280bcac3b81cc67722d1d7ad7bdad63a6"
+        expected_inv = "4bc5cd044803c2053ceeed0e7687abee750075a540cca665faa0a6f7671ab036"
         self.assertEqual(inv_hash, expected_inv,
                          f"Inventory file hash changed! Got: {inv_hash}")
 
-    def test_inventory_reverse_proof_still_valid(self):
-        inv_path = ROOT / "references" / "governance-document-inventory.json"
-        current = inv_path.read_bytes()
-        old_line = b'      "path": "references/validation-primitive-registry.md",\n'
-        self.assertIn(old_line, current,
-                      "validation-primitive-registry line must still be present")
-        restored = current.replace(old_line, b'')
-        restored_hash = hashlib.sha256(restored).hexdigest()
-        expected_old = "406ad9e3d85e290d470fc15a70e35face9cf7af61752e50e511f8ce7d39dd204"
-        self.assertEqual(restored_hash, expected_old,
-                         "Reverse proof must remain valid")
+        inventory = json.loads(inv_path.read_text(encoding="utf-8"))
+        entry = next(item for item in inventory["documents"]
+                     if item["path"] == "references/runtime-v080-smoke-contract.md")
+        self.assertEqual(entry["metadata"]["document_id"],
+                         "railyard-runtime-v080-smoke-contract-v1.5.0")
+        self.assertEqual(entry["metadata"]["version"], "1.5.0")
 
     def test_inventory_markdown_unchanged(self):
         md_path = ROOT / "references" / "governance-document-inventory.md"
         md_hash = _sha256_file(md_path)
-        expected_md = "5c252043ae3a087f7076ea3577d0b3bb53e1695e59cb83df95953a63d12e8505"
+        expected_md = "1c4babff19c3c9e5bc4141ea71bc8899edd29ff2e6b45f5a915d78772613c1f7"
         self.assertEqual(md_hash, expected_md,
                          "Inventory Markdown must remain unchanged")
 
