@@ -1,0 +1,1236 @@
+{
+  "fixture_set": "railyard-runtime-adapter-v1-conformance",
+  "schema": "assets/schemas/runtime-adapter-v1.schema.json",
+  "description": "Conformance fixtures for Railyard Runtime Adapter Contract v1.0.0. Each negative fixture is single-cause with expected_failure_code. All fixtures are machine-validated against Draft 2020-12 JSON Schema.",
+  "counts": {
+    "positive": 34,
+    "schema_invalid_negative": 31,
+    "runtime_decision": 7
+  },
+  "fixtures": [
+    {
+      "_section": "=== POSITIVE CASES (17) ==="
+    },
+    {
+      "id": "positive-create_run",
+      "label": "Valid create_run request — adapter validates only run_id, forwards complete params",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "operation": "create_run",
+        "payload": {
+          "operation": "create_run",
+          "params": {
+            "run_id": "run-recon-001",
+            "run_provenance": { "origin": "ticket", "ticket_id": "T-001" },
+            "trigger": "ticket",
+            "executor_identity": "runner-1",
+            "run_ordinal": 1,
+            "stage_graph": { "stages": ["validate", "execute", "review"] }
+          }
+        }
+      }
+    },
+    {
+      "id": "positive-append_event",
+      "label": "Valid append_event request — adapter validates only run_id, forwards complete params; pairs with create_run run-recon-001",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-002",
+        "operation": "append_event",
+        "payload": {
+          "operation": "append_event",
+          "params": {
+            "run_id": "run-recon-001",
+            "event": {
+              "event_type": "run.started",
+              "stage_id": "validate",
+              "timestamp": "2026-07-23T06:00:00Z",
+              "payload": { "message": "Run started" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "positive-read_event",
+      "label": "Valid read_event request",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-003",
+        "operation": "read_event",
+        "payload": {
+          "operation": "read_event",
+          "params": {
+            "run_id": "run-abc-123",
+            "event_order": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "positive-export_evidence",
+      "label": "Valid export_evidence request with all required fields",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-004",
+        "operation": "export_evidence",
+        "payload": {
+          "operation": "export_evidence",
+          "params": {
+            "run_id": "run-abc-123",
+            "export_id": "export-001",
+            "exported_at": "2026-07-22T00:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "positive-evidence_snapshot",
+      "label": "Valid evidence_snapshot request",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-005",
+        "operation": "evidence_snapshot",
+        "payload": {
+          "operation": "evidence_snapshot",
+          "params": {
+            "run_id": "run-abc-123"
+          }
+        }
+      }
+    },
+    {
+      "id": "positive-get_run",
+      "label": "Valid get_run request",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-006",
+        "operation": "get_run",
+        "payload": { "operation": "get_run", "params": { "run_id": "run-abc-123" } }
+      }
+    },
+    {
+      "id": "positive-get_stage",
+      "label": "Valid get_stage request",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-007",
+        "operation": "get_stage",
+        "payload": { "operation": "get_stage", "params": { "run_id": "run-abc-123", "stage_id": "validate" } }
+      }
+    },
+    {
+      "id": "positive-read_events",
+      "label": "Valid read_events request",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-008",
+        "operation": "read_events",
+        "payload": { "operation": "read_events", "params": { "run_id": "run-abc-123" } }
+      }
+    },
+    {
+      "id": "positive-context",
+      "label": "Valid request with optional context",
+      "conforms": true,
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-009",
+        "operation": "create_run",
+        "payload": { "operation": "create_run", "params": { "run_id": "r2", "run_provenance": {}, "trigger": "ticket", "executor_identity": "e2" } },
+        "context": {
+          "trigger_artifact": { "artifact_id": "ticket-001", "artifact_kind": "ticket" },
+          "correlation_id": "corr-abc",
+          "executor_identity": "runner-1"
+        }
+      }
+    },
+    {
+      "id": "positive-adapter_response_success",
+      "label": "Valid success AdapterResponse",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "status": "success",
+        "operation": "create_run",
+        "data": { "run_id": "run-abc-123", "status": "active" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-read_events_array_response",
+      "label": "Valid AdapterResponse for read_events — data is an array",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-read-events-001",
+        "status": "success",
+        "operation": "read_events",
+        "data": [
+          { "event_order": 1, "event_type": "run.started" },
+          { "event_order": 2, "event_type": "stage.entered" }
+        ],
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-read_event_null_response",
+      "label": "Valid AdapterResponse for read_event — data is null when event not found",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-read-event-001",
+        "status": "success",
+        "operation": "read_event",
+        "data": null,
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-read_event_object_response",
+      "label": "Valid AdapterResponse for read_event — data is an object when event found",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-read-event-002",
+        "status": "success",
+        "operation": "read_event",
+        "data": { "event_order": 1, "event_type": "run.started" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-adapter_response_error",
+      "label": "Valid error AdapterResponse",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "status": "error",
+        "operation": "create_run",
+        "error": {
+          "code": "CAPABILITY_UNAVAILABLE",
+          "detail": { "reason": "test" },
+          "request_id": "req-001",
+          "operation": "create_run"
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "positive-response-append_event-object",
+      "label": "Valid AdapterResponse for append_event — data is an object",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-ae-001",
+        "status": "success",
+        "operation": "append_event",
+        "data": { "event_order": 1, "event_id": "ev-001" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-response-get_run-object",
+      "label": "Valid AdapterResponse for get_run — data is an object",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-gr-001",
+        "status": "success",
+        "operation": "get_run",
+        "data": { "run_id": "run-001", "status": "active", "current_stage": "execute" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-response-get_stage-object",
+      "label": "Valid AdapterResponse for get_stage — data is an object",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-gs-001",
+        "status": "success",
+        "operation": "get_stage",
+        "data": { "stage_id": "validate", "status": "completed" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-response-evidence_snapshot-object",
+      "label": "Valid AdapterResponse for evidence_snapshot — data is an object",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-es-001",
+        "status": "success",
+        "operation": "evidence_snapshot",
+        "data": { "run_id": "run-001", "snapshot": { "events": 5, "stages": 3 } },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-response-export_evidence-object",
+      "label": "Valid AdapterResponse for export_evidence — data is an object",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-ee-001",
+        "status": "success",
+        "operation": "export_evidence",
+        "data": { "export_id": "export-001", "manifest": { "events": 10 } },
+        "capability_state": "full"
+      }
+    },
+
+    {
+      "id": "negative-response-read_events-object",
+      "label": "INVALID: read_events success response with object data (must be array)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "read_events data must be an array",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-re-001",
+        "status": "success",
+        "operation": "read_events",
+        "data": { "events": [] },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-read_events-null",
+      "label": "INVALID: read_events success response with null data (must be array)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "read_events data must be an array, not null",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-re-002",
+        "status": "success",
+        "operation": "read_events",
+        "data": null,
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-read_event-array",
+      "label": "INVALID: read_event success response with array data (must be object or null)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "read_event data must be object or null, not array",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-re-003",
+        "status": "success",
+        "operation": "read_event",
+        "data": [],
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-create_run-array",
+      "label": "INVALID: create_run success response with array data (must be object)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "create_run data must be an object",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-cr-001",
+        "status": "success",
+        "operation": "create_run",
+        "data": [{ "run_id": "r1" }],
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-append_event-null",
+      "label": "INVALID: append_event success response with null data (must be object)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "append_event data must be an object",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-ae-002",
+        "status": "success",
+        "operation": "append_event",
+        "data": null,
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-get_run-array",
+      "label": "INVALID: get_run success response with array data (must be object)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "get_run data must be an object",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-gr-002",
+        "status": "success",
+        "operation": "get_run",
+        "data": [],
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-export_evidence-array",
+      "label": "INVALID: export_evidence success response with array data (must be object)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "export_evidence data must be an object",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-ee-002",
+        "status": "success",
+        "operation": "export_evidence",
+        "data": [],
+        "capability_state": "full"
+      }
+    },
+
+    {
+      "id": "positive-provider_interface",
+      "label": "Valid ProviderInterface declaration",
+      "conforms": true,
+      "kind": "ProviderInterface",
+      "data": {
+        "interface_id": "railyard-runtime-adapter-v1",
+        "interface_version": "1.0.0",
+        "capabilities": ["create_run", "append_event", "read_event", "read_events", "get_run", "get_stage", "evidence_snapshot", "export_evidence"],
+        "input_schema_ref": "assets/schemas/runtime-adapter-v1.schema.json",
+        "output_schema_ref": "assets/schemas/runtime-adapter-v1.schema.json",
+        "error_schema_ref": "assets/schemas/runtime-adapter-v1.schema.json"
+      }
+    },
+    {
+      "id": "positive-adapter_descriptor",
+      "label": "Valid AdapterDescriptor declaration",
+      "conforms": true,
+      "kind": "AdapterDescriptor",
+      "data": {
+        "adapter_id": "local-sqlite-001",
+        "implements": "railyard-runtime-adapter-v1",
+        "provider": "local_sqlite",
+        "protocol_version": "1.0.0",
+        "capability_declaration": [
+          { "capability": "create_run", "state": "full" },
+          { "capability": "append_event", "state": "full" },
+          { "capability": "read_event", "state": "full" },
+          { "capability": "read_events", "state": "full" },
+          { "capability": "get_run", "state": "full" },
+          { "capability": "get_stage", "state": "full" },
+          { "capability": "evidence_snapshot", "state": "full" },
+          { "capability": "export_evidence", "state": "full" }
+        ]
+      }
+    },
+    {
+      "id": "capability-full",
+      "label": "CapabilityDeclaration: state=full (no degradation_note required)",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "create_run",
+        "state": "full"
+      }
+    },
+    {
+      "id": "capability-degraded_transport",
+      "label": "CapabilityDeclaration: state=degraded_transport with degradation_note",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "append_event",
+        "state": "degraded_transport",
+        "degradation_note": "Transport is HTTP instead of local; correctness preserved"
+      }
+    },
+    {
+      "id": "capability-degraded_scope",
+      "label": "CapabilityDeclaration: state=degraded_scope with degradation_note and scope_constraints",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for the last 30 days; correctness preserved within scope",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-active-001"]
+          }
+        }
+      }
+    },
+    {
+      "id": "capability-unavailable",
+      "label": "CapabilityDeclaration: state=unavailable with degradation_note",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "export_evidence",
+        "state": "unavailable",
+        "degradation_note": "This capability is not implemented"
+      }
+    },
+
+    {
+      "_section": "=== SCHEMA-INVALID NEGATIVE CASES (12) ==="
+    },
+    {
+      "id": "negative-malformed_envelope-no-protocol_version",
+      "label": "MALFORMED_ENVELOPE: missing protocol_version",
+      "conforms": false,
+      "expected_failure_code": "MALFORMED_ENVELOPE",
+      "failure_reason": "Top-level required field protocol_version is missing",
+      "data": {
+        "request_id": "req-001",
+        "operation": "create_run",
+        "payload": { "operation": "create_run", "params": { "run_id": "r1", "run_provenance": {}, "trigger": "ticket", "executor_identity": "e1" } }
+      }
+    },
+    {
+      "id": "negative-malformed_envelope-no-request_id",
+      "label": "MALFORMED_ENVELOPE: missing request_id",
+      "conforms": false,
+      "expected_failure_code": "MALFORMED_ENVELOPE",
+      "failure_reason": "Top-level required field request_id is missing",
+      "data": {
+        "protocol_version": "1.0.0",
+        "operation": "create_run",
+        "payload": { "operation": "create_run", "params": { "run_id": "r1", "run_provenance": {}, "trigger": "ticket", "executor_identity": "e1" } }
+      }
+    },
+    {
+      "id": "negative-unsupported_version",
+      "label": "UNSUPPORTED_VERSION: wrong protocol version '0.9.0'",
+      "conforms": false,
+      "expected_failure_code": "UNSUPPORTED_VERSION",
+      "failure_reason": "protocol_version '0.9.0' does not match const '1.0.0'",
+      "data": {
+        "protocol_version": "0.9.0",
+        "request_id": "req-001",
+        "operation": "create_run",
+        "payload": { "operation": "create_run", "params": { "run_id": "r1", "run_provenance": {}, "trigger": "ticket", "executor_identity": "e1" } }
+      }
+    },
+    {
+      "id": "negative-unknown_operation",
+      "label": "UNKNOWN_OPERATION: invalid operation name",
+      "conforms": false,
+      "expected_failure_code": "UNKNOWN_OPERATION",
+      "failure_reason": "operation 'invalid_op' is not in the frozen enum",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "operation": "invalid_op",
+        "payload": { "operation": "invalid_op", "params": {} }
+      }
+    },
+    {
+      "id": "negative-operation_mismatch",
+      "label": "INVALID_PAYLOAD: outer operation=create_run but payload.operation=get_run",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "payload.operation 'get_run' does not match outer operation 'create_run'",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "operation": "create_run",
+        "payload": { "operation": "get_run", "params": { "run_id": "r1" } }
+      }
+    },
+    {
+      "id": "negative-invalid_payload-export_evidence-missing-run_id",
+      "label": "INVALID_PAYLOAD: export_evidence missing run_id",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "export_evidence params missing required run_id field",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-004",
+        "operation": "export_evidence",
+        "payload": {
+          "operation": "export_evidence",
+          "params": {
+            "export_id": "export-001",
+            "exported_at": "2026-07-22T00:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-invalid_payload-export_evidence-missing-export_id",
+      "label": "INVALID_PAYLOAD: export_evidence missing export_id",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "export_evidence params missing required export_id field",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-004",
+        "operation": "export_evidence",
+        "payload": {
+          "operation": "export_evidence",
+          "params": {
+            "run_id": "run-abc-123",
+            "exported_at": "2026-07-22T00:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-invalid_payload-export_evidence-missing-exported_at",
+      "label": "INVALID_PAYLOAD: export_evidence missing exported_at",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "export_evidence params missing required exported_at field",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-004",
+        "operation": "export_evidence",
+        "payload": {
+          "operation": "export_evidence",
+          "params": {
+            "run_id": "run-abc-123",
+            "export_id": "export-001"
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-response-success-no-data",
+      "label": "INVALID_PAYLOAD: AdapterResponse status=success but data is missing",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "Success response requires 'data' field and must not contain 'error'",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "status": "success",
+        "operation": "create_run",
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-success-with-error",
+      "label": "INVALID_PAYLOAD: AdapterResponse status=success but contains error field",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "Success response must not contain 'error' field",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "status": "success",
+        "operation": "create_run",
+        "data": { "run_id": "r1" },
+        "error": { "code": "INTERNAL_ERROR", "detail": {}, "request_id": "req-001", "operation": "create_run" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-response-error-with-data",
+      "label": "INVALID_PAYLOAD: AdapterResponse status=error but contains data field",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "Error response must not contain 'data' field",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "status": "error",
+        "operation": "create_run",
+        "data": { "run_id": "r1" },
+        "error": { "code": "INTERNAL_ERROR", "detail": {}, "request_id": "req-001", "operation": "create_run" },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "negative-capability-degraded-no-note",
+      "label": "INVALID_PAYLOAD: CapabilityDeclaration state=degraded_scope missing degradation_note",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "CapabilityDeclaration with state != full requires degradation_note",
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-001"]
+          }
+        }
+      }
+    },
+
+    {
+      "id": "negative-adapter_descriptor-missing-capability",
+      "label": "INVALID_PAYLOAD: AdapterDescriptor with only 7 of 8 required capability declarations",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "AdapterDescriptor must declare exactly one CapabilityDeclaration per operation (8 required, only 7 present)",
+      "kind": "AdapterDescriptor",
+      "data": {
+        "adapter_id": "local-sqlite-missing-cap",
+        "implements": "railyard-runtime-adapter-v1",
+        "provider": "local_sqlite",
+        "protocol_version": "1.0.0",
+        "capability_declaration": [
+          { "capability": "create_run", "state": "full" },
+          { "capability": "append_event", "state": "full" },
+          { "capability": "read_event", "state": "full" },
+          { "capability": "read_events", "state": "full" },
+          { "capability": "get_run", "state": "full" },
+          { "capability": "get_stage", "state": "full" },
+          { "capability": "evidence_snapshot", "state": "full" }
+        ]
+      }
+    },
+    {
+      "id": "negative-adapter_descriptor-duplicate-capability",
+      "label": "INVALID_PAYLOAD: AdapterDescriptor with 8 items but export_evidence appears twice and get_run is missing",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "AdapterDescriptor must declare each capability exactly once; export_evidence duplicated, get_run missing",
+      "kind": "AdapterDescriptor",
+      "data": {
+        "adapter_id": "local-sqlite-dup-cap",
+        "implements": "railyard-runtime-adapter-v1",
+        "provider": "local_sqlite",
+        "protocol_version": "1.0.0",
+        "capability_declaration": [
+          { "capability": "create_run", "state": "full" },
+          { "capability": "append_event", "state": "full" },
+          { "capability": "read_event", "state": "full" },
+          { "capability": "read_events", "state": "full" },
+          { "capability": "get_stage", "state": "full" },
+          { "capability": "evidence_snapshot", "state": "full" },
+          { "capability": "export_evidence", "state": "full" },
+          { "capability": "export_evidence", "state": "unavailable", "degradation_note": "Duplicate export_evidence replaces get_run" }
+        ]
+      }
+    },
+    {
+      "id": "negative-adapter_descriptor-unknown-capability",
+      "label": "INVALID_PAYLOAD: AdapterDescriptor with 8 items but one capability is an unknown operation name",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "AdapterDescriptor contains unknown capability 'delete_run'; all capabilities must be from the frozen operation enum",
+      "kind": "AdapterDescriptor",
+      "data": {
+        "adapter_id": "local-sqlite-unknown-cap",
+        "implements": "railyard-runtime-adapter-v1",
+        "provider": "local_sqlite",
+        "protocol_version": "1.0.0",
+        "capability_declaration": [
+          { "capability": "create_run", "state": "full" },
+          { "capability": "append_event", "state": "full" },
+          { "capability": "read_event", "state": "full" },
+          { "capability": "read_events", "state": "full" },
+          { "capability": "get_run", "state": "full" },
+          { "capability": "get_stage", "state": "full" },
+          { "capability": "evidence_snapshot", "state": "full" },
+          { "capability": "delete_run", "state": "full" }
+        ]
+      }
+    },
+
+    {
+      "_section": "=== MALFORMED_ENVELOPE NULL-ECHO CASES (12) ==="
+    },
+    {
+      "id": "positive-malformed-non-object-null-echo",
+      "label": "MALFORMED_ENVELOPE: non-object request, request_id=null, operation=null",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": null,
+        "status": "error",
+        "operation": null,
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "Request is not a JSON object" },
+          "request_id": null,
+          "operation": null
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "positive-malformed-missing-request_id",
+      "label": "MALFORMED_ENVELOPE: missing request_id, request_id=null, operation echoed as non-empty",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": null,
+        "status": "error",
+        "operation": "create_run",
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "request_id is missing" },
+          "request_id": null,
+          "operation": "create_run"
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "positive-malformed-missing-operation",
+      "label": "MALFORMED_ENVELOPE: missing operation, request_id echoed, operation=null",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-echo-001",
+        "status": "error",
+        "operation": null,
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "operation is missing" },
+          "request_id": "req-echo-001",
+          "operation": null
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "positive-malformed-wrong-type-request_id",
+      "label": "MALFORMED_ENVELOPE: wrong-type request_id (integer) mapped to null",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": null,
+        "status": "error",
+        "operation": "create_run",
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "request_id is integer, not string" },
+          "request_id": null,
+          "operation": "create_run"
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "positive-unknown_operation-echo",
+      "label": "UNKNOWN_OPERATION: echoed unknown operation string is non-empty",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-unknown-001",
+        "status": "error",
+        "operation": "delete_all_runs",
+        "error": {
+          "code": "UNKNOWN_OPERATION",
+          "detail": { "reason": "Operation 'delete_all_runs' is not supported" },
+          "request_id": "req-unknown-001",
+          "operation": "delete_all_runs"
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "positive-malformed-echo-match-both-null",
+      "label": "MALFORMED_ENVELOPE: top-level and nested request_id/operation both null — echo equality holds",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "checks": "Top-level and nested AdapterError request_id/operation must match exactly; both null here.",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": null,
+        "status": "error",
+        "operation": null,
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "Request not parseable" },
+          "request_id": null,
+          "operation": null
+        },
+        "capability_state": "unavailable"
+      }
+    },
+
+    {
+      "id": "negative-malformed-empty-sentinel",
+      "label": "MALFORMED_ENVELOPE: empty-string sentinel forbidden",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "Empty-string sentinels are forbidden; use null for missing/unavailable fields",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "",
+        "status": "error",
+        "operation": "",
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "Request not parseable" },
+          "request_id": "",
+          "operation": ""
+        },
+        "capability_state": "unavailable"
+      }
+    },
+    {
+      "id": "negative-non-malformed-null-request_id",
+      "label": "INVALID_PAYLOAD: null request_id forbidden for non-malformed errors",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "request_id must be a non-empty string for all error codes except MALFORMED_ENVELOPE",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": null,
+        "status": "error",
+        "operation": "create_run",
+        "error": {
+          "code": "INVALID_PAYLOAD",
+          "detail": { "reason": "Missing run_id in params" },
+          "request_id": null,
+          "operation": "create_run"
+        },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-non-malformed-null-operation",
+      "label": "INVALID_PAYLOAD: null operation forbidden for non-malformed errors",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "operation must be a non-empty string for all error codes except MALFORMED_ENVELOPE",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-inv-001",
+        "status": "error",
+        "operation": null,
+        "error": {
+          "code": "INVALID_PAYLOAD",
+          "detail": { "reason": "Missing run_id in params" },
+          "request_id": "req-inv-001",
+          "operation": null
+        },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-success-null-request_id",
+      "label": "success response: null request_id forbidden",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "request_id must be a non-empty string for success responses",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": null,
+        "status": "success",
+        "operation": "create_run",
+        "data": { "run_id": "run-001" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "negative-success-null-operation",
+      "label": "success response: null operation forbidden",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "operation must be a non-empty string for success responses",
+      "kind": "AdapterResponse",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-001",
+        "status": "success",
+        "operation": null,
+        "data": { "run_id": "run-001" },
+        "capability_state": "full"
+      }
+    },
+    {
+      "id": "positive-malformed-echo-mismatch-semantic",
+      "label": "MALFORMED_ENVELOPE: top-level and nested request_id mismatch (semantic — schema cannot enforce cross-field equality)",
+      "conforms": true,
+      "kind": "AdapterResponse",
+      "checks": "semantic-only: top-level request_id='req-A' != nested request_id='req-B'. Schema passes both independently; a semantic Validator must enforce echo equality.",
+      "expected_failure_code": "SEMANTIC_ECHO_MISMATCH",
+      "failure_reason": "Top-level request_id 'req-A' does not match nested AdapterError request_id 'req-B'; echo equality contract violated",
+      "data": {
+        "protocol_version": "1.0.0",
+        "request_id": "req-A",
+        "status": "error",
+        "operation": "create_run",
+        "error": {
+          "code": "MALFORMED_ENVELOPE",
+          "detail": { "reason": "Request not parseable" },
+          "request_id": "req-B",
+          "operation": "create_run"
+        },
+        "capability_state": "unavailable"
+      }
+    },
+
+    {
+      "_section": "=== RUNTIME-DECISION CASES (4) ==="
+    },
+    {
+      "id": "negative-capability_unavailable",
+      "label": "CAPABILITY_UNAVAILABLE: adapter declares export_evidence as unavailable",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "checks": "Adapter declares export_evidence as unavailable; runtime must reject requests for this operation",
+      "expected_failure_code": "CAPABILITY_UNAVAILABLE",
+      "failure_reason": "Capability export_evidence is unavailable; any request for this operation must be rejected",
+      "data": {
+        "capability": "export_evidence",
+        "state": "unavailable",
+        "degradation_note": "This capability is not implemented"
+      }
+    },
+    {
+      "id": "negative-capability_degraded_scope",
+      "label": "CAPABILITY_DEGRADED_SCOPE: capability in degraded scope",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "checks": "Adapter declares read_events as degraded_scope with scope_constraints; runtime must enforce scope",
+      "expected_failure_code": "CAPABILITY_DEGRADED_SCOPE",
+      "failure_reason": "Capability read_events is in degraded_scope; requests outside the declared scope must be rejected",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for the last 30 days",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-active-001"]
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-delegated_error",
+      "label": "DELEGATED_ERROR: sidecar returns error",
+      "conforms": true,
+      "kind": "AdapterError",
+      "checks": "AdapterError propagated verbatim from sidecar; runtime must preserve code and detail",
+      "expected_failure_code": "DELEGATED_ERROR",
+      "failure_reason": "Sidecar raised RuntimeStateSidecarError; adapter preserves code and detail verbatim",
+      "data": {
+        "code": "DELEGATED_ERROR",
+        "detail": {
+          "code": "RUN_NOT_FOUND",
+          "detail": { "run_id": "nonexistent" }
+        },
+        "request_id": "req-001",
+        "operation": "get_run"
+      }
+    },
+    {
+      "id": "negative-internal_error",
+      "label": "INTERNAL_ERROR: unexpected adapter exception",
+      "conforms": true,
+      "kind": "AdapterError",
+      "checks": "AdapterError for internal failures; runtime must not expose traceback",
+      "expected_failure_code": "INTERNAL_ERROR",
+      "failure_reason": "Adapter encountered an unexpected internal error; no traceback exposed",
+      "data": {
+        "code": "INTERNAL_ERROR",
+        "detail": {
+          "internal": {
+            "exception_type": "RuntimeError",
+            "message": "Connection pool exhausted"
+          }
+        },
+        "request_id": "req-001",
+        "operation": "create_run"
+      }
+    },
+
+    {
+      "_section": "=== DEGRADED_SCOPE SCOPE_CONSTRAINTS CASES (9) ==="
+    },
+    {
+      "id": "positive-degraded_scope-with-scope_constraints",
+      "label": "CapabilityDeclaration: state=degraded_scope with scope_constraints and non-empty param_allowlist",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for configured run_ids",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-prod-001", "run-prod-002"]
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-degraded_scope-missing-scope_constraints",
+      "label": "INVALID_PAYLOAD: state=degraded_scope without scope_constraints",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "CapabilityDeclaration with state=degraded_scope requires scope_constraints",
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for the last 30 days"
+      }
+    },
+    {
+      "id": "negative-degraded_scope-empty-param_allowlist",
+      "label": "INVALID_PAYLOAD: state=degraded_scope with empty param_allowlist object",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "scope_constraints.param_allowlist must be a non-empty object (minProperties: 1)",
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Limited scope",
+        "scope_constraints": {
+          "param_allowlist": {}
+        }
+      }
+    },
+    {
+      "id": "negative-degraded_scope-empty-allowed-values",
+      "label": "INVALID_PAYLOAD: state=degraded_scope with param_allowlist entry having empty allowed-values array",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "param_allowlist value arrays must be non-empty (minItems: 1)",
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Limited scope",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": []
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-full-with-scope_constraints",
+      "label": "INVALID_PAYLOAD: state=full with scope_constraints (forbidden)",
+      "conforms": false,
+      "expected_failure_code": "INVALID_PAYLOAD",
+      "failure_reason": "scope_constraints is forbidden when state is full",
+      "kind": "CapabilityDeclaration",
+      "data": {
+        "capability": "create_run",
+        "state": "full",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-001"]
+          }
+        }
+      }
+    },
+    {
+      "id": "positive-within-scope-delegate",
+      "label": "Runtime decision: request within degraded_scope -> delegate",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "checks": "Adapter declares read_events as degraded_scope with run_id allowlist; request with allowed run_id must be delegated",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for configured run_ids",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-prod-001", "run-prod-002"]
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-missing-constrained-param",
+      "label": "CAPABILITY_DEGRADED_SCOPE: constrained param missing from request",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "checks": "Adapter constrains run_id; request payload.params is missing run_id -> CAPABILITY_DEGRADED_SCOPE at precedence 6 without delegation",
+      "expected_failure_code": "CAPABILITY_DEGRADED_SCOPE",
+      "failure_reason": "Constrained param run_id is missing from payload.params; request is outside degraded scope",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for configured run_ids",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-prod-001"]
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-mismatching-constrained-value",
+      "label": "CAPABILITY_DEGRADED_SCOPE: constrained param value not in allowlist",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "checks": "Adapter constrains run_id to ['run-prod-001']; request has run_id='run-other' -> CAPABILITY_DEGRADED_SCOPE at precedence 6",
+      "expected_failure_code": "CAPABILITY_DEGRADED_SCOPE",
+      "failure_reason": "Constrained param run_id value is not in allowlist; request is outside degraded scope",
+      "data": {
+        "capability": "read_events",
+        "state": "degraded_scope",
+        "degradation_note": "Only reads events for configured run_ids",
+        "scope_constraints": {
+          "param_allowlist": {
+            "run_id": ["run-prod-001"]
+          }
+        }
+      }
+    },
+    {
+      "id": "negative-type-sensitive-mismatch",
+      "label": "CAPABILITY_DEGRADED_SCOPE: type-sensitive mismatch (boolean true vs integer 1)",
+      "conforms": true,
+      "kind": "CapabilityDeclaration",
+      "checks": "Adapter constrains debug to [true]; request has debug=1 (integer) -> type mismatch -> CAPABILITY_DEGRADED_SCOPE",
+      "expected_failure_code": "CAPABILITY_DEGRADED_SCOPE",
+      "failure_reason": "Constrained param debug has integer value 1 but allowlist expects boolean true; type-sensitive equality fails",
+      "data": {
+        "capability": "append_event",
+        "state": "degraded_scope",
+        "degradation_note": "Append events only in debug mode when explicitly set",
+        "scope_constraints": {
+          "param_allowlist": {
+            "debug": [true]
+          }
+        }
+      }
+    }
+  ]
+}

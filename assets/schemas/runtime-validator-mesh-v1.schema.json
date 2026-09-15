@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:railyard:schema:runtime-validator-mesh:v1.2.0",
+  "title": "Runtime Validator Mesh Schema v1.2.0",
+  "description": "Structural public schema for Runtime Validator Mesh Contract v1.2.0. Cross-requirement identity equality, duplicate and conflict grouping, freshness precedence, contribution selection, aggregate precedence, and error first-match precedence are contract semantics and intentionally remain outside JSON Schema.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/ValidatorMeshDeclaration" },
+    { "$ref": "#/$defs/ValidatorRequirement" },
+    { "$ref": "#/$defs/ValidatorDispatchRequest" },
+    { "$ref": "#/$defs/ValidatorDispatchResult" },
+    { "$ref": "#/$defs/ValidationReportBinding" },
+    { "$ref": "#/$defs/ValidatorMeshEvaluationRequest" },
+    { "$ref": "#/$defs/ValidatorMeshResult" },
+    { "$ref": "#/$defs/ValidatorMeshEvaluationError" }
+  ],
+  "$defs": {
+    "Digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Identifier": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["artifact_id", "artifact_kind", "artifact_version", "digest"],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/Identifier" },
+        "artifact_kind": { "$ref": "#/$defs/Identifier" },
+        "artifact_version": { "$ref": "#/$defs/Identifier" },
+        "digest": { "$ref": "#/$defs/Digest" }
+      },
+      "additionalProperties": false
+    },
+    "ReportArtifactRef": {
+      "type": "object",
+      "required": ["artifact_id", "artifact_kind", "artifact_version", "digest"],
+      "properties": {
+        "artifact_id": { "anyOf": [{ "$ref": "#/$defs/Identifier" }, { "type": "null" }] },
+        "artifact_kind": { "const": "validation_report" },
+        "artifact_version": { "anyOf": [{ "$ref": "#/$defs/Identifier" }, { "type": "null" }] },
+        "digest": { "anyOf": [{ "$ref": "#/$defs/Digest" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    },
+    "NullableDigest": {
+      "anyOf": [{ "$ref": "#/$defs/Digest" }, { "type": "null" }]
+    },
+    "ContractArtifactRef": {
+      "allOf": [
+        { "$ref": "#/$defs/ArtifactRef" },
+        { "properties": { "artifact_kind": { "const": "contract" } } }
+      ]
+    },
+    "RunContext": {
+      "type": "object",
+      "required": ["run_id", "stage_id"],
+      "properties": {
+        "run_id": { "$ref": "#/$defs/Identifier" },
+        "stage_id": { "$ref": "#/$defs/Identifier" }
+      },
+      "additionalProperties": false
+    },
+    "IndependentProductionEvidence": {
+      "type": "object",
+      "required": ["producer_identity", "production_environment", "production_timestamp", "no_caller_role_collapse"],
+      "properties": {
+        "producer_identity": { "$ref": "#/$defs/Identifier" },
+        "production_environment": { "$ref": "#/$defs/Identifier" },
+        "production_timestamp": { "type": "string", "format": "date-time" },
+        "no_caller_role_collapse": { "const": true }
+      },
+      "additionalProperties": false
+    },
+    "ValidatorMeshDeclaration": {
+      "type": "object",
+      "required": ["mesh_id", "mesh_version", "governing_contract", "declared_at", "declared_by", "requirements", "aggregate_hierarchy", "dispatch_policy", "freshness_rules", "publish_bridge_contract", "run_context"],
+      "properties": {
+        "mesh_id": { "$ref": "#/$defs/Identifier" },
+        "mesh_version": { "const": "1.2.0" },
+        "governing_contract": { "$ref": "#/$defs/ContractArtifactRef" },
+        "declared_at": { "type": "string", "format": "date-time" },
+        "declared_by": { "$ref": "#/$defs/Identifier" },
+        "requirements": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ValidatorRequirement" } },
+        "aggregate_hierarchy": { "type": "object" },
+        "dispatch_policy": { "type": "object" },
+        "freshness_rules": { "type": "object" },
+        "publish_bridge_contract": { "type": "object" },
+        "run_context": { "$ref": "#/$defs/RunContext" }
+      },
+      "additionalProperties": false
+    },
+    "ValidatorRequirement": {
+      "type": "object",
+      "required": ["requirement_id", "validator_identity", "contract_ref", "artifact_scope", "requirement_kind", "required", "dispatch_priority", "failure_behavior"],
+      "properties": {
+        "requirement_id": { "$ref": "#/$defs/Identifier" },
+        "validator_identity": { "$ref": "#/$defs/Identifier" },
+        "contract_ref": { "$ref": "#/$defs/ContractArtifactRef" },
+        "artifact_scope": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/ArtifactRef" } },
+        "requirement_kind": { "enum": ["baseline", "extension"] },
+        "required": { "type": "boolean" },
+        "dispatch_priority": { "type": "integer", "minimum": 0 },
+        "missing_mapping_policy": { "enum": ["fail", "human_review_required"] },
+        "failure_behavior": { "enum": ["halt_mesh", "halt_run", "require_intervention"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "requirement_kind": { "const": "baseline" } }, "required": ["requirement_kind"] },
+          "then": { "required": ["missing_mapping_policy"] },
+          "else": { "not": { "required": ["missing_mapping_policy"] } }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "ValidatorDispatchRequest": {
+      "type": "object",
+      "required": ["dispatch_request_id", "requirement_id", "mesh_id", "validator_identity", "contract_ref", "artifact_scope", "evidence_pack", "risk_level", "allowed_read_only_commands", "dispatched_at", "dispatched_by", "run_context"],
+      "properties": {
+        "dispatch_request_id": { "$ref": "#/$defs/Identifier" },
+        "requirement_id": { "$ref": "#/$defs/Identifier" },
+        "mesh_id": { "$ref": "#/$defs/Identifier" },
+        "validator_identity": { "$ref": "#/$defs/Identifier" },
+        "contract_ref": { "$ref": "#/$defs/ContractArtifactRef" },
+        "artifact_scope": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/ArtifactRef" } },
+        "evidence_pack": { "type": "object" },
+        "risk_level": { "enum": ["low", "medium", "high"] },
+        "allowed_read_only_commands": { "type": "array", "items": { "$ref": "#/$defs/Identifier" } },
+        "dispatched_at": { "type": "string", "format": "date-time" },
+        "dispatched_by": { "$ref": "#/$defs/Identifier" },
+        "run_context": { "$ref": "#/$defs/RunContext" }
+      },
+      "additionalProperties": false
+    },
+    "ValidatorDispatchResult": {
+      "type": "object",
+      "required": ["dispatch_request_id", "dispatch_status", "collected_at", "collected_by"],
+      "properties": {
+        "dispatch_request_id": { "$ref": "#/$defs/Identifier" },
+        "dispatch_status": { "enum": ["report_produced", "no_report", "unreachable", "degraded_storage", "degraded_transport"] },
+        "report_binding": { "$ref": "#/$defs/ValidationReportBinding" },
+        "error_code": { "$ref": "#/$defs/Identifier" },
+        "degradation_note": { "$ref": "#/$defs/Identifier" },
+        "collected_at": { "type": "string", "format": "date-time" },
+        "collected_by": { "$ref": "#/$defs/Identifier" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "dispatch_status": { "const": "report_produced" } }, "required": ["dispatch_status"] },
+          "then": { "required": ["report_binding"], "not": { "anyOf": [{ "required": ["error_code"] }, { "required": ["degradation_note"] }] } },
+          "else": { "not": { "required": ["report_binding"] } }
+        },
+        {
+          "if": { "properties": { "dispatch_status": { "enum": ["degraded_storage", "degraded_transport"] } }, "required": ["dispatch_status"] },
+          "then": { "required": ["degradation_note"] },
+          "else": { "not": { "required": ["degradation_note"] } }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "ValidationReportBinding": {
+      "type": "object",
+      "required": ["binding_id", "requirement_id", "validator_identity", "role", "contract_ref", "target_artifact_ref", "report_ref", "report_sha256", "report_confidence", "report_overall_verdict", "independent_production_evidence", "bound_at", "bound_by"],
+      "properties": {
+        "binding_id": { "$ref": "#/$defs/Identifier" },
+        "requirement_id": { "$ref": "#/$defs/Identifier" },
+        "validator_identity": { "$ref": "#/$defs/Identifier" },
+        "role": { "const": "validator" },
+        "contract_ref": { "$ref": "#/$defs/ContractArtifactRef" },
+        "target_artifact_ref": { "$ref": "#/$defs/ArtifactRef" },
+        "report_ref": { "$ref": "#/$defs/ReportArtifactRef" },
+        "report_sha256": { "$ref": "#/$defs/NullableDigest" },
+        "report_confidence": { "enum": ["high", "medium", "low"] },
+        "report_overall_verdict": { "enum": ["pass", "fail", "blocked", "inconclusive", "human_review_required"] },
+        "independent_production_evidence": { "$ref": "#/$defs/IndependentProductionEvidence" },
+        "bound_at": { "type": "string", "format": "date-time" },
+        "bound_by": { "$ref": "#/$defs/Identifier" }
+      },
+      "additionalProperties": false
+    },
+    "ValidatorMeshEvaluationRequest": {
+      "type": "object",
+      "required": ["mesh_eval_id", "mesh_declaration", "dispatch_results", "requested_at", "requested_by"],
+      "properties": {
+        "mesh_eval_id": { "$ref": "#/$defs/Identifier" },
+        "mesh_declaration": { "$ref": "#/$defs/ValidatorMeshDeclaration" },
+        "dispatch_results": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ValidatorDispatchResult" } },
+        "requested_at": { "type": "string", "format": "date-time" },
+        "requested_by": { "$ref": "#/$defs/Identifier" }
+      },
+      "additionalProperties": false
+    },
+    "Contribution": { "enum": ["fail", "blocked", "human_review_required", "inconclusive", "pass"] },
+    "ExcludedReason": { "enum": ["optional_unavailable", "optional_unusable_report"] },
+    "RequirementResult": {
+      "type": "object",
+      "required": ["requirement_id", "requirement_kind", "required", "dispatch_status", "report_verdict_or_null", "freshness_or_null", "result_kind"],
+      "properties": {
+        "requirement_id": { "$ref": "#/$defs/Identifier" },
+        "requirement_kind": { "enum": ["baseline", "extension"] },
+        "required": { "type": "boolean" },
+        "dispatch_status": { "enum": ["report_produced", "no_report", "unreachable", "degraded_storage", "degraded_transport"] },
+        "report_verdict_or_null": { "type": ["string", "null"], "enum": ["pass", "fail", "blocked", "inconclusive", "human_review_required", null] },
+        "freshness_or_null": { "type": ["string", "null"], "enum": ["superseded", "invalidated", "stale", "mismatched", "duplicate", "conflicting", "current", null] },
+        "result_kind": { "enum": ["report", "missing_baseline", "missing_required_extension", "unusable_required_report", "optional_excluded"] },
+        "verdict_contribution": { "$ref": "#/$defs/Contribution" },
+        "excluded_reason": { "$ref": "#/$defs/ExcludedReason" }
+      },
+      "oneOf": [
+        { "properties": { "result_kind": { "enum": ["report", "missing_baseline", "missing_required_extension", "unusable_required_report"] } }, "required": ["verdict_contribution"], "not": { "required": ["excluded_reason"] } },
+        { "properties": { "result_kind": { "const": "optional_excluded" } }, "required": ["excluded_reason"], "not": { "required": ["verdict_contribution"] } }
+      ],
+      "additionalProperties": false
+    },
+    "FreshnessDetails": {
+      "type": "object",
+      "oneOf": [
+        { "maxProperties": 0 },
+        { "required": ["supersession"], "properties": { "supersession": { "type": "object" } }, "additionalProperties": false },
+        { "required": ["invalidation"], "properties": { "invalidation": { "type": "object" } }, "additionalProperties": false },
+        { "required": ["field_category", "missing_fields"], "properties": { "field_category": { "const": "report_identity" }, "missing_fields": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["report_ref.artifact_id", "report_ref.artifact_version", "report_ref.digest", "report_sha256"] } } }, "additionalProperties": false },
+        { "required": ["field_category"], "properties": { "field_category": { "enum": ["contract_binding", "target_artifact_binding"] } }, "additionalProperties": false },
+        { "required": ["comparison_key", "first_requirement_id"], "properties": { "comparison_key": { "$ref": "#/$defs/Identifier" }, "first_requirement_id": { "$ref": "#/$defs/Identifier" } }, "additionalProperties": false },
+        { "required": ["comparison_key", "requirement_ids"], "properties": { "comparison_key": { "$ref": "#/$defs/Identifier" }, "requirement_ids": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/Identifier" } } }, "additionalProperties": false }
+      ]
+    },
+    "FreshnessAssessment": {
+      "type": "object",
+      "required": ["binding_id", "freshness_status", "freshness_details"],
+      "properties": {
+        "binding_id": { "$ref": "#/$defs/Identifier" },
+        "freshness_status": { "enum": ["superseded", "invalidated", "stale", "mismatched", "duplicate", "conflicting", "current"] },
+        "freshness_details": { "$ref": "#/$defs/FreshnessDetails" }
+      },
+      "additionalProperties": false
+    },
+    "ValidatorMeshResult": {
+      "type": "object",
+      "required": ["mesh_eval_id", "mesh_id", "aggregate_verdict", "aggregate_confidence", "report_bindings", "requirement_results", "freshness_assessments", "recommended_action", "evaluated_at", "evaluated_by"],
+      "properties": {
+        "mesh_eval_id": { "$ref": "#/$defs/Identifier" },
+        "mesh_id": { "$ref": "#/$defs/Identifier" },
+        "aggregate_verdict": { "$ref": "#/$defs/Contribution" },
+        "aggregate_confidence": { "enum": ["high", "medium", "low"] },
+        "report_bindings": { "type": "array", "items": { "$ref": "#/$defs/ValidationReportBinding" } },
+        "requirement_results": { "type": "array", "items": { "$ref": "#/$defs/RequirementResult" } },
+        "freshness_assessments": { "type": "array", "items": { "$ref": "#/$defs/FreshnessAssessment" } },
+        "recommended_action": { "enum": ["proceed", "stop_run", "more_evidence", "human_intervention"] },
+        "evaluated_at": { "type": "string", "format": "date-time" },
+        "evaluated_by": { "$ref": "#/$defs/Identifier" }
+      },
+      "additionalProperties": false
+    },
+    "ValidatorMeshEvaluationError": {
+      "type": "object",
+      "required": ["mesh_eval_id", "mesh_id", "error_code", "error_description", "run_context"],
+      "properties": {
+        "mesh_eval_id": { "type": ["string", "null"], "minLength": 1 },
+        "mesh_id": { "type": ["string", "null"], "minLength": 1 },
+        "error_code": { "enum": ["invalid_mesh_declaration", "invalid_mesh_request", "duplicate_requirement_id", "dispatch_count_mismatch", "duplicate_dispatch_request_id", "orphan_dispatch_result", "invalid_dispatch_result", "invalid_report_binding"] },
+        "error_description": { "$ref": "#/$defs/Identifier" },
+        "run_context": { "oneOf": [{ "$ref": "#/$defs/RunContext" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-version-history": {
+    "supersedes": "1.1.0",
+    "active_version": "1.2.0",
+    "predecessor_bytes_preserved": false
+  }
+}

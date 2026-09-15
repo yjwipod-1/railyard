@@ -1,0 +1,50 @@
+{
+  "fixture_id": "knowledge-unresolved-supersession",
+  "description": "A lifecycle supersession state whose replacement entry cannot be resolved.",
+  "expected_outcome": "fail",
+  "expected_failure_rule": "lifecycle-supersession-target",
+  "artifact_inventory": [
+    {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+    {"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+    {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"},
+    {"artifact_id": "validation-evidence", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}
+  ],
+  "entries": [
+    {
+      "entry_id": "knowledge-original-root",
+      "entry_type": "technical_fact",
+      "level": "domain",
+      "visibility": "public",
+      "title": "Original root",
+      "description": "A neutral original entry used for lifecycle calibration.",
+      "version": "1.0.0",
+      "valid_from": "0.8.0",
+      "immutable": true,
+      "provenance": {
+        "origin_epic": {"artifact_id": "knowledge-origin", "artifact_kind": "epic", "artifact_version": "1.0.0"},
+        "source_tickets": [{"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"}],
+        "governing_contract": {"artifact_id": "knowledge-contract", "artifact_kind": "contract", "artifact_version": "0.8.0"}
+      },
+      "evidence": [{"artifact_id": "validation-evidence", "artifact_kind": "validation_report", "artifact_version": "1.0.0"}],
+      "relationships": []
+    }
+  ],
+  "lifecycle_events": [
+    {
+      "event_id": "knowledge-event-unresolved-replacement",
+      "event_type": "knowledge.superseded",
+      "schema_version": "0.8.0",
+      "occurred_at": "2026-01-15T09:30:00Z",
+      "event_order": 1,
+      "causation_chain": [],
+      "actor_role": "knowledge_curator",
+      "trigger_artifact": {"artifact_id": "accepted-source", "artifact_kind": "ticket", "artifact_version": "1.0.0"},
+      "affected_entry_ids": ["knowledge-original-root"],
+      "prior_state": {"confidence": "high", "review_required": false, "superseded": false, "archived": false, "invalidated": false},
+      "next_state": {"confidence": "high", "review_required": false, "superseded": true, "superseded_by_entry_id": "knowledge-absent-replacement", "archived": false, "invalidated": false},
+      "reason": "An accepted replacement was reported but is absent from this corpus.",
+      "propagation_chain": [],
+      "recommended_action": "supersede"
+    }
+  ]
+}

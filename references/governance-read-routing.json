@@ -1,0 +1,200 @@
+{
+  "routing_id": "railyard-governance-read-routing-v1",
+  "version": "1.0.0",
+  "created_at": "2026-07-20T00:00:00Z",
+  "authority_rule": "This file is the declarative governance read-routing registry. It defines the deterministic routing_request and routing_result contract consumed by resolver implementations. Resolver implementations must not deviate from these profiles, conditions, and fail-closed rules.",
+  "roles": {
+    "planner": {
+      "description": "Planner role: owns epic closure and release readiness decisions.",
+      "required_reads": [
+        "SKILL.md",
+        "references/roles.md",
+        "references/lifecycle.md",
+        "references/startup-sequence.md",
+        "references/epic-format.md",
+        "references/helper-commands.md"
+      ]
+    },
+    "architect": {
+      "description": "Architect role: owns ticket scoping, Runner dispatch, Validator dispatch, and review acceptance.",
+      "required_reads": [
+        "SKILL.md",
+        "references/roles.md",
+        "references/lifecycle.md",
+        "references/startup-sequence.md",
+        "references/routing.md",
+        "references/platform-dispatch.md",
+        "references/ticket-format.md",
+        "references/helper-commands.md"
+      ]
+    },
+    "runner": {
+      "description": "Runner role: owns bounded ticket implementation within declared scope.",
+      "required_reads": [
+        "SKILL.md",
+        "references/roles.md",
+        "references/startup-sequence.md",
+        "references/ticket-format.md",
+        "references/result-format.md"
+      ]
+    },
+    "validator": {
+      "description": "Validator role: read-only contract executor producing Validation Reports.",
+      "required_reads": [
+        "references/roles.md",
+        "references/validator-protocol.md",
+        "references/validator-verdict-handoff-tree.md",
+        "references/validation-contract.md"
+      ]
+    },
+    "knowledge_curator": {
+      "description": "Knowledge Curator role: owns knowledge entry eligibility and provenance.",
+      "required_reads": [
+        "SKILL.md",
+        "references/roles.md",
+        "references/knowledge-contract.md"
+      ]
+    }
+  },
+  "conditional_rules": [
+    {
+      "rule_id": "cond-validator-required",
+      "description": "When a ticket declares validator_required, Architect and Planner must also read Validator protocol and verdict handoff.",
+      "predicate": {
+        "condition": "validator_required",
+        "applies_to_roles": ["architect", "planner"]
+      },
+      "action": {
+        "includes": [
+          "references/validator-protocol.md",
+          "references/validator-verdict-handoff-tree.md",
+          "references/validation-contract.md"
+        ]
+      }
+    },
+    {
+      "rule_id": "cond-epic-closure",
+      "description": "Planner-side epic closure requires Validator protocol, verdict handoff tree, and validation contract for closure assessment. Epic format is already included in the Planner baseline and deduplicates.",
+      "predicate": {
+        "condition": "epic_closure",
+        "applies_to_roles": ["planner"]
+      },
+      "action": {
+        "includes": [
+          "references/validator-protocol.md",
+          "references/validator-verdict-handoff-tree.md",
+          "references/validation-contract.md"
+        ]
+      }
+    },
+    {
+      "rule_id": "cond-validation-task",
+      "description": "Validation tasks add validation contract and primitive registry. Semantic validation adds semantic contract.",
+      "predicate": {
+        "condition": "validation_task",
+        "applies_to_roles": ["architect", "planner", "validator"]
+      },
+      "action": {
+        "includes": [
+          "references/validation-contract.md",
+          "references/validation-primitive-registry.md"
+        ]
+      }
+    },
+    {
+      "rule_id": "cond-validation-semantic",
+      "description": "Semantic validation tasks additionally add the semantic validation contract.",
+      "predicate": {
+        "condition": "validation_task",
+        "topic_required": "semantic",
+        "applies_to_roles": ["architect", "planner", "validator"]
+      },
+      "action": {
+        "includes": [
+          "references/semantic-validation-contract.md"
+        ]
+      }
+    },
+    {
+      "rule_id": "cond-governance-task",
+      "description": "Governance inventory, taxonomy, or routing tasks add governance references.",
+      "predicate": {
+        "condition": "governance_task",
+        "applies_to_roles": ["architect", "planner"]
+      },
+      "action": {
+        "includes": [
+          "references/governance-document-taxonomy.md",
+          "references/governance-document-inventory.json",
+          "references/governance-read-routing.json"
+        ]
+      }
+    },
+    {
+      "rule_id": "cond-knowledge-task",
+      "description": "Knowledge curation or review tasks add the knowledge contract.",
+      "predicate": {
+        "condition": "knowledge_task",
+        "applies_to_roles": ["architect", "knowledge_curator"]
+      },
+      "action": {
+        "includes": [
+          "references/knowledge-contract.md"
+        ]
+      }
+    },
+    {
+      "rule_id": "cond-runtime-task",
+      "description": "Runtime implementation tasks add runtime architecture only. Narrower runtime contract refs require explicit ticket/dispatch declaration.",
+      "predicate": {
+        "condition": "runtime_task",
+        "applies_to_roles": ["runner", "architect"]
+      },
+      "action": {
+        "includes": [
+          "references/runtime-architecture.md"
+        ]
+      }
+    }
+  ],
+  "ref_resolution": {
+    "forms": ["path", "document_id", "canonical_for"],
+    "caller_order_preserved": true,
+    "fail_closed_rules": [
+      {
+        "condition": "unknown_ref",
+        "outcome": "blocked",
+        "detail": "Ref does not resolve to any active inventory entry. Caller must provide a valid path, document_id, or canonical_for topic."
+      },
+      {
+        "condition": "multiple_active_matches",
+        "outcome": "blocked",
+        "detail": "Ref resolves to more than one active inventory entry. Caller must disambiguate with explicit path or document_id."
+      },
+      {
+        "condition": "inactive_or_superseded",
+        "outcome": "blocked",
+        "detail": "Target is superseded or inactive. Caller must reference the active version."
+      },
+      {
+        "condition": "guide_only_match",
+        "outcome": "blocked",
+        "detail": "Ref resolves only to Guide documents. Guides are non-normative and cannot satisfy a contract ref. Caller must provide a normative target."
+      },
+      {
+        "condition": "ambiguous_or_no_match",
+        "outcome": "blocked",
+        "detail": "Ref cannot be resolved deterministically. Do not guess by filename similarity, substring, or prose context."
+      }
+    ],
+    "heuristic_prohibition": "The resolver must never guess by filename similarity, substring matching, timestamp, or prose context. All resolution is blocked until the caller provides an exact match."
+  },
+  "output_rules": {
+    "order": ["required_reads", "conditional_includes", "explicit_contract_refs"],
+    "deduplication": "Deduplicate by first occurrence. A reference appearing earlier in the ordered output is not repeated.",
+    "guide_policy": "Guides are never normative. They are not part of normative_reads. They may be included in supplemental_guides only when explicitly requested via explicit_guide_refs.",
+    "minimum_read_principle": "Route only selected authorities. A route must include at least one Protocol and one applicable Policy, except for the Validator profile which uses its dedicated protocol/policy set."
+  },
+  "request_schema_ref": "urn:railyard:schema:governance-read-routing:v1#/$defs/routing_request",
+  "result_schema_ref": "urn:railyard:schema:governance-read-routing:v1#/$defs/routing_result"
+}

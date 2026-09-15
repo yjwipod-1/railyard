@@ -1,0 +1,551 @@
+{
+  "catalog_id": "runtime-v080-staging-manifest-conformance-v1.1.0",
+  "catalog_version": "1.1.0",
+  "governing_contract": "references/runtime-v080-staging-manifest-contract.md",
+  "schema_ref": "assets/schemas/runtime-v080-staging-manifest-v1.schema.json",
+  "scope": "Public v1.1.0 staging-manifest structural and semantic conformance catalog.",
+  "status": "active",
+  "semantic_checker": {
+    "route_id": "fixture-local-staging-manifest-semantic-checker-v1",
+    "execution": "Apply each case to its declared baseline, perform structural validation, then execute every semantic rule in declared order. A contract-invalid case passes only when exactly its expected decisive rule fails and every other semantic rule passes.",
+    "semantic_rules": [
+      "sm-sem-public-authority-boundary",
+      "sm-sem-path-order-and-uniqueness",
+      "sm-sem-regular-file-and-immutable-bindings",
+      "sm-sem-provenance-digest-resolution",
+      "sm-sem-external-audit-digest-resolution",
+      "sm-sem-derived-derivation",
+      "sm-sem-totals-reconciliation",
+      "sm-sem-deferred-path-conflict",
+      "sm-sem-protected-content-classification",
+      "sm-sem-ready-to-stage-provisionality"
+    ],
+    "fixture_local_resolution": {
+      "provenance": "Opaque test digests resolve only against this catalog's fixture-local map; resolution never accesses a lifecycle record or self-asserts acceptance.",
+      "external_audit": "The audit digest is checked only as an opaque fixture-local confirmation. A non-null digest is mandatory for true readiness, which remains provisional pending the future private audit.",
+      "neutral_path": "Semantic-only classification cases retain the neutral base-fixture path so path resolution is not an additional failure."
+    },
+    "schema_regression_matrix": {
+      "safe_path_accept": [
+        "references/credentials-notes.md"
+      ],
+      "safe_path_reject": [
+        "docs/system/inbox/item.md",
+        "DoCs/DoMaIn/outbox/item.md",
+        "control/private.md",
+        "mailbox/item.md",
+        "evidence/report.json",
+        ".workflow/workflow.db",
+        "C:/local/item.md",
+        "file:///local/item.md",
+        "https://example.invalid/item.md",
+        "references\\runtime.md",
+        "references/../private.md",
+        ".GIT/config",
+        ".AgEnTs/state",
+        ".CODEX/state",
+        ".Claude/state",
+        ".QwEn/state",
+        ".Obsidian/state",
+        ".WorkBuddy/state",
+        ".TMP/state",
+        ".Tmp_Doc_Review/state",
+        "CaChE/state",
+        "TeMp/state",
+        "RePoRtS/state",
+        "SeCrEtS/state",
+        "CrEdEnTiAlS/state",
+        "ToKeNs/state",
+        "KeYs/state",
+        "LoCaL/state",
+        "WoRkFlOw/state",
+        "GeNeRaTeD/state",
+        "DiSt/state"
+      ],
+      "public_text_reject": [
+        "system-reserved",
+        "file:///private/item",
+        "https://example.invalid/item",
+        "C:\\private\\item",
+        "../private",
+        ".GIT",
+        "workflow.db",
+        "SeCrEtS"
+      ]
+    },
+    "authority_surface_agreement": {
+      "required_version": "1.1.0",
+      "required_supersedes": "1.0.0",
+      "surfaces": [
+        "references/runtime-v080-staging-manifest-contract.md",
+        "assets/schemas/runtime-v080-staging-manifest-v1.schema.json",
+        "references/governance-document-inventory.json",
+        "references/governance-document-inventory.md"
+      ]
+    },
+    "inventory_reverse_transformation": {
+      "operation": "Given the frozen baseline bytes, verify their SHA-256 values, reverse exactly the contract registration and schema registration version-and-description values, preserve every other byte, then hash the reconstructed JSON and Markdown bytes.",
+      "target_fields": {
+        "references/governance-document-inventory.json": [
+          "contract registration metadata.version",
+          "contract registration metadata.description",
+          "schema registration metadata.version",
+          "schema registration metadata.description"
+        ],
+        "references/governance-document-inventory.md": [
+          "contract registration version-and-description cell",
+          "schema registration version-and-description cell"
+        ]
+      },
+      "reject_if": [
+        "a count, timestamp, or unrelated metadata value changes",
+        "a value outside the two contract/schema registrations changes",
+        "the reconstructed byte hashes differ from the frozen baselines"
+      ],
+      "expected_sha256": {
+        "references/governance-document-inventory.json": "84f24034baa98b6f5acfb4b61542fa5f63f516551c1d6889f8a93c2851acc356",
+        "references/governance-document-inventory.md": "2cdfd3180af216f34455e403845e70713f769b34cc2003a690b77ca319ff3117"
+      }
+    }
+  },
+  "base_fixture": {
+    "manifest_id": "manifest-v080-base",
+    "manifest_version": "1.1.0",
+    "governing_contract": "references/runtime-v080-staging-manifest-contract.md",
+    "schema_ref": "assets/schemas/runtime-v080-staging-manifest-v1.schema.json",
+    "created_at": "2026-08-24T00:00:00Z",
+    "ready_to_stage": true,
+    "external_audit_digest_or_null": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "entries": [
+      {
+        "path": "references/runtime-v080-staging-manifest-contract.md",
+        "decision": "include",
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "size_bytes": 1,
+        "line_count_or_null": 1,
+        "category": "contract",
+        "purpose": "Public exact path contract",
+        "provenance_digests": [
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        ],
+        "source_or_derived": "source"
+      }
+    ],
+    "totals": {
+      "entry_count": 1,
+      "decision_counts": {
+        "include": 1,
+        "exclude": 0,
+        "defer": 0,
+        "remediate": 0
+      },
+      "bytes_total": 1,
+      "lines_total": 1,
+      "line_count_unknown": 0,
+      "composition": {
+        "implementation": 0,
+        "assurance": 1
+      },
+      "generated_counts": {
+        "source": 1,
+        "derived": 0
+      }
+    }
+  },
+  "positive_count": 3,
+  "schema_invalid_count": 9,
+  "contract_invalid_count": 10,
+  "total_count": 22,
+  "cases": [
+    {
+      "case_id": "sm-pos-source",
+      "verdict_kind": "positive",
+      "single_cause": null,
+      "baseline_case_id": null,
+      "description": "Complete source include with opaque provenance and external audit digests.",
+      "fixture_ref": "base_fixture",
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "pass when private digest resolution and immutable bindings pass"
+    },
+    {
+      "case_id": "sm-pos-derived",
+      "verdict_kind": "positive",
+      "single_cause": null,
+      "baseline_case_id": "sm-pos-source",
+      "description": "Derived include carries closed ordered derivation bindings.",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0",
+        "value": {
+          "path": "assets/schemas/runtime-v080-staging-manifest-v1.schema.json",
+          "decision": "include",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "size_bytes": 2,
+          "line_count_or_null": 2,
+          "category": "schema",
+          "purpose": "Public structural schema",
+          "provenance_digests": [
+            "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          ],
+          "source_or_derived": "derived",
+          "derivation": {
+            "deterministic_generator": "contract-schema-deriver",
+            "generator_version": "v110",
+            "ordered_input_paths": [
+              {
+                "path": "references/runtime-v080-staging-manifest-contract.md",
+                "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ],
+            "output_verification_rule": "content_equality",
+            "rebuild_policy": "rebuild_when_inputs_change"
+          }
+        }
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "pass when private digest resolution and derivation verification pass"
+    },
+    {
+      "case_id": "sm-pos-remediation",
+      "verdict_kind": "positive",
+      "single_cause": null,
+      "baseline_case_id": "sm-pos-source",
+      "description": "Closed remediation action makes a manifest not ready.",
+      "mutation": {
+        "op": "replace-manifest",
+        "value": {
+          "manifest_id": "manifest-v080-remediation",
+          "manifest_version": "1.1.0",
+          "governing_contract": "references/runtime-v080-staging-manifest-contract.md",
+          "schema_ref": "assets/schemas/runtime-v080-staging-manifest-v1.schema.json",
+          "created_at": "2026-08-24T00:00:00Z",
+          "ready_to_stage": false,
+          "external_audit_digest_or_null": null,
+          "entries": [
+            {
+              "path": "references/runtime-v080-staging-manifest-contract.md",
+              "decision": "remediate",
+              "reason_code": "needs_provenance",
+              "rationale": "Opaque binding is pending",
+              "remediation_action": {
+                "action_kind": "obtain_provenance_digest",
+                "owner_class": "governance_steward",
+                "target_path_or_artifact": "references/runtime-v080-staging-manifest-contract.md",
+                "completion_condition": "One opaque digest is recorded"
+              }
+            }
+          ],
+          "totals": {
+            "entry_count": 1,
+            "decision_counts": {
+              "include": 0,
+              "exclude": 0,
+              "defer": 0,
+              "remediate": 1
+            },
+            "bytes_total": 0,
+            "lines_total": 0,
+            "line_count_unknown": 0,
+            "composition": {
+              "implementation": 0,
+              "assurance": 0
+            },
+            "generated_counts": {
+              "source": 0,
+              "derived": 0
+            }
+          }
+        }
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "pass when totals reconcile"
+    },
+    {
+      "case_id": "sm-si-provenance-digest-format",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "provenance digest is not lowercase 64-hex",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/provenance_digests/0",
+        "value": "not-a-digest"
+      },
+      "expected_schema_failure": {
+        "keyword": "pattern",
+        "instance_path": "/entries/0/provenance_digests/0"
+      }
+    },
+    {
+      "case_id": "sm-si-hygiene-reserved-work-item",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "reserved public identifier form",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/manifest_id",
+        "value": "system-reserved"
+      },
+      "expected_schema_failure": {
+        "keyword": "pattern",
+        "instance_path": "/manifest_id"
+      }
+    },
+    {
+      "case_id": "sm-si-control-path",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "protected Control mailbox path",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/path",
+        "value": "docs/system/inbox/item.md"
+      },
+      "expected_schema_failure": {
+        "keyword": "pattern",
+        "instance_path": "/entries/0/path"
+      }
+    },
+    {
+      "case_id": "sm-si-evidence-path",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "protected evidence-store path",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/path",
+        "value": "evidence/private.json"
+      },
+      "expected_schema_failure": {
+        "keyword": "pattern",
+        "instance_path": "/entries/0/path"
+      }
+    },
+    {
+      "case_id": "sm-si-ready-audit-null",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "ready manifest lacks external audit digest",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/external_audit_digest_or_null",
+        "value": null
+      },
+      "expected_schema_failure": {
+        "keyword": "type",
+        "instance_path": "/external_audit_digest_or_null"
+      }
+    },
+    {
+      "case_id": "sm-si-remediation-bounds",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "remediation action omits completion condition",
+      "baseline_case_id": "sm-pos-remediation",
+      "mutation": {
+        "op": "remove",
+        "path": "/entries/0/remediation_action/completion_condition"
+      },
+      "expected_schema_failure": {
+        "keyword": "required",
+        "instance_path": "/entries/0/remediation_action"
+      }
+    },
+    {
+      "case_id": "sm-si-exact-path",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "entry path uses a non-POSIX separator",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/path",
+        "value": "references\\runtime.md"
+      },
+      "expected_schema_failure": {
+        "keyword": "pattern",
+        "instance_path": "/entries/0/path"
+      }
+    },
+    {
+      "case_id": "sm-si-derived-missing-derivation",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "derived include has no derivation",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/source_or_derived",
+        "value": "derived"
+      },
+      "expected_schema_failure": {
+        "keyword": "required",
+        "instance_path": "/entries/0"
+      }
+    },
+    {
+      "case_id": "sm-ci-provenance-digest-unresolved",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "opaque provenance digest does not resolve in the private audit",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/provenance_digests/0",
+        "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-provenance-digest-resolution"
+    },
+    {
+      "case_id": "sm-ci-audit-digest-unresolved",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "external audit digest does not resolve to confirmation",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/external_audit_digest_or_null",
+        "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-external-audit-digest-resolution"
+    },
+    {
+      "case_id": "sm-ci-path-order",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "entries are not byte-wise ordered",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "append",
+        "path": "/entries",
+        "value": {
+          "path": "assets/a.md",
+          "decision": "exclude",
+          "reason_code": "out_of_scope",
+          "rationale": "Not selected"
+        }
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-path-order-and-uniqueness"
+    },
+    {
+      "case_id": "sm-ci-derivation-binding",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "derived input binding does not match immutable content",
+      "baseline_case_id": "sm-pos-derived",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/derivation/ordered_input_paths/0/sha256",
+        "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-derived-derivation"
+    },
+    {
+      "case_id": "sm-ci-totals",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "authored totals do not reconcile",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/totals/bytes_total",
+        "value": 2
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-totals-reconciliation"
+    },
+    {
+      "case_id": "sm-ci-forbidden-include",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "otherwise safe include is classified as machine-specific",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "identity"
+      },
+      "semantic_context": {
+        "protected_content_classification": "machine_specific",
+        "path_resolution": "fixture-local neutral path resolves"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-protected-content-classification"
+    },
+    {
+      "case_id": "sm-ci-immutable-binding",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "include content binding does not match fixture-local immutable content",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "replace",
+        "path": "/entries/0/sha256",
+        "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-regular-file-and-immutable-bindings"
+    },
+    {
+      "case_id": "sm-ci-deferred-path-conflict",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "fixture-local deferred decision conflicts with the neutral included path",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "identity"
+      },
+      "semantic_context": {
+        "deferred_path_conflict": true,
+        "path_resolution": "fixture-local neutral path resolves"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-deferred-path-conflict"
+    },
+    {
+      "case_id": "sm-ci-public-authority-claim",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "fixture-local interpretation adds authority beyond a declarative manifest",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "identity"
+      },
+      "semantic_context": {
+        "non_declarative_authority_claim": true,
+        "path_resolution": "fixture-local neutral path resolves"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-public-authority-boundary"
+    },
+    {
+      "case_id": "sm-ci-ready-provisionality",
+      "verdict_kind": "contract_invalid",
+      "single_cause": "fixture-local readiness is treated as final rather than provisional",
+      "baseline_case_id": "sm-pos-source",
+      "mutation": {
+        "op": "identity"
+      },
+      "semantic_context": {
+        "ready_to_stage_interpreted_as_final": true,
+        "path_resolution": "fixture-local neutral path resolves"
+      },
+      "expected_schema_failure": null,
+      "expected_semantic_verdict": "fail",
+      "expected_decisive_rule": "sm-sem-ready-to-stage-provisionality"
+    },
+    {
+      "case_id": "sm-si-remediation-readiness",
+      "verdict_kind": "schema_invalid",
+      "single_cause": "remediation entry is paired with true readiness",
+      "baseline_case_id": "sm-pos-remediation",
+      "mutation": {
+        "op": "replace",
+        "path": "/ready_to_stage",
+        "value": true
+      },
+      "expected_schema_failure": {
+        "keyword": "const",
+        "instance_path": "/ready_to_stage"
+      }
+    }
+  ]
+}

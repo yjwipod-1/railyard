@@ -204,6 +204,39 @@ def require_safe_probe_temp_root(temp_parent: pathlib.Path, db_path: pathlib.Pat
             )
 
 
+def require_safe_test_db_target(temp_root: pathlib.Path, db_path: pathlib.Path, project_root: pathlib.Path) -> None:
+    """Validate the explicit, test-only database initialization target.
+
+    This is intentionally stricter than the probe scratch-root check: the
+    initializer creates a database, so neither its root nor its target may
+    overlap the Source project, and an existing SQLite file (or sidecar) is
+    never repurposed as a test fixture.
+    """
+    resolved_temp_root = temp_root.resolve()
+    resolved_db_path = db_path.resolve()
+    resolved_project_root = project_root.resolve()
+    require(
+        is_relative_to(resolved_db_path, resolved_temp_root) and resolved_db_path != resolved_temp_root,
+        "test database must be a new path contained by the explicit --temp-root",
+    )
+    require(
+        not is_relative_to(resolved_temp_root, resolved_project_root)
+        and not is_relative_to(resolved_project_root, resolved_temp_root),
+        "test database temporary root must not overlap the Source project",
+    )
+    require(
+        not is_relative_to(resolved_db_path, resolved_project_root),
+        "test database must not be created inside the Source project",
+    )
+    for candidate in (
+        resolved_db_path,
+        resolved_db_path.with_name(resolved_db_path.name + "-journal"),
+        resolved_db_path.with_name(resolved_db_path.name + "-shm"),
+        resolved_db_path.with_name(resolved_db_path.name + "-wal"),
+    ):
+        require(not candidate.exists(), f"test database target already exists: {candidate}")
+
+
 def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
     result_path = temp_root / PROBE_RESULT_PATH
     result_path.parent.mkdir(parents=True, exist_ok=True)
@@ -218,6 +251,8 @@ def prepare_temp_project(temp_root: pathlib.Path) -> pathlib.Path:
             "railyard/SKILL.md",
             "railyard/references/roles.md",
             "railyard/references/startup-sequence.md",
+            "railyard/references/ticket-format.md",
+            "railyard/references/result-format.md",
         ],
         "confidence": "medium",
         "evidence": [],
@@ -351,6 +386,20 @@ def prepare_temp_db(temp_db: pathlib.Path) -> None:
         conn.close()
 
 
+def initialize_test_db(temp_root: pathlib.Path, db_path: pathlib.Path, project_root: pathlib.Path) -> dict[str, str]:
+    """Create a fresh MCP probe fixture only in an explicit isolated root."""
+    require_safe_test_db_target(temp_root, db_path, project_root)
+    temp_root.mkdir(parents=True, exist_ok=True)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    prepare_temp_db(db_path)
+    return {
+        "status": "ok",
+        "mode": "initialize-test-db",
+        "db_path": str(db_path),
+        "temp_root": str(temp_root),
+    }
+
+
 async def run_probe(
     db_path: pathlib.Path,
     project_root: pathlib.Path,
@@ -437,7 +486,7 @@ async def run_probe(
         dispatch = await call_tool(server, "dispatch_next_runner", {"lane": "system", "runner_name": "probe-runner"})
         require(dispatch["status"] == "ready", "dispatch_next_runner did not return ready")
         require(dispatch["ticket"]["ticket_id"] == PROBE_TICKET_ID, "dispatch_next_runner returned wrong ticket")
-        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v4", "dispatch_next_runner returned wrong dispatch contract")
+        require(dispatch["spawn"]["contract"] == "railyard.runner_dispatch.v5", "dispatch_next_runner returned wrong dispatch contract")
         require(dispatch["spawn"]["agent_type"] is None, "dispatch_next_runner must not hardcode platform agent_type")
         require(dispatch["spawn"]["fallback_profile"] == "railyard-runner", "dispatch_next_runner omitted fallback profile")
         require(
@@ -459,11 +508,17 @@ async def run_probe(
         require(dispatch["spawn"]["runner_name"] == "probe-runner", "dispatch_next_runner omitted runner_name")
         startup_reads = dispatch["spawn"].get("required_startup_reads")
         require(isinstance(startup_reads, list) and startup_reads, "dispatch_next_runner omitted required_startup_reads")
+        require("railyard/SKILL.md" in startup_reads, "dispatch_next_runner omitted SKILL.md startup read")
         require("railyard/references/roles.md" in startup_reads, "dispatch_next_runner omitted roles.md startup read")
-        require(
-            "railyard/references/startup-sequence.md" in startup_reads,
-            "dispatch_next_runner omitted startup-sequence.md startup read",
-        )
+        require("railyard/references/startup-sequence.md" in startup_reads, "dispatch_next_runner omitted startup-sequence.md startup read")
+        require("railyard/references/ticket-format.md" in startup_reads, "dispatch_next_runner omitted ticket-format.md startup read")
+        require("railyard/references/result-format.md" in startup_reads, "dispatch_next_runner omitted result-format.md startup read")
+        route_request = dispatch["spawn"].get("governance_route_request")
+        require(isinstance(route_request, dict) and route_request.get("role") == "runner",
+               "dispatch_next_runner spawn missing governance_route_request")
+        route_result = dispatch["spawn"].get("governance_route_result")
+        require(isinstance(route_result, dict) and route_result.get("status") == "ready",
+               "dispatch_next_runner spawn missing or non-ready governance_route_result")
         prompt = dispatch["spawn"].get("prompt")
         require(isinstance(prompt, str) and "Before claiming or editing anything" in prompt, "runner prompt omitted startup read gate")
         require("protocol_reads" in prompt, "runner prompt omitted protocol_reads result evidence")
@@ -500,6 +555,8 @@ async def run_probe(
                 "railyard/SKILL.md",
                 "railyard/references/roles.md",
                 "railyard/references/startup-sequence.md",
+                "railyard/references/ticket-format.md",
+                "railyard/references/result-format.md",
             ],
             "confidence": "medium",
             "evidence": [],
@@ -539,6 +596,8 @@ async def run_probe(
                             "railyard/SKILL.md",
                             "railyard/references/roles.md",
                             "railyard/references/startup-sequence.md",
+                            "railyard/references/ticket-format.md",
+                            "railyard/references/result-format.md",
                         ],
                         "confidence": "medium",
                         "evidence": [],
@@ -689,22 +748,34 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-root", default=str(ROOT), help="Source project root used only for path resolution.")
     parser.add_argument("--temp-root", default="", help="Optional temp directory root for probe working files.")
     parser.add_argument("--keep-temp", action="store_true", help="Keep the final temp probe directory under the probe temp root.")
+    parser.add_argument(
+        "--initialize-test-db",
+        action="store_true",
+        help="Create a new, isolated MCP probe fixture database; requires explicit --temp-root and --db.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    db_path = pathlib.Path(args.db).resolve()
     project_root = pathlib.Path(args.project_root).resolve()
-    temp_root = pathlib.Path(args.temp_root).resolve() if args.temp_root else None
     try:
-        payload = asyncio.run(run_probe(db_path, project_root, args.keep_temp, temp_root))
+        if args.initialize_test_db:
+            if "--db" not in sys.argv or "--temp-root" not in sys.argv or not args.temp_root:
+                raise ProbeFailure("--initialize-test-db requires explicit --temp-root and --db")
+            db_path = pathlib.Path(args.db).resolve()
+            temp_root = pathlib.Path(args.temp_root).resolve()
+            payload = initialize_test_db(temp_root, db_path, project_root)
+        else:
+            db_path = pathlib.Path(args.db).resolve()
+            temp_root = pathlib.Path(args.temp_root).resolve() if args.temp_root else None
+            payload = asyncio.run(run_probe(db_path, project_root, args.keep_temp, temp_root))
     except Exception as exc:
         error_payload = {
             "status": "failed",
             "error": str(exc),
             "error_type": type(exc).__name__,
-            "db_path": str(db_path),
+            "db_path": str(pathlib.Path(args.db).resolve()),
         }
         print(json.dumps(error_payload, ensure_ascii=False, indent=2), file=sys.stderr)
         return 1

@@ -1,0 +1,556 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:railyard:schema:runtime-v080-staging-manifest:v1.1.0",
+  "title": "Runtime v0.8 Staging Manifest Schema v1.1.0",
+  "description": "Draft 2020-12 structural schema for the public v1.1.0 exact-path staging manifest. Version 1.1.0 supersedes v1.0.0. Public instances use opaque digest bindings and closed remediation actions; private audit resolution is external.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_id",
+    "manifest_version",
+    "governing_contract",
+    "schema_ref",
+    "created_at",
+    "ready_to_stage",
+    "external_audit_digest_or_null",
+    "entries",
+    "totals"
+  ],
+  "properties": {
+    "manifest_id": {
+      "$ref": "#/$defs/PublicId"
+    },
+    "manifest_version": {
+      "const": "1.1.0"
+    },
+    "governing_contract": {
+      "const": "references/runtime-v080-staging-manifest-contract.md"
+    },
+    "schema_ref": {
+      "const": "assets/schemas/runtime-v080-staging-manifest-v1.schema.json"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ready_to_stage": {
+      "type": "boolean"
+    },
+    "external_audit_digest_or_null": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Digest"
+        }
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ManifestEntry"
+      }
+    },
+    "totals": {
+      "$ref": "#/$defs/Totals"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ready_to_stage": {
+            "const": true
+          }
+        },
+        "required": [
+          "ready_to_stage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "external_audit_digest_or_null": {
+            "$ref": "#/$defs/Digest"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "entries": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "decision"
+              ],
+              "properties": {
+                "decision": {
+                  "const": "remediate"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ready_to_stage": {
+            "const": false
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "Digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "PublicId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$",
+      "not": {
+        "pattern": "(?:[Ss][Yy][Ss][Tt][Ee][Mm]-|[Dd][Oo][Mm][Aa][Ii][Nn]-|[Tt][Kk][Tt]-|[Ee][Pp][Ii][Cc]-)"
+      }
+    },
+    "PublicText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "allOf": [
+        {
+          "not": {
+            "pattern": "(?:[Ss][Yy][Ss][Tt][Ee][Mm]-|[Dd][Oo][Mm][Aa][Ii][Nn]-|[Tt][Kk][Tt]-|[Ee][Pp][Ii][Cc]-)"
+          }
+        },
+        {
+          "not": {
+            "pattern": "(?:\\\\|/|(?:^|[^A-Za-z])[A-Za-z]:|[Ff][Ii][Ll][Ee]:|[A-Za-z][A-Za-z0-9+.-]*://|(?:^|\\s)\\.{1,2}(?:\\s|$))"
+          }
+        },
+        {
+          "not": {
+            "pattern": "(?:[.][Gg][Ii][Tt]|[.][Aa][Gg][Ee][Nn][Tt][Ss]|[.][Cc][Oo][Dd][Ee][Xx]|[.][Cc][Ll][Aa][Uu][Dd][Ee]|[.][Qq][Ww][Ee][Nn]|[.][Oo][Bb][Ss][Ii][Dd][Ii][Aa][Nn]|[.][Ww][Oo][Rr][Kk][Bb][Uu][Dd][Dd][Yy]|[.][Tt][Mm][Pp]|[.][Tt][Mm][Pp]_[Dd][Oo][Cc]_[Rr][Ee][Vv][Ii][Ee][Ww]|[Cc][Aa][Cc][Hh][Ee]|[Tt][Ee][Mm][Pp]|[Rr][Ee][Pp][Oo][Rr][Tt][Ss]|[Ee][Vv][Ii][Dd][Ee][Nn][Cc][Ee]|[Ss][Ee][Cc][Rr][Ee][Tt][Ss]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll][Ss]|[Tt][Oo][Kk][Ee][Nn][Ss]|[Kk][Ee][Yy][Ss]|[Ll][Oo][Cc][Aa][Ll]|[Ww][Oo][Rr][Kk][Ff][Ll][Oo][Ww][.][Dd][Bb]|[Gg][Ee][Nn][Ee][Rr][Aa][Tt][Ee][Dd]|[Dd][Ii][Ss][Tt])"
+          }
+        }
+      ]
+    },
+    "SafePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*\\\\)(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\s*?\\[\\]{}])(?!.*(?:[Ss][Yy][Ss][Tt][Ee][Mm]-|[Dd][Oo][Mm][Aa][Ii][Nn]-|[Tt][Kk][Tt]-|[Ee][Pp][Ii][Cc]-))(?!.*(?:^|/)[Dd][Oo][Cc][Ss]/(?:[Ss][Yy][Ss][Tt][Ee][Mm]|[Dd][Oo][Mm][Aa][Ii][Nn])(?:/|$))(?!.*(?:^|/)(?:[Cc][Oo][Nn][Tt][Rr][Oo][Ll]|[Mm][Aa][Ii][Ll][Bb][Oo][Xx]|[Ee][Vv][Ii][Dd][Ee][Nn][Cc][Ee]|[.][Ww][Oo][Rr][Kk][Ff][Ll][Oo][Ww]|[Ww][Oo][Rr][Kk][Ff][Ll][Oo][Ww][.][Dd][Bb]|[.][Rr][Aa][Ii][Ll][Yy][Aa][Rr][Dd]-[Ww][Oo][Rr][Kk][Ff][Ll][Oo][Ww][.][Jj][Ss][Oo][Nn]|[.][Gg][Ii][Tt]|[.][Aa][Gg][Ee][Nn][Tt][Ss]|[.][Cc][Oo][Dd][Ee][Xx]|[.][Cc][Ll][Aa][Uu][Dd][Ee]|[.][Qq][Ww][Ee][Nn]|[.][Oo][Bb][Ss][Ii][Dd][Ii][Aa][Nn]|[.][Ww][Oo][Rr][Kk][Bb][Uu][Dd][Dd][Yy]|[.][Tt][Mm][Pp]|[.][Tt][Mm][Pp]_[Dd][Oo][Cc]_[Rr][Ee][Vv][Ii][Ee][Ww]|[.][Cc][Aa][Cc][Hh][Ee]|[.][Pp][Yy][Tt][Ee][Ss][Tt]_[Cc][Aa][Cc][Hh][Ee]|__pycache__|[Nn][Oo][Dd][Ee]_[Mm][Oo][Dd][Uu][Ll][Ee][Ss]|[Cc][Aa][Cc][Hh][Ee]|[Tt][Mm][Pp]|[Tt][Ee][Mm][Pp]|[Rr][Ee][Pp][Oo][Rr][Tt][Ss]|[Ss][Ee][Cc][Rr][Ee][Tt][Ss]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll][Ss]|[Tt][Oo][Kk][Ee][Nn][Ss]|[Kk][Ee][Yy][Ss]|[Ll][Oo][Cc][Aa][Ll]|[Ww][Oo][Rr][Kk][Ff][Ll][Oo][Ww]|[Gg][Ee][Nn][Ee][Rr][Aa][Tt][Ee][Dd]|[Dd][Ii][Ss][Tt])(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "Category": {
+      "enum": [
+        "contract",
+        "schema",
+        "registry",
+        "guide",
+        "policy",
+        "protocol",
+        "reference",
+        "example",
+        "script",
+        "test",
+        "documentation"
+      ]
+    },
+    "Derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deterministic_generator",
+        "ordered_input_paths",
+        "output_verification_rule",
+        "rebuild_policy"
+      ],
+      "properties": {
+        "deterministic_generator": {
+          "$ref": "#/$defs/PublicId"
+        },
+        "generator_version": {
+          "$ref": "#/$defs/PublicId"
+        },
+        "ordered_input_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "$ref": "#/$defs/SafePath"
+              },
+              "sha256": {
+                "$ref": "#/$defs/Digest"
+              }
+            }
+          }
+        },
+        "output_verification_rule": {
+          "enum": [
+            "immutable_sha256_match",
+            "byte_equality",
+            "content_equality",
+            "declared_generator_contract"
+          ]
+        },
+        "rebuild_policy": {
+          "enum": [
+            "rebuild_when_inputs_change",
+            "rebuild_per_manifest",
+            "rebuild_prohibited"
+          ]
+        }
+      }
+    },
+    "RemediationAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_kind",
+        "owner_class",
+        "target_path_or_artifact",
+        "completion_condition"
+      ],
+      "properties": {
+        "action_kind": {
+          "enum": [
+            "obtain_provenance_digest",
+            "record_derivation",
+            "remove_forbidden_content",
+            "reclassify_content",
+            "request_external_audit"
+          ]
+        },
+        "owner_class": {
+          "enum": [
+            "artifact_steward",
+            "governance_steward",
+            "maintenance_steward",
+            "release_steward"
+          ]
+        },
+        "target_path_or_artifact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafePath"
+            },
+            {
+              "type": "string",
+              "pattern": "^artifact-[a-f0-9]{64}$"
+            }
+          ]
+        },
+        "completion_condition": {
+          "$ref": "#/$defs/PublicText"
+        }
+      }
+    },
+    "IncludeEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "decision",
+        "sha256",
+        "size_bytes",
+        "line_count_or_null",
+        "category",
+        "purpose",
+        "provenance_digests",
+        "source_or_derived"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/SafePath"
+        },
+        "decision": {
+          "const": "include"
+        },
+        "sha256": {
+          "$ref": "#/$defs/Digest"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "line_count_or_null": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "category": {
+          "$ref": "#/$defs/Category"
+        },
+        "purpose": {
+          "$ref": "#/$defs/PublicText"
+        },
+        "provenance_digests": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Digest"
+          }
+        },
+        "source_or_derived": {
+          "enum": [
+            "source",
+            "derived"
+          ]
+        },
+        "derivation": {
+          "$ref": "#/$defs/Derivation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_or_derived": {
+                "const": "derived"
+              }
+            },
+            "required": [
+              "source_or_derived"
+            ]
+          },
+          "then": {
+            "required": [
+              "derivation"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "derivation"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "ExcludeEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "decision",
+        "reason_code",
+        "rationale"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/SafePath"
+        },
+        "decision": {
+          "const": "exclude"
+        },
+        "reason_code": {
+          "enum": [
+            "out_of_scope",
+            "test_fixture",
+            "local_configuration",
+            "secret",
+            "machine_specific",
+            "temporary",
+            "cache",
+            "control_state",
+            "generated_unproven",
+            "policy_excluded"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/PublicText"
+        }
+      }
+    },
+    "DeferEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "decision",
+        "reason_code",
+        "rationale"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/SafePath"
+        },
+        "decision": {
+          "const": "defer"
+        },
+        "reason_code": {
+          "enum": [
+            "pending_provenance",
+            "pending_decision",
+            "pending_derivation",
+            "pending_review"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/PublicText"
+        }
+      }
+    },
+    "RemediateEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "decision",
+        "reason_code",
+        "rationale",
+        "remediation_action"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/SafePath"
+        },
+        "decision": {
+          "const": "remediate"
+        },
+        "reason_code": {
+          "enum": [
+            "needs_provenance",
+            "needs_derivation",
+            "needs_cleanup",
+            "needs_reclassification",
+            "needs_signoff"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/PublicText"
+        },
+        "remediation_action": {
+          "$ref": "#/$defs/RemediationAction"
+        }
+      }
+    },
+    "ManifestEntry": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/IncludeEntry"
+        },
+        {
+          "$ref": "#/$defs/ExcludeEntry"
+        },
+        {
+          "$ref": "#/$defs/DeferEntry"
+        },
+        {
+          "$ref": "#/$defs/RemediateEntry"
+        }
+      ]
+    },
+    "Totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entry_count",
+        "decision_counts",
+        "bytes_total",
+        "lines_total",
+        "line_count_unknown",
+        "composition",
+        "generated_counts"
+      ],
+      "properties": {
+        "entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "include",
+            "exclude",
+            "defer",
+            "remediate"
+          ],
+          "properties": {
+            "include": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "exclude": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "defer": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "remediate": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "bytes_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lines_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "line_count_unknown": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "composition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "implementation",
+            "assurance"
+          ],
+          "properties": {
+            "implementation": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "assurance": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "generated_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "derived"
+          ],
+          "properties": {
+            "source": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "derived": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,4590 @@
+{
+  "export_version": "1.1.0",
+  "export_id": "export-0001-abcd-ef01-2345-6789abcdef01",
+  "exported_at": "2026-07-18T10:05:00Z",
+  "run_id": "example-run-v090-0001",
+  "source_stream_head": {
+    "event_order": 6,
+    "content_digest": "sha256:d52979c4d502fc2b94e6de0fd254eeb713f3066ab689c03be6995446127af196"
+  },
+  "events": [
+    {
+      "run_id": "example-run-v090-0001",
+      "event_id": "ac353419-01ed-4cc8-8ed3-e03bbb092cc6",
+      "event_order": 1,
+      "event_type": "run.created",
+      "payload": {
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "created_at": "2026-07-18T10:00:00Z",
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        }
+      },
+      "causation_chain": [],
+      "actor_role": "architect",
+      "actor_identity": "example-architect-1",
+      "trigger_artifact": {
+        "artifact_id": "example-trigger-ticket",
+        "artifact_kind": "ticket"
+      },
+      "reason": "Example run created for export under v0.9.0.",
+      "recommended_action": "none",
+      "expected_stream_head": {
+        "event_order": 0,
+        "content_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "client_event_id": "ex-client-ev-01",
+      "prev_event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "prior_state": {},
+      "next_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "pending",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": null,
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "pending",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {},
+            "gate_decision_history": [],
+            "artifacts_produced": []
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 1
+      },
+      "occurred_at": "2026-07-18T14:01:53Z",
+      "schema_version": "0.9.0",
+      "content_digest": "sha256:216ad7468ca97db9d3024341aaa2945ecab71a6509bd0404ac5613c5d95ff9d4"
+    },
+    {
+      "run_id": "example-run-v090-0001",
+      "event_id": "4c18b821-0d1a-40aa-b6f5-15087e29301d",
+      "event_order": 2,
+      "event_type": "run.started",
+      "payload": {
+        "started_at": "2026-07-18T10:00:05Z",
+        "executor_identity": "example-runner-1"
+      },
+      "causation_id": "ac353419-01ed-4cc8-8ed3-e03bbb092cc6",
+      "actor_role": "runner",
+      "actor_identity": "example-runner-1",
+      "trigger_artifact": {
+        "artifact_id": "example-run-v090-0001",
+        "artifact_kind": "run"
+      },
+      "reason": "Runner started execution.",
+      "recommended_action": "none",
+      "expected_stream_head": {
+        "event_order": 1,
+        "content_digest": "sha256:216ad7468ca97db9d3024341aaa2945ecab71a6509bd0404ac5613c5d95ff9d4"
+      },
+      "client_event_id": "ex-client-ev-02",
+      "prev_event_digest": "sha256:216ad7468ca97db9d3024341aaa2945ecab71a6509bd0404ac5613c5d95ff9d4",
+      "prior_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "pending",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": null,
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "pending",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {},
+            "gate_decision_history": [],
+            "artifacts_produced": []
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 1
+      },
+      "next_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "pending",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {},
+            "gate_decision_history": [],
+            "artifacts_produced": []
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 2
+      },
+      "occurred_at": "2026-07-18T14:01:53Z",
+      "schema_version": "0.9.0",
+      "content_digest": "sha256:7a6e00717aa9eeab38a2b85ce51d64ccd28c4368371ba0ec81882b445e8d3160"
+    },
+    {
+      "run_id": "example-run-v090-0001",
+      "event_id": "52481dc9-03e9-451a-9144-558dcdd5d23c",
+      "event_order": 3,
+      "event_type": "run.stage.started",
+      "payload": {
+        "stage_id": "build",
+        "started_at": "2026-07-18T10:00:10Z",
+        "entry_evidence": [
+          {
+            "artifact_id": "ex-entry-ev",
+            "artifact_kind": "validation_report",
+            "artifact_version": "1.0.0"
+          }
+        ]
+      },
+      "causation_id": "4c18b821-0d1a-40aa-b6f5-15087e29301d",
+      "actor_role": "runner",
+      "actor_identity": "example-runner-1",
+      "trigger_artifact": {
+        "artifact_id": "example-run-v090-0001",
+        "artifact_kind": "run"
+      },
+      "reason": "Entering build stage.",
+      "recommended_action": "none",
+      "expected_stream_head": {
+        "event_order": 2,
+        "content_digest": "sha256:7a6e00717aa9eeab38a2b85ce51d64ccd28c4368371ba0ec81882b445e8d3160"
+      },
+      "client_event_id": "ex-client-ev-03",
+      "prev_event_digest": "sha256:7a6e00717aa9eeab38a2b85ce51d64ccd28c4368371ba0ec81882b445e8d3160",
+      "prior_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "pending",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {},
+            "gate_decision_history": [],
+            "artifacts_produced": []
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 2
+      },
+      "next_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "active",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {},
+            "gate_decision_history": [],
+            "artifacts_produced": [],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        },
+        "current_stage_id": "build",
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 3
+      },
+      "occurred_at": "2026-07-18T14:01:53Z",
+      "schema_version": "0.9.0",
+      "content_digest": "sha256:6d2326045f5b29b09fb050cee9c9589c9d8e40d9deb4c4cd820976b51bf0faac"
+    },
+    {
+      "run_id": "example-run-v090-0001",
+      "event_id": "4d82d6c5-855a-412f-802a-9ade1c3392e7",
+      "event_order": 4,
+      "event_type": "run.gate.evaluated",
+      "payload": {
+        "stage_id": "build",
+        "gate_id": "build-check",
+        "decision_id": "ex-gd-0001",
+        "outcome": "pass",
+        "execution_mode": "full",
+        "evaluated_at": "2026-07-18T10:00:30Z",
+        "evaluated_by": "example-validator-1",
+        "evidence": [
+          {
+            "artifact_id": "ex-build-report",
+            "artifact_kind": "validation_report",
+            "artifact_version": "1.0.0"
+          }
+        ]
+      },
+      "causation_id": "52481dc9-03e9-451a-9144-558dcdd5d23c",
+      "actor_role": "validator",
+      "actor_identity": "example-validator-1",
+      "trigger_artifact": {
+        "artifact_id": "example-run-v090-0001",
+        "artifact_kind": "run"
+      },
+      "reason": "Build check gate evaluated.",
+      "recommended_action": "none",
+      "expected_stream_head": {
+        "event_order": 3,
+        "content_digest": "sha256:6d2326045f5b29b09fb050cee9c9589c9d8e40d9deb4c4cd820976b51bf0faac"
+      },
+      "client_event_id": "ex-client-ev-04",
+      "prev_event_digest": "sha256:6d2326045f5b29b09fb050cee9c9589c9d8e40d9deb4c4cd820976b51bf0faac",
+      "prior_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "active",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {},
+            "gate_decision_history": [],
+            "artifacts_produced": [],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        },
+        "current_stage_id": "build",
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 3
+      },
+      "next_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "active",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {
+              "build-check": {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            },
+            "gate_decision_history": [
+              {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            ],
+            "artifacts_produced": [],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        },
+        "current_stage_id": "build",
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 4
+      },
+      "occurred_at": "2026-07-18T14:01:53Z",
+      "schema_version": "0.9.0",
+      "content_digest": "sha256:8b627dcbf660c1890dc67af8afe81d88d3f27c837ffbc08c18cebd6707e059d6"
+    },
+    {
+      "run_id": "example-run-v090-0001",
+      "event_id": "484fc3a7-2c87-4a24-bd5c-313d3d78d6b2",
+      "event_order": 5,
+      "event_type": "run.stage.completed",
+      "payload": {
+        "stage_id": "build",
+        "completed_at": "2026-07-18T10:01:00Z",
+        "gate_decisions": [
+          {
+            "decision_id": "ex-gd-0001"
+          }
+        ],
+        "artifacts_produced": [
+          {
+            "artifact_ref": {
+              "artifact_id": "example-build-output",
+              "artifact_kind": "stage_output",
+              "artifact_version": "1.0.0",
+              "locator": "examples/example-build-output.json"
+            },
+            "origin_run": "example-run-v090-0001",
+            "origin_stage": "build",
+            "produced_by": "example-runner-1",
+            "source_artifacts": [],
+            "visibility": "public",
+            "visibility_resolution": {
+              "resolution_id": "res-example-build-output",
+              "resolved_at": "2026-07-18T10:00:00Z",
+              "contributors": [
+                {
+                  "contributor_id": "art-c-example-build-output",
+                  "contributor_kind": "source_artifact",
+                  "contributor_ref": {
+                    "artifact_id": "example-build-output",
+                    "artifact_kind": "stage_output"
+                  },
+                  "asserted_visibility": "public",
+                  "authority": "Example source_artifact declaring public.",
+                  "classification_evidence": [
+                    {
+                      "artifact_id": "evid-art-c-example-build-output",
+                      "artifact_kind": "classification_record"
+                    }
+                  ]
+                }
+              ],
+              "resolution_rule": "most_restrictive",
+              "resolved_visibility": "public",
+              "resolution_audit": {
+                "contributor_count": 1,
+                "restricted_count": 0,
+                "project_count": 0,
+                "public_count": 1,
+                "applied_rule": "most_restrictive"
+              }
+            }
+          }
+        ]
+      },
+      "causation_id": "4d82d6c5-855a-412f-802a-9ade1c3392e7",
+      "actor_role": "runner",
+      "actor_identity": "example-runner-1",
+      "trigger_artifact": {
+        "artifact_id": "example-run-v090-0001",
+        "artifact_kind": "run"
+      },
+      "reason": "Build stage completed.",
+      "recommended_action": "none",
+      "expected_stream_head": {
+        "event_order": 4,
+        "content_digest": "sha256:8b627dcbf660c1890dc67af8afe81d88d3f27c837ffbc08c18cebd6707e059d6"
+      },
+      "client_event_id": "ex-client-ev-05",
+      "prev_event_digest": "sha256:8b627dcbf660c1890dc67af8afe81d88d3f27c837ffbc08c18cebd6707e059d6",
+      "prior_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "active",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {
+              "build-check": {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            },
+            "gate_decision_history": [
+              {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            ],
+            "artifacts_produced": [],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        },
+        "current_stage_id": "build",
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [],
+        "artifact_refs": [],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 4
+      },
+      "next_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "completed",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {
+              "build-check": {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            },
+            "gate_decision_history": [
+              {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            ],
+            "artifacts_produced": [
+              {
+                "artifact_ref": {
+                  "artifact_id": "example-build-output",
+                  "artifact_kind": "stage_output",
+                  "artifact_version": "1.0.0",
+                  "locator": "examples/example-build-output.json"
+                },
+                "origin_run": "example-run-v090-0001",
+                "origin_stage": "build",
+                "produced_by": "example-runner-1",
+                "source_artifacts": [],
+                "visibility": "public",
+                "visibility_resolution": {
+                  "resolution_id": "res-example-build-output",
+                  "resolved_at": "2026-07-18T10:00:00Z",
+                  "contributors": [
+                    {
+                      "contributor_id": "art-c-example-build-output",
+                      "contributor_kind": "source_artifact",
+                      "contributor_ref": {
+                        "artifact_id": "example-build-output",
+                        "artifact_kind": "stage_output"
+                      },
+                      "asserted_visibility": "public",
+                      "authority": "Example source_artifact declaring public.",
+                      "classification_evidence": [
+                        {
+                          "artifact_id": "evid-art-c-example-build-output",
+                          "artifact_kind": "classification_record"
+                        }
+                      ]
+                    }
+                  ],
+                  "resolution_rule": "most_restrictive",
+                  "resolved_visibility": "public",
+                  "resolution_audit": {
+                    "contributor_count": 1,
+                    "restricted_count": 0,
+                    "project_count": 0,
+                    "public_count": 1,
+                    "applied_rule": "most_restrictive"
+                  }
+                }
+              }
+            ],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ],
+            "completed_at": "2026-07-18T10:01:00Z"
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [
+          {
+            "artifact_ref": {
+              "artifact_id": "example-build-output",
+              "artifact_kind": "stage_output",
+              "artifact_version": "1.0.0",
+              "locator": "examples/example-build-output.json"
+            },
+            "origin_run": "example-run-v090-0001",
+            "origin_stage": "build",
+            "produced_by": "example-runner-1",
+            "source_artifacts": [],
+            "visibility": "public",
+            "visibility_resolution": {
+              "resolution_id": "res-example-build-output",
+              "resolved_at": "2026-07-18T10:00:00Z",
+              "contributors": [
+                {
+                  "contributor_id": "art-c-example-build-output",
+                  "contributor_kind": "source_artifact",
+                  "contributor_ref": {
+                    "artifact_id": "example-build-output",
+                    "artifact_kind": "stage_output"
+                  },
+                  "asserted_visibility": "public",
+                  "authority": "Example source_artifact declaring public.",
+                  "classification_evidence": [
+                    {
+                      "artifact_id": "evid-art-c-example-build-output",
+                      "artifact_kind": "classification_record"
+                    }
+                  ]
+                }
+              ],
+              "resolution_rule": "most_restrictive",
+              "resolved_visibility": "public",
+              "resolution_audit": {
+                "contributor_count": 1,
+                "restricted_count": 0,
+                "project_count": 0,
+                "public_count": 1,
+                "applied_rule": "most_restrictive"
+              }
+            }
+          }
+        ],
+        "artifact_refs": [
+          {
+            "artifact_id": "example-build-output",
+            "artifact_kind": "stage_output",
+            "artifact_version": "1.0.0",
+            "locator": "examples/example-build-output.json"
+          }
+        ],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 5
+      },
+      "occurred_at": "2026-07-18T14:01:53Z",
+      "schema_version": "0.9.0",
+      "content_digest": "sha256:12b8470cc0452d46171af14bd2b2d6429532ace46fa4f7a197cfb4e716a79d41"
+    },
+    {
+      "run_id": "example-run-v090-0001",
+      "event_id": "b44dca6d-430c-4052-a13d-bdd8ab7b5174",
+      "event_order": 6,
+      "event_type": "run.completed",
+      "payload": {
+        "completed_at": "2026-07-18T10:01:00Z",
+        "terminal_stages_completed": [
+          "build"
+        ],
+        "final_projection_digest": "sha256:3e04dd2278cf8a61ec89cc0742757ce31d35c6cc110e20484ce6bace3e95ce2e",
+        "total_event_count": 6
+      },
+      "causation_id": "484fc3a7-2c87-4a24-bd5c-313d3d78d6b2",
+      "actor_role": "runner",
+      "actor_identity": "example-runner-1",
+      "trigger_artifact": {
+        "artifact_id": "example-run-v090-0001",
+        "artifact_kind": "run"
+      },
+      "reason": "Run completed.",
+      "recommended_action": "none",
+      "expected_stream_head": {
+        "event_order": 5,
+        "content_digest": "sha256:12b8470cc0452d46171af14bd2b2d6429532ace46fa4f7a197cfb4e716a79d41"
+      },
+      "client_event_id": "ex-client-ev-06",
+      "prev_event_digest": "sha256:12b8470cc0452d46171af14bd2b2d6429532ace46fa4f7a197cfb4e716a79d41",
+      "prior_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "active",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "completed",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {
+              "build-check": {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            },
+            "gate_decision_history": [
+              {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            ],
+            "artifacts_produced": [
+              {
+                "artifact_ref": {
+                  "artifact_id": "example-build-output",
+                  "artifact_kind": "stage_output",
+                  "artifact_version": "1.0.0",
+                  "locator": "examples/example-build-output.json"
+                },
+                "origin_run": "example-run-v090-0001",
+                "origin_stage": "build",
+                "produced_by": "example-runner-1",
+                "source_artifacts": [],
+                "visibility": "public",
+                "visibility_resolution": {
+                  "resolution_id": "res-example-build-output",
+                  "resolved_at": "2026-07-18T10:00:00Z",
+                  "contributors": [
+                    {
+                      "contributor_id": "art-c-example-build-output",
+                      "contributor_kind": "source_artifact",
+                      "contributor_ref": {
+                        "artifact_id": "example-build-output",
+                        "artifact_kind": "stage_output"
+                      },
+                      "asserted_visibility": "public",
+                      "authority": "Example source_artifact declaring public.",
+                      "classification_evidence": [
+                        {
+                          "artifact_id": "evid-art-c-example-build-output",
+                          "artifact_kind": "classification_record"
+                        }
+                      ]
+                    }
+                  ],
+                  "resolution_rule": "most_restrictive",
+                  "resolved_visibility": "public",
+                  "resolution_audit": {
+                    "contributor_count": 1,
+                    "restricted_count": 0,
+                    "project_count": 0,
+                    "public_count": 1,
+                    "applied_rule": "most_restrictive"
+                  }
+                }
+              }
+            ],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ],
+            "completed_at": "2026-07-18T10:01:00Z"
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [
+          {
+            "artifact_ref": {
+              "artifact_id": "example-build-output",
+              "artifact_kind": "stage_output",
+              "artifact_version": "1.0.0",
+              "locator": "examples/example-build-output.json"
+            },
+            "origin_run": "example-run-v090-0001",
+            "origin_stage": "build",
+            "produced_by": "example-runner-1",
+            "source_artifacts": [],
+            "visibility": "public",
+            "visibility_resolution": {
+              "resolution_id": "res-example-build-output",
+              "resolved_at": "2026-07-18T10:00:00Z",
+              "contributors": [
+                {
+                  "contributor_id": "art-c-example-build-output",
+                  "contributor_kind": "source_artifact",
+                  "contributor_ref": {
+                    "artifact_id": "example-build-output",
+                    "artifact_kind": "stage_output"
+                  },
+                  "asserted_visibility": "public",
+                  "authority": "Example source_artifact declaring public.",
+                  "classification_evidence": [
+                    {
+                      "artifact_id": "evid-art-c-example-build-output",
+                      "artifact_kind": "classification_record"
+                    }
+                  ]
+                }
+              ],
+              "resolution_rule": "most_restrictive",
+              "resolved_visibility": "public",
+              "resolution_audit": {
+                "contributor_count": 1,
+                "restricted_count": 0,
+                "project_count": 0,
+                "public_count": 1,
+                "applied_rule": "most_restrictive"
+              }
+            }
+          }
+        ],
+        "artifact_refs": [
+          {
+            "artifact_id": "example-build-output",
+            "artifact_kind": "stage_output",
+            "artifact_version": "1.0.0",
+            "locator": "examples/example-build-output.json"
+          }
+        ],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 5
+      },
+      "next_state": {
+        "run_id": "example-run-v090-0001",
+        "status": "completed",
+        "created_at": "2026-07-18T10:00:00Z",
+        "started_at": "2026-07-18T10:00:05Z",
+        "run_provenance": {
+          "origin_artifact": {
+            "artifact_id": "example-trigger-ticket",
+            "artifact_kind": "ticket",
+            "artifact_version": "1.0.0"
+          },
+          "governing_contracts": [
+            {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.9.0",
+              "locator": "references/runtime-state-contract.md"
+            },
+            {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "0.8.0",
+              "locator": "references/knowledge-contract.md"
+            },
+            {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract",
+              "artifact_version": "1.0.0",
+              "locator": "references/runtime-artifact-visibility-contract.md"
+            }
+          ]
+        },
+        "trigger": "ticket",
+        "executor_identity": "example-runner-1",
+        "run_ordinal": 1,
+        "stage_graph": {
+          "graph_id": "example-graph-0001",
+          "stages": [
+            {
+              "stage_id": "build",
+              "name": "Build Stage",
+              "required": true,
+              "status": "pending",
+              "gates": [
+                {
+                  "gate_id": "build-check",
+                  "gate_type": "artifact_shape",
+                  "required": true,
+                  "failure_behavior": "halt_stage"
+                }
+              ]
+            }
+          ],
+          "edges": [],
+          "entry_stages": [
+            "build"
+          ],
+          "terminal_stages": [
+            "build"
+          ]
+        },
+        "lineage": null,
+        "stage_states": {
+          "build": {
+            "stage_id": "build",
+            "name": "Build Stage",
+            "required": true,
+            "status": "completed",
+            "gates": [
+              {
+                "gate_id": "build-check",
+                "gate_type": "artifact_shape",
+                "required": true,
+                "failure_behavior": "halt_stage"
+              }
+            ],
+            "gate_decisions": {
+              "build-check": {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            },
+            "gate_decision_history": [
+              {
+                "gate_id": "build-check",
+                "decision_id": "ex-gd-0001",
+                "outcome": "pass",
+                "execution_mode": "full",
+                "evaluated_at": "2026-07-18T10:00:30Z",
+                "evaluated_by": "example-validator-1",
+                "evidence": [
+                  {
+                    "artifact_id": "ex-build-report",
+                    "artifact_kind": "validation_report",
+                    "artifact_version": "1.0.0"
+                  }
+                ],
+                "degradation_note": null,
+                "reevaluates_decision_id": null
+              }
+            ],
+            "artifacts_produced": [
+              {
+                "artifact_ref": {
+                  "artifact_id": "example-build-output",
+                  "artifact_kind": "stage_output",
+                  "artifact_version": "1.0.0",
+                  "locator": "examples/example-build-output.json"
+                },
+                "origin_run": "example-run-v090-0001",
+                "origin_stage": "build",
+                "produced_by": "example-runner-1",
+                "source_artifacts": [],
+                "visibility": "public",
+                "visibility_resolution": {
+                  "resolution_id": "res-example-build-output",
+                  "resolved_at": "2026-07-18T10:00:00Z",
+                  "contributors": [
+                    {
+                      "contributor_id": "art-c-example-build-output",
+                      "contributor_kind": "source_artifact",
+                      "contributor_ref": {
+                        "artifact_id": "example-build-output",
+                        "artifact_kind": "stage_output"
+                      },
+                      "asserted_visibility": "public",
+                      "authority": "Example source_artifact declaring public.",
+                      "classification_evidence": [
+                        {
+                          "artifact_id": "evid-art-c-example-build-output",
+                          "artifact_kind": "classification_record"
+                        }
+                      ]
+                    }
+                  ],
+                  "resolution_rule": "most_restrictive",
+                  "resolved_visibility": "public",
+                  "resolution_audit": {
+                    "contributor_count": 1,
+                    "restricted_count": 0,
+                    "project_count": 0,
+                    "public_count": 1,
+                    "applied_rule": "most_restrictive"
+                  }
+                }
+              }
+            ],
+            "started_at": "2026-07-18T10:00:10Z",
+            "entry_evidence": [
+              {
+                "artifact_id": "ex-entry-ev",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ],
+            "completed_at": "2026-07-18T10:01:00Z"
+          }
+        },
+        "current_stage_id": null,
+        "visibility_context": {
+          "trigger_visibility": {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          "policy_contributors": [
+            {
+              "contributor_id": "vis-pol-1",
+              "contributor_kind": "project_policy",
+              "contributor_ref": {
+                "artifact_id": "railyard-project-policy",
+                "artifact_kind": "policy"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example project_policy declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-pol-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "contract_contributors": [
+            {
+              "contributor_id": "vis-ct-1",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-state-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-1",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-2",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "knowledge-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-2",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            },
+            {
+              "contributor_id": "vis-ct-3",
+              "contributor_kind": "governing_contract",
+              "contributor_ref": {
+                "artifact_id": "runtime-artifact-visibility-contract",
+                "artifact_kind": "contract"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example governing_contract declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-vis-ct-3",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "run_visibility_resolution": {
+            "resolution_id": "res-run-init",
+            "resolved_at": "2026-07-18T10:00:00Z",
+            "contributors": [
+              {
+                "contributor_id": "vis-trig-1",
+                "contributor_kind": "trigger_provenance",
+                "contributor_ref": {
+                  "artifact_id": "example-trigger-ticket",
+                  "artifact_kind": "ticket"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example trigger_provenance declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-trig-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-pol-1",
+                "contributor_kind": "project_policy",
+                "contributor_ref": {
+                  "artifact_id": "railyard-project-policy",
+                  "artifact_kind": "policy"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example project_policy declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-pol-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-1",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-state-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-1",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-2",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "knowledge-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-2",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              },
+              {
+                "contributor_id": "vis-ct-3",
+                "contributor_kind": "governing_contract",
+                "contributor_ref": {
+                  "artifact_id": "runtime-artifact-visibility-contract",
+                  "artifact_kind": "contract"
+                },
+                "asserted_visibility": "public",
+                "authority": "Example governing_contract declaring public.",
+                "classification_evidence": [
+                  {
+                    "artifact_id": "evid-vis-ct-3",
+                    "artifact_kind": "classification_record"
+                  }
+                ]
+              }
+            ],
+            "resolution_rule": "most_restrictive",
+            "resolved_visibility": "public",
+            "resolution_audit": {
+              "contributor_count": 5,
+              "restricted_count": 0,
+              "project_count": 0,
+              "public_count": 5,
+              "applied_rule": "most_restrictive"
+            }
+          },
+          "resolved_run_visibility": "public"
+        },
+        "runtime_artifacts": [
+          {
+            "artifact_ref": {
+              "artifact_id": "example-build-output",
+              "artifact_kind": "stage_output",
+              "artifact_version": "1.0.0",
+              "locator": "examples/example-build-output.json"
+            },
+            "origin_run": "example-run-v090-0001",
+            "origin_stage": "build",
+            "produced_by": "example-runner-1",
+            "source_artifacts": [],
+            "visibility": "public",
+            "visibility_resolution": {
+              "resolution_id": "res-example-build-output",
+              "resolved_at": "2026-07-18T10:00:00Z",
+              "contributors": [
+                {
+                  "contributor_id": "art-c-example-build-output",
+                  "contributor_kind": "source_artifact",
+                  "contributor_ref": {
+                    "artifact_id": "example-build-output",
+                    "artifact_kind": "stage_output"
+                  },
+                  "asserted_visibility": "public",
+                  "authority": "Example source_artifact declaring public.",
+                  "classification_evidence": [
+                    {
+                      "artifact_id": "evid-art-c-example-build-output",
+                      "artifact_kind": "classification_record"
+                    }
+                  ]
+                }
+              ],
+              "resolution_rule": "most_restrictive",
+              "resolved_visibility": "public",
+              "resolution_audit": {
+                "contributor_count": 1,
+                "restricted_count": 0,
+                "project_count": 0,
+                "public_count": 1,
+                "applied_rule": "most_restrictive"
+              }
+            }
+          }
+        ],
+        "artifact_refs": [
+          {
+            "artifact_id": "example-build-output",
+            "artifact_kind": "stage_output",
+            "artifact_version": "1.0.0",
+            "locator": "examples/example-build-output.json"
+          }
+        ],
+        "resolved_run_visibility": "public",
+        "interventions": [],
+        "audit_events": [],
+        "child_actions": [],
+        "events_count": 6,
+        "completed_at": "2026-07-18T10:01:00Z",
+        "final_projection_digest": "sha256:3e04dd2278cf8a61ec89cc0742757ce31d35c6cc110e20484ce6bace3e95ce2e",
+        "declared_total_event_count": 6
+      },
+      "occurred_at": "2026-07-18T14:01:53Z",
+      "schema_version": "0.9.0",
+      "content_digest": "sha256:d52979c4d502fc2b94e6de0fd254eeb713f3066ab689c03be6995446127af196"
+    }
+  ],
+  "receipts": [
+    {
+      "event_id": "4d82d6c5-855a-412f-802a-9ade1c3392e7",
+      "event_order": 4,
+      "stored_content_digest": "sha256:8b627dcbf660c1890dc67af8afe81d88d3f27c837ffbc08c18cebd6707e059d6",
+      "new_stream_head": {
+        "event_order": 4,
+        "content_digest": "sha256:8b627dcbf660c1890dc67af8afe81d88d3f27c837ffbc08c18cebd6707e059d6"
+      },
+      "signed_receipt": {
+        "algorithm": "HMAC-SHA256",
+        "key_id": "conformance-key-1",
+        "signed_payload": {
+          "run_id": "example-run-v090-0001",
+          "event_order": 4,
+          "content_digest": "sha256:8b627dcbf660c1890dc67af8afe81d88d3f27c837ffbc08c18cebd6707e059d6"
+        },
+        "signature": "53ed8711e269c9eb77852205d14d4eebf3052f390627051e1517ce4402f7c831"
+      }
+    },
+    {
+      "event_id": "b44dca6d-430c-4052-a13d-bdd8ab7b5174",
+      "event_order": 6,
+      "stored_content_digest": "sha256:d52979c4d502fc2b94e6de0fd254eeb713f3066ab689c03be6995446127af196",
+      "new_stream_head": {
+        "event_order": 6,
+        "content_digest": "sha256:d52979c4d502fc2b94e6de0fd254eeb713f3066ab689c03be6995446127af196"
+      },
+      "signed_receipt": {
+        "algorithm": "HMAC-SHA256",
+        "key_id": "conformance-key-1",
+        "signed_payload": {
+          "run_id": "example-run-v090-0001",
+          "event_order": 6,
+          "content_digest": "sha256:d52979c4d502fc2b94e6de0fd254eeb713f3066ab689c03be6995446127af196"
+        },
+        "signature": "06a827f7539494430ecdefcfb388e8c0a4a0d7741945d283e890c5b7e4d7d568"
+      }
+    }
+  ],
+  "projection": {
+    "run_id": "example-run-v090-0001",
+    "status": "completed",
+    "run_provenance": {
+      "origin_artifact": {
+        "artifact_id": "example-trigger-ticket",
+        "artifact_kind": "ticket",
+        "artifact_version": "1.0.0"
+      },
+      "governing_contracts": [
+        {
+          "artifact_id": "runtime-state-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.9.0",
+          "locator": "references/runtime-state-contract.md"
+        },
+        {
+          "artifact_id": "knowledge-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "0.8.0",
+          "locator": "references/knowledge-contract.md"
+        },
+        {
+          "artifact_id": "runtime-artifact-visibility-contract",
+          "artifact_kind": "contract",
+          "artifact_version": "1.0.0",
+          "locator": "references/runtime-artifact-visibility-contract.md"
+        }
+      ]
+    },
+    "trigger": "ticket",
+    "executor_identity": "example-runner-1",
+    "run_ordinal": 1,
+    "created_at": "2026-07-18T10:00:00Z",
+    "started_at": "2026-07-18T10:00:05Z",
+    "completed_at": "2026-07-18T10:01:00Z",
+    "stage_graph": {
+      "graph_id": "example-graph-0001",
+      "stages": [
+        {
+          "stage_id": "build",
+          "name": "Build Stage",
+          "required": true,
+          "status": "pending",
+          "gates": [
+            {
+              "gate_id": "build-check",
+              "gate_type": "artifact_shape",
+              "required": true,
+              "failure_behavior": "halt_stage"
+            }
+          ]
+        }
+      ],
+      "edges": [],
+      "entry_stages": [
+        "build"
+      ],
+      "terminal_stages": [
+        "build"
+      ]
+    },
+    "stage_states": {
+      "build": {
+        "stage_id": "build",
+        "name": "Build Stage",
+        "required": true,
+        "status": "completed",
+        "gates": [
+          {
+            "gate_id": "build-check",
+            "gate_type": "artifact_shape",
+            "required": true,
+            "failure_behavior": "halt_stage"
+          }
+        ],
+        "gate_decisions": {
+          "build-check": {
+            "gate_id": "build-check",
+            "decision_id": "ex-gd-0001",
+            "outcome": "pass",
+            "execution_mode": "full",
+            "evaluated_at": "2026-07-18T10:00:30Z",
+            "evaluated_by": "example-validator-1",
+            "evidence": [
+              {
+                "artifact_id": "ex-build-report",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        },
+        "gate_decision_history": [
+          {
+            "gate_id": "build-check",
+            "decision_id": "ex-gd-0001",
+            "outcome": "pass",
+            "execution_mode": "full",
+            "evaluated_at": "2026-07-18T10:00:30Z",
+            "evaluated_by": "example-validator-1",
+            "evidence": [
+              {
+                "artifact_id": "ex-build-report",
+                "artifact_kind": "validation_report",
+                "artifact_version": "1.0.0"
+              }
+            ]
+          }
+        ],
+        "artifacts_produced": [
+          {
+            "artifact_ref": {
+              "artifact_id": "example-build-output",
+              "artifact_kind": "stage_output",
+              "artifact_version": "1.0.0",
+              "locator": "examples/example-build-output.json"
+            },
+            "origin_run": "example-run-v090-0001",
+            "origin_stage": "build",
+            "produced_by": "example-runner-1",
+            "source_artifacts": [],
+            "visibility": "public",
+            "visibility_resolution": {
+              "resolution_id": "res-example-build-output",
+              "resolved_at": "2026-07-18T10:00:00Z",
+              "contributors": [
+                {
+                  "contributor_id": "art-c-example-build-output",
+                  "contributor_kind": "source_artifact",
+                  "contributor_ref": {
+                    "artifact_id": "example-build-output",
+                    "artifact_kind": "stage_output"
+                  },
+                  "asserted_visibility": "public",
+                  "authority": "Example source_artifact declaring public.",
+                  "classification_evidence": [
+                    {
+                      "artifact_id": "evid-art-c-example-build-output",
+                      "artifact_kind": "classification_record"
+                    }
+                  ]
+                }
+              ],
+              "resolution_rule": "most_restrictive",
+              "resolved_visibility": "public",
+              "resolution_audit": {
+                "contributor_count": 1,
+                "restricted_count": 0,
+                "project_count": 0,
+                "public_count": 1,
+                "applied_rule": "most_restrictive"
+              }
+            }
+          }
+        ],
+        "started_at": "2026-07-18T10:00:10Z",
+        "entry_evidence": [
+          {
+            "artifact_id": "ex-entry-ev",
+            "artifact_kind": "validation_report",
+            "artifact_version": "1.0.0"
+          }
+        ],
+        "completed_at": "2026-07-18T10:01:00Z"
+      }
+    },
+    "gate_decisions": [
+      {
+        "gate_id": "build-check",
+        "decision_id": "ex-gd-0001",
+        "outcome": "pass",
+        "execution_mode": "full",
+        "evaluated_at": "2026-07-18T10:00:30Z",
+        "evaluated_by": "example-validator-1",
+        "evidence": [
+          {
+            "artifact_id": "ex-build-report",
+            "artifact_kind": "validation_report",
+            "artifact_version": "1.0.0"
+          }
+        ]
+      }
+    ],
+    "gate_decision_history": [],
+    "visibility_context": {
+      "trigger_visibility": {
+        "contributor_id": "vis-trig-1",
+        "contributor_kind": "trigger_provenance",
+        "contributor_ref": {
+          "artifact_id": "example-trigger-ticket",
+          "artifact_kind": "ticket"
+        },
+        "asserted_visibility": "public",
+        "authority": "Example trigger_provenance declaring public.",
+        "classification_evidence": [
+          {
+            "artifact_id": "evid-vis-trig-1",
+            "artifact_kind": "classification_record"
+          }
+        ]
+      },
+      "policy_contributors": [
+        {
+          "contributor_id": "vis-pol-1",
+          "contributor_kind": "project_policy",
+          "contributor_ref": {
+            "artifact_id": "railyard-project-policy",
+            "artifact_kind": "policy"
+          },
+          "asserted_visibility": "public",
+          "authority": "Example project_policy declaring public.",
+          "classification_evidence": [
+            {
+              "artifact_id": "evid-vis-pol-1",
+              "artifact_kind": "classification_record"
+            }
+          ]
+        }
+      ],
+      "contract_contributors": [
+        {
+          "contributor_id": "vis-ct-1",
+          "contributor_kind": "governing_contract",
+          "contributor_ref": {
+            "artifact_id": "runtime-state-contract",
+            "artifact_kind": "contract"
+          },
+          "asserted_visibility": "public",
+          "authority": "Example governing_contract declaring public.",
+          "classification_evidence": [
+            {
+              "artifact_id": "evid-vis-ct-1",
+              "artifact_kind": "classification_record"
+            }
+          ]
+        },
+        {
+          "contributor_id": "vis-ct-2",
+          "contributor_kind": "governing_contract",
+          "contributor_ref": {
+            "artifact_id": "knowledge-contract",
+            "artifact_kind": "contract"
+          },
+          "asserted_visibility": "public",
+          "authority": "Example governing_contract declaring public.",
+          "classification_evidence": [
+            {
+              "artifact_id": "evid-vis-ct-2",
+              "artifact_kind": "classification_record"
+            }
+          ]
+        },
+        {
+          "contributor_id": "vis-ct-3",
+          "contributor_kind": "governing_contract",
+          "contributor_ref": {
+            "artifact_id": "runtime-artifact-visibility-contract",
+            "artifact_kind": "contract"
+          },
+          "asserted_visibility": "public",
+          "authority": "Example governing_contract declaring public.",
+          "classification_evidence": [
+            {
+              "artifact_id": "evid-vis-ct-3",
+              "artifact_kind": "classification_record"
+            }
+          ]
+        }
+      ],
+      "run_visibility_resolution": {
+        "resolution_id": "res-run-init",
+        "resolved_at": "2026-07-18T10:00:00Z",
+        "contributors": [
+          {
+            "contributor_id": "vis-trig-1",
+            "contributor_kind": "trigger_provenance",
+            "contributor_ref": {
+              "artifact_id": "example-trigger-ticket",
+              "artifact_kind": "ticket"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example trigger_provenance declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-trig-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          {
+            "contributor_id": "vis-pol-1",
+            "contributor_kind": "project_policy",
+            "contributor_ref": {
+              "artifact_id": "railyard-project-policy",
+              "artifact_kind": "policy"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example project_policy declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-pol-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          {
+            "contributor_id": "vis-ct-1",
+            "contributor_kind": "governing_contract",
+            "contributor_ref": {
+              "artifact_id": "runtime-state-contract",
+              "artifact_kind": "contract"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example governing_contract declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-ct-1",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          {
+            "contributor_id": "vis-ct-2",
+            "contributor_kind": "governing_contract",
+            "contributor_ref": {
+              "artifact_id": "knowledge-contract",
+              "artifact_kind": "contract"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example governing_contract declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-ct-2",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          },
+          {
+            "contributor_id": "vis-ct-3",
+            "contributor_kind": "governing_contract",
+            "contributor_ref": {
+              "artifact_id": "runtime-artifact-visibility-contract",
+              "artifact_kind": "contract"
+            },
+            "asserted_visibility": "public",
+            "authority": "Example governing_contract declaring public.",
+            "classification_evidence": [
+              {
+                "artifact_id": "evid-vis-ct-3",
+                "artifact_kind": "classification_record"
+              }
+            ]
+          }
+        ],
+        "resolution_rule": "most_restrictive",
+        "resolved_visibility": "public",
+        "resolution_audit": {
+          "contributor_count": 5,
+          "restricted_count": 0,
+          "project_count": 0,
+          "public_count": 5,
+          "applied_rule": "most_restrictive"
+        }
+      },
+      "resolved_run_visibility": "public"
+    },
+    "runtime_artifacts": [
+      {
+        "artifact_ref": {
+          "artifact_id": "example-build-output",
+          "artifact_kind": "stage_output",
+          "artifact_version": "1.0.0",
+          "locator": "examples/example-build-output.json"
+        },
+        "origin_run": "example-run-v090-0001",
+        "origin_stage": "build",
+        "produced_by": "example-runner-1",
+        "source_artifacts": [],
+        "visibility": "public",
+        "visibility_resolution": {
+          "resolution_id": "res-example-build-output",
+          "resolved_at": "2026-07-18T10:00:00Z",
+          "contributors": [
+            {
+              "contributor_id": "art-c-example-build-output",
+              "contributor_kind": "source_artifact",
+              "contributor_ref": {
+                "artifact_id": "example-build-output",
+                "artifact_kind": "stage_output"
+              },
+              "asserted_visibility": "public",
+              "authority": "Example source_artifact declaring public.",
+              "classification_evidence": [
+                {
+                  "artifact_id": "evid-art-c-example-build-output",
+                  "artifact_kind": "classification_record"
+                }
+              ]
+            }
+          ],
+          "resolution_rule": "most_restrictive",
+          "resolved_visibility": "public",
+          "resolution_audit": {
+            "contributor_count": 1,
+            "restricted_count": 0,
+            "project_count": 0,
+            "public_count": 1,
+            "applied_rule": "most_restrictive"
+          }
+        }
+      }
+    ],
+    "artifact_refs": [
+      {
+        "artifact_id": "example-build-output",
+        "artifact_kind": "stage_output",
+        "artifact_version": "1.0.0",
+        "locator": "examples/example-build-output.json"
+      }
+    ],
+    "resolved_run_visibility": "public",
+    "final_projection_digest": "sha256:3e04dd2278cf8a61ec89cc0742757ce31d35c6cc110e20484ce6bace3e95ce2e",
+    "declared_total_event_count": 6,
+    "latest_event_id": "b44dca6d-430c-4052-a13d-bdd8ab7b5174",
+    "latest_event_order": 6,
+    "latest_event_type": "run.completed",
+    "event_count": 6,
+    "event_range": {
+      "first_order": 1,
+      "last_order": 6,
+      "first_event_id": "ac353419-01ed-4cc8-8ed3-e03bbb092cc6",
+      "last_event_id": "b44dca6d-430c-4052-a13d-bdd8ab7b5174"
+    },
+    "projection_type": "full_replay",
+    "projection_digest": "sha256:859578f62f89456f79adc68e45aac1bdbb7f026dc93daad09feea12419ed2c6c",
+    "projection_id": "example-proj-0001",
+    "derived_at": "2026-07-18T10:01:00Z"
+  },
+  "visibility": "public",
+  "visibility_basis": [
+    {
+      "contributor_kind": "trigger_provenance",
+      "contributor": {
+        "artifact_id": "example-trigger-ticket",
+        "artifact_kind": "ticket",
+        "artifact_version": "1.0.0"
+      },
+      "asserted_visibility": "public",
+      "rationale": "Trigger ticket declares public visibility."
+    },
+    {
+      "contributor_kind": "project_policy",
+      "contributor": {
+        "artifact_id": "railyard-project-policy",
+        "artifact_kind": "policy"
+      },
+      "asserted_visibility": "public",
+      "rationale": "Project policy permits public disclosure."
+    },
+    {
+      "contributor_kind": "governing_contract",
+      "contributor": {
+        "artifact_id": "runtime-state-contract",
+        "artifact_kind": "contract",
+        "artifact_version": "0.9.0",
+        "locator": "references/runtime-state-contract.md"
+      },
+      "asserted_visibility": "public",
+      "rationale": "Runtime state contract is public."
+    },
+    {
+      "contributor_kind": "governing_contract",
+      "contributor": {
+        "artifact_id": "knowledge-contract",
+        "artifact_kind": "contract",
+        "artifact_version": "0.8.0",
+        "locator": "references/knowledge-contract.md"
+      },
+      "asserted_visibility": "public",
+      "rationale": "Knowledge contract is public."
+    },
+    {
+      "contributor_kind": "governing_contract",
+      "contributor": {
+        "artifact_id": "runtime-artifact-visibility-contract",
+        "artifact_kind": "contract",
+        "artifact_version": "1.0.0",
+        "locator": "references/runtime-artifact-visibility-contract.md"
+      },
+      "asserted_visibility": "public",
+      "rationale": "Visibility contract is public."
+    },
+    {
+      "contributor_kind": "contained_artifact",
+      "contributor": {
+        "artifact_id": "example-build-output",
+        "artifact_kind": "stage_output",
+        "artifact_version": "1.0.0",
+        "locator": "examples/example-build-output.json"
+      },
+      "asserted_visibility": "public",
+      "rationale": "Build output artifact is public."
+    }
+  ],
+  "provenance": {
+    "origin_artifact": {
+      "artifact_id": "example-trigger-ticket",
+      "artifact_kind": "ticket",
+      "artifact_version": "1.0.0"
+    },
+    "governing_contracts": [
+      {
+        "artifact_id": "runtime-state-contract",
+        "artifact_kind": "contract",
+        "artifact_version": "0.9.0",
+        "locator": "references/runtime-state-contract.md"
+      },
+      {
+        "artifact_id": "knowledge-contract",
+        "artifact_kind": "contract",
+        "artifact_version": "0.8.0",
+        "locator": "references/knowledge-contract.md"
+      },
+      {
+        "artifact_id": "runtime-artifact-visibility-contract",
+        "artifact_kind": "contract",
+        "artifact_version": "1.0.0",
+        "locator": "references/runtime-artifact-visibility-contract.md"
+      }
+    ]
+  },
+  "export_content_digest": "sha256:9f8d4b430e21e74154e6c53bf204f85da862e510d6c3e1c52930097fdc5c2c81"
+}

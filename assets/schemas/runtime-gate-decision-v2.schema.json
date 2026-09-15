@@ -1,0 +1,2298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:railyard:schema:runtime-gate-decision:v2.2.0",
+  "title": "Runtime Gate Decision Schema v2.2.0",
+  "description": "JSON Schema v2.2.0 compatible with the frozen Runtime Gate Decision Contract v2.2.0. Encodes FailureCode subsets (Fail/Blocked/Inconclusive/HumanReviewRequired) per Section 14.2, failure_code compatibility with outcome at all signal and GateDecision layers, GateDecision fail recommendation limited to stop_stage/stop_run/human_intervention/proceed_with_warning (proceed and more_evidence rejected), plus all frozen Gate Decision v2.2.0 constraints: pass independently forbids failure_code/failure_description, pass/fail non-empty evidence, recommendation constrained by outcome, degradation_note for non-full execution_mode, failure_description canonical templates, PreviousDecisionSnapshot $ref reuse, prior_evidence_ids empty array support. Validator initial and reevaluation requests require evidence_envelope.validation_report. Semantic-only: report_ref identity comparison, prior evidence ID detection, error code first-match precedence, failure code admissibility for (outcome, evidence_classification) determined by evaluator, exact verdict preservation.",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GateEvaluationRequest"
+    },
+    {
+      "$ref": "#/$defs/GateDecision"
+    },
+    {
+      "$ref": "#/$defs/GateEvaluationError"
+    }
+  ],
+  "$defs": {
+    "ArtifactRef": {
+      "type": "object",
+      "description": "Typed artifact reference. Required fields: artifact_id, artifact_kind.",
+      "required": [
+        "artifact_id",
+        "artifact_kind"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable artifact identifier. Non-empty."
+        },
+        "artifact_kind": {
+          "type": "string",
+          "enum": [
+            "contract",
+            "validation_report",
+            "report",
+            "artifact",
+            "evidence",
+            "custom_source",
+            "diff"
+          ],
+          "description": "Closed enumeration of artifact kinds relevant to gate decision contract."
+        },
+        "artifact_version": {
+          "type": "string",
+          "description": "Optional semantic version of the artifact."
+        }
+      },
+      "additionalProperties": false
+    },
+    "RunContext": {
+      "type": "object",
+      "description": "Minimal run context carrying run_id and stage_id.",
+      "required": [
+        "run_id",
+        "stage_id"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "OverrideAuthorization": {
+      "type": "object",
+      "description": "Override authorization record. All fields non-empty.",
+      "required": [
+        "intervention_id",
+        "authorized_by",
+        "authorized_at",
+        "reason"
+      ],
+      "properties": {
+        "intervention_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authorized_by": {
+          "type": "string",
+          "enum": [
+            "architect",
+            "human"
+          ],
+          "description": "Identity of the authorizing role."
+        },
+        "authorized_at": {
+          "type": "string",
+          "description": "ISO 8601 timestamp of authorization."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "GateDeclaration": {
+      "type": "object",
+      "description": "Gate declaration shape. required flag, allow_gate_override (conditional), gate_type enum, failure_behavior enum, contract_ref (conditional for validator gate_type).",
+      "required": [
+        "gate_id",
+        "gate_type",
+        "required",
+        "failure_behavior"
+      ],
+      "properties": {
+        "gate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gate_type": {
+          "type": "string",
+          "enum": [
+            "validator",
+            "artifact_shape",
+            "diff_review",
+            "custom"
+          ],
+          "description": "Closed enumeration of gate types."
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "allow_gate_override": {
+          "type": "boolean",
+          "description": "Required when required is false."
+        },
+        "contract_ref": {
+          "$ref": "#/$defs/ArtifactRef",
+          "description": "Required when gate_type is validator."
+        },
+        "failure_behavior": {
+          "type": "string",
+          "enum": [
+            "halt_stage",
+            "halt_run",
+            "warn",
+            "require_intervention"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "gate_type": {
+                "const": "validator"
+              }
+            },
+            "required": [
+              "gate_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "contract_ref"
+            ],
+            "properties": {
+              "contract_ref": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/ArtifactRef"
+                  },
+                  {
+                    "properties": {
+                      "artifact_kind": {
+                        "const": "contract"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "required": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "allow_gate_override": {
+                "type": "boolean",
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "required": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "allow_gate_override"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "required": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "failure_behavior": {
+                "not": {
+                  "const": "warn"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "GateEvidenceEnvelope": {
+      "type": "object",
+      "description": "Evidence package with classification, primary/supporting evidence, and optional validation_report.",
+      "required": [
+        "envelope_id",
+        "gate_id",
+        "primary_evidence",
+        "evidence_classification",
+        "collected_at",
+        "collected_by"
+      ],
+      "properties": {
+        "envelope_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "supporting_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "validation_report": {
+          "$ref": "#/$defs/ArtifactRef",
+          "description": "Required when gate_type is validator."
+        },
+        "evidence_classification": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial_recoverable",
+            "partial_absent",
+            "conflicted"
+          ]
+        },
+        "missing_evidence_description": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Required when evidence_classification is not complete."
+        },
+        "collected_at": {
+          "type": "string",
+          "description": "ISO 8601 timestamp."
+        },
+        "collected_by": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "evidence_classification": {
+                "not": {
+                  "const": "complete"
+                }
+              }
+            },
+            "required": [
+              "evidence_classification"
+            ]
+          },
+          "then": {
+            "required": [
+              "missing_evidence_description"
+            ]
+          }
+        }
+      ]
+    },
+    "PreviousDecisionSnapshot": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/GateDecision"
+        }
+      ],
+      "description": "Minimal immutable snapshot of a prior GateDecision for re-evaluation. Reuses complete GateDecision schema constraints through $ref. GateDecision.additionalProperties:false already prevents extra properties."
+    },
+    "EvaluationSignalValidator": {
+      "type": "object",
+      "description": "Evaluation signal for gate_type: validator. report_ref and overall_verdict required. failure_code conditional.",
+      "properties": {
+        "report_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "overall_verdict": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "blocked",
+            "inconclusive",
+            "human_review_required"
+          ]
+        },
+        "failure_code": {
+          "$ref": "#/$defs/FailureCode"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "overall_verdict": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "overall_verdict"
+            ]
+          },
+          "then": {
+            "required": [
+              "report_ref",
+              "overall_verdict"
+            ],
+            "properties": {
+              "report_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              },
+              "overall_verdict": {
+                "const": "pass"
+              }
+            },
+            "not": {
+              "required": [
+                "failure_code"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "report_ref",
+              "overall_verdict",
+              "failure_code"
+            ],
+            "properties": {
+              "report_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              },
+              "overall_verdict": {
+                "enum": [
+                  "fail",
+                  "blocked",
+                  "inconclusive",
+                  "human_review_required"
+                ]
+              },
+              "failure_code": {
+                "$ref": "#/$defs/FailureCode"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "overall_verdict": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "overall_verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeFail"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "overall_verdict": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "overall_verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeBlocked"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "overall_verdict": {
+                "const": "inconclusive"
+              }
+            },
+            "required": [
+              "overall_verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeInconclusive"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "overall_verdict": {
+                "const": "human_review_required"
+              }
+            },
+            "required": [
+              "overall_verdict"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeHumanReviewRequired"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "EvaluationSignalArtifactShape": {
+      "type": "object",
+      "description": "Evaluation signal for gate_type: artifact_shape. outcome (pass/fail) and artifact_ref required. failure_code conditional.",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "artifact_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "failure_code": {
+          "$ref": "#/$defs/FailureCode"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "outcome",
+              "artifact_ref"
+            ],
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              },
+              "artifact_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              }
+            },
+            "not": {
+              "required": [
+                "failure_code"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "outcome",
+              "artifact_ref",
+              "failure_code"
+            ],
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              },
+              "artifact_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              },
+              "failure_code": {
+                "$ref": "#/$defs/FailureCode"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeFail"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeBlocked"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "inconclusive"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeInconclusive"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "human_review_required"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeHumanReviewRequired"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "EvaluationSignalDiffReview": {
+      "type": "object",
+      "description": "Evaluation signal for gate_type: diff_review. outcome (pass/fail) and diff_ref required. failure_code conditional.",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "diff_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "failure_code": {
+          "$ref": "#/$defs/FailureCode"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "outcome",
+              "diff_ref"
+            ],
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              },
+              "diff_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              }
+            },
+            "not": {
+              "required": [
+                "failure_code"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "outcome",
+              "diff_ref",
+              "failure_code"
+            ],
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              },
+              "diff_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              },
+              "failure_code": {
+                "$ref": "#/$defs/FailureCode"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeFail"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeBlocked"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "inconclusive"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeInconclusive"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "human_review_required"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeHumanReviewRequired"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "EvaluationSignalCustom": {
+      "type": "object",
+      "description": "Evaluation signal for gate_type: custom. outcome (5 values) and custom_source_ref required. failure_code conditional.",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "blocked",
+            "inconclusive",
+            "human_review_required"
+          ]
+        },
+        "custom_source_ref": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "failure_code": {
+          "$ref": "#/$defs/FailureCode"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "outcome",
+              "custom_source_ref"
+            ],
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              },
+              "custom_source_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              }
+            },
+            "not": {
+              "required": [
+                "failure_code"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "outcome",
+              "custom_source_ref",
+              "failure_code"
+            ],
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "fail",
+                  "blocked",
+                  "inconclusive",
+                  "human_review_required"
+                ]
+              },
+              "custom_source_ref": {
+                "$ref": "#/$defs/ArtifactRef"
+              },
+              "failure_code": {
+                "$ref": "#/$defs/FailureCode"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeFail"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeBlocked"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "inconclusive"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeInconclusive"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "human_review_required"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeHumanReviewRequired"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "GateEvaluationRequest": {
+      "type": "object",
+      "description": "Discriminated union on request_kind. Base fields shared; branch-specific fields enforced by oneOf variants.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/GateEvaluationRequestInitial"
+        },
+        {
+          "$ref": "#/$defs/GateEvaluationRequestReevaluation"
+        },
+        {
+          "$ref": "#/$defs/GateEvaluationRequestOverride"
+        }
+      ]
+    },
+    "GateEvaluationRequestInitial": {
+      "type": "object",
+      "description": "Initial evaluation branch: request_kind=initial. evidence_envelope, evaluation_signal, execution_mode required. Signal shape discriminated by gate_type.",
+      "allOf": [
+        {
+          "required": [
+            "request_kind",
+            "decision_id",
+            "evaluated_at",
+            "evaluated_by",
+            "gate_declaration",
+            "evidence_envelope",
+            "evaluation_signal",
+            "run_context",
+            "execution_mode"
+          ],
+          "properties": {
+            "request_kind": {
+              "const": "initial"
+            },
+            "decision_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evaluated_at": {
+              "type": "string"
+            },
+            "evaluated_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "gate_declaration": {
+              "$ref": "#/$defs/GateDeclaration"
+            },
+            "evidence_envelope": {
+              "$ref": "#/$defs/GateEvidenceEnvelope"
+            },
+            "evaluation_signal": {
+              "type": "object"
+            },
+            "run_context": {
+              "$ref": "#/$defs/RunContext"
+            },
+            "execution_mode": {
+              "type": "string",
+              "enum": [
+                "full",
+                "degraded_transport",
+                "degraded_storage"
+              ]
+            },
+            "degradation_note": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "override_authorization"
+                ]
+              },
+              {
+                "required": [
+                  "previous_decision_id"
+                ]
+              },
+              {
+                "required": [
+                  "previous_decision_snapshot"
+                ]
+              },
+              {
+                "required": [
+                  "prior_evidence_ids"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "not": {
+                  "const": "full"
+                }
+              }
+            },
+            "required": [
+              "execution_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "degradation_note"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "validator"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_envelope": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/GateEvidenceEnvelope"
+                  },
+                  {
+                    "required": [
+                      "validation_report"
+                    ]
+                  }
+                ]
+              },
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalValidator"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "artifact_shape"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalArtifactShape"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "diff_review"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalDiffReview"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "custom"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalCustom"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "GateEvaluationRequestReevaluation": {
+      "type": "object",
+      "description": "Re-evaluation branch: request_kind=reevaluation. evidence_envelope, evaluation_signal, previous_decision_snapshot, prior_evidence_ids required. Signal shape discriminated by gate_type.",
+      "allOf": [
+        {
+          "required": [
+            "request_kind",
+            "decision_id",
+            "evaluated_at",
+            "evaluated_by",
+            "gate_declaration",
+            "evidence_envelope",
+            "evaluation_signal",
+            "previous_decision_snapshot",
+            "prior_evidence_ids",
+            "run_context",
+            "execution_mode"
+          ],
+          "properties": {
+            "request_kind": {
+              "const": "reevaluation"
+            },
+            "decision_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evaluated_at": {
+              "type": "string"
+            },
+            "evaluated_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "gate_declaration": {
+              "$ref": "#/$defs/GateDeclaration"
+            },
+            "evidence_envelope": {
+              "$ref": "#/$defs/GateEvidenceEnvelope"
+            },
+            "evaluation_signal": {
+              "type": "object"
+            },
+            "previous_decision_snapshot": {
+              "$ref": "#/$defs/PreviousDecisionSnapshot"
+            },
+            "prior_evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "run_context": {
+              "$ref": "#/$defs/RunContext"
+            },
+            "execution_mode": {
+              "type": "string",
+              "enum": [
+                "full",
+                "degraded_transport",
+                "degraded_storage"
+              ]
+            },
+            "degradation_note": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "override_authorization"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "not": {
+                  "const": "full"
+                }
+              }
+            },
+            "required": [
+              "execution_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "degradation_note"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "validator"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_envelope": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/GateEvidenceEnvelope"
+                  },
+                  {
+                    "required": [
+                      "validation_report"
+                    ]
+                  }
+                ]
+              },
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalValidator"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "artifact_shape"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalArtifactShape"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "diff_review"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalDiffReview"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "gate_declaration": {
+                "properties": {
+                  "gate_type": {
+                    "const": "custom"
+                  }
+                },
+                "required": [
+                  "gate_type"
+                ]
+              }
+            },
+            "required": [
+              "gate_declaration"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evaluation_signal": {
+                "$ref": "#/$defs/EvaluationSignalCustom"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "GateEvaluationRequestOverride": {
+      "type": "object",
+      "description": "Override branch: request_kind=override. override_authorization and previous_decision required. evidence_envelope, evaluation_signal, execution_mode forbidden.",
+      "allOf": [
+        {
+          "required": [
+            "request_kind",
+            "decision_id",
+            "evaluated_at",
+            "evaluated_by",
+            "gate_declaration",
+            "previous_decision",
+            "override_authorization",
+            "run_context"
+          ],
+          "properties": {
+            "request_kind": {
+              "const": "override"
+            },
+            "decision_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evaluated_at": {
+              "type": "string"
+            },
+            "evaluated_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "gate_declaration": {
+              "$ref": "#/$defs/GateDeclaration"
+            },
+            "previous_decision": {
+              "$ref": "#/$defs/GateDecision"
+            },
+            "override_authorization": {
+              "$ref": "#/$defs/OverrideAuthorization"
+            },
+            "run_context": {
+              "$ref": "#/$defs/RunContext"
+            },
+            "degradation_note": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "evidence_envelope"
+                ]
+              },
+              {
+                "required": [
+                  "evaluation_signal"
+                ]
+              },
+              {
+                "required": [
+                  "execution_mode"
+                ]
+              },
+              {
+                "required": [
+                  "previous_decision_snapshot"
+                ]
+              },
+              {
+                "required": [
+                  "prior_evidence_ids"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "GateDecision": {
+      "type": "object",
+      "description": "Gate decision output shape. All 14 fields with exact types. failure_code and failure_description conditional on outcome != pass.",
+      "required": [
+        "decision_id",
+        "gate_id",
+        "outcome",
+        "execution_mode",
+        "evidence",
+        "recommendation",
+        "evaluated_at",
+        "evaluated_by",
+        "run_context"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "blocked",
+            "inconclusive",
+            "human_review_required"
+          ]
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "degraded_transport",
+            "degraded_storage"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "recommendation": {
+          "type": "string",
+          "enum": [
+            "proceed",
+            "more_evidence",
+            "human_intervention",
+            "stop_stage",
+            "stop_run",
+            "proceed_with_warning"
+          ]
+        },
+        "failure_code": {
+          "$ref": "#/$defs/FailureCode",
+          "description": "Required when outcome != pass. Must be a value from the closed FailureCode enumeration."
+        },
+        "failure_description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required when outcome != pass."
+        },
+        "evaluated_at": {
+          "type": "string"
+        },
+        "evaluated_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "degradation_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "previous_decision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "override_authorization": {
+          "$ref": "#/$defs/OverrideAuthorization"
+        },
+        "run_context": {
+          "$ref": "#/$defs/RunContext"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "not": {
+                  "const": "pass"
+                }
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "failure_code",
+              "failure_description"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "failure_code"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "failure_description"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/ArtifactRef"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "recommendation": {
+                "const": "proceed"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "recommendation": {
+                "const": "more_evidence"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "inconclusive",
+                  "human_review_required"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "recommendation": {
+                "const": "human_intervention"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_mode": {
+                "not": {
+                  "const": "full"
+                }
+              }
+            },
+            "required": [
+              "execution_mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "degradation_note"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "validator_fail_deterministic"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Validator found deterministic error-severity failures."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "validator_unreachable"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Independent Validator could not be dispatched or reached."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "validator_report_missing"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Validator was dispatched but no report was produced."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "evidence_incomplete"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Required evidence artifact is missing but recoverable."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "contract_unavailable"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Required Validation Contract could not be resolved."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "required_gate_blocked"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Required gate cannot proceed due to unavailable dependency."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "degradation_blocked_correctness"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Execution mode degraded below the correctness threshold."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "evidence_absent_inconclusive"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Required evidence artifact does not exist and cannot be produced."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "evidence_conflict_inconclusive"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Evidence from two or more independent sources contradicts."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "contract_insufficient_inconclusive"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Validation Contract is present but insufficient for a deterministic verdict."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "unsupported_judgment_inconclusive"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Gate requires a judgment the evaluation system cannot make."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "truth_hierarchy_inconclusive"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Validator used candidate output as truth source with no resolution path."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "evidence_absent_human"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Required evidence artifact does not exist and cannot be produced. Human review required."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "evidence_conflict_human"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Evidence from two or more independent sources contradicts. Human review required."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "contract_insufficient_human"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Validation Contract is present but insufficient for a deterministic verdict. Human review required."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "unsupported_judgment_human"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Gate requires a judgment the evaluation system cannot make. Human review required."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "failure_code": {
+                "const": "truth_hierarchy_human"
+              }
+            },
+            "required": [
+              "failure_code"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_description": {
+                "const": "Validator used candidate output as truth source with no resolution path. Human review required."
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeFail"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeBlocked"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "inconclusive"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeInconclusive"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "human_review_required"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_code": {
+                "$ref": "#/$defs/FailureCodeHumanReviewRequired"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "recommendation": {
+                "enum": [
+                  "stop_stage",
+                  "stop_run",
+                  "human_intervention",
+                  "proceed_with_warning"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "GateEvaluationError": {
+      "type": "object",
+      "description": "Error output shape. decision_id, gate_id, run_context accept null. error_code from closed 12-value taxonomy. error_description always present.",
+      "required": [
+        "decision_id",
+        "gate_id",
+        "error_code",
+        "error_description",
+        "run_context"
+      ],
+      "properties": {
+        "decision_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Copied from request when present and valid. null when unextractable."
+        },
+        "gate_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Copied from gate_declaration when present and valid. null when missing or malformed."
+        },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "invalid_input_branch",
+            "unknown_gate_type",
+            "invalid_override",
+            "reevaluation_no_new_evidence",
+            "required_gate_warn_behavior",
+            "report_reference_mismatch",
+            "invalid_evidence_classification",
+            "validator_verdict_mismatch",
+            "outcome_not_in_enum",
+            "recommendation_not_in_matrix",
+            "failure_code_ambiguous",
+            "failure_code_invalid"
+          ]
+        },
+        "error_description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_context": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Copied from request when present and valid. null when unextractable.",
+          "properties": {
+            "run_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "stage_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "run_id",
+            "stage_id"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "FailureCode": {
+      "type": "string",
+      "enum": [
+        "validator_fail_deterministic",
+        "validator_unreachable",
+        "validator_report_missing",
+        "evidence_incomplete",
+        "contract_unavailable",
+        "required_gate_blocked",
+        "degradation_blocked_correctness",
+        "evidence_absent_inconclusive",
+        "evidence_conflict_inconclusive",
+        "contract_insufficient_inconclusive",
+        "unsupported_judgment_inconclusive",
+        "truth_hierarchy_inconclusive",
+        "evidence_absent_human",
+        "evidence_conflict_human",
+        "contract_insufficient_human",
+        "unsupported_judgment_human",
+        "truth_hierarchy_human"
+      ],
+      "description": "Closed enumeration of all admissible failure codes per the frozen Gate Decision Contract v2.2.0 Section 14.1."
+    },
+    "FailureCodeFail": {
+      "type": "string",
+      "enum": [
+        "validator_fail_deterministic"
+      ],
+      "description": "Failure codes admissible for fail outcome per Section 14.2. Exactly ONE code maps to fail."
+    },
+    "FailureCodeBlocked": {
+      "type": "string",
+      "enum": [
+        "validator_unreachable",
+        "validator_report_missing",
+        "evidence_incomplete",
+        "contract_unavailable",
+        "required_gate_blocked",
+        "degradation_blocked_correctness"
+      ],
+      "description": "Failure codes admissible for blocked outcome. 6 codes."
+    },
+    "FailureCodeInconclusive": {
+      "type": "string",
+      "enum": [
+        "evidence_absent_inconclusive",
+        "evidence_conflict_inconclusive",
+        "contract_insufficient_inconclusive",
+        "unsupported_judgment_inconclusive",
+        "truth_hierarchy_inconclusive"
+      ],
+      "description": "Failure codes admissible for inconclusive outcome. 5 codes."
+    },
+    "FailureCodeHumanReviewRequired": {
+      "type": "string",
+      "enum": [
+        "evidence_absent_human",
+        "evidence_conflict_human",
+        "contract_insufficient_human",
+        "unsupported_judgment_human",
+        "truth_hierarchy_human"
+      ],
+      "description": "Failure codes admissible for human_review_required outcome. 5 codes."
+    },
+    "FailureCodeNonPass": {
+      "type": "string",
+      "enum": [
+        "validator_fail_deterministic",
+        "validator_unreachable",
+        "validator_report_missing",
+        "evidence_incomplete",
+        "contract_unavailable",
+        "required_gate_blocked",
+        "degradation_blocked_correctness",
+        "evidence_absent_inconclusive",
+        "evidence_conflict_inconclusive",
+        "contract_insufficient_inconclusive",
+        "unsupported_judgment_inconclusive",
+        "truth_hierarchy_inconclusive",
+        "evidence_absent_human",
+        "evidence_conflict_human",
+        "contract_insufficient_human",
+        "unsupported_judgment_human",
+        "truth_hierarchy_human"
+      ],
+      "description": "All 16 failure codes admissible for non-pass outcomes."
+    }
+  }
+}

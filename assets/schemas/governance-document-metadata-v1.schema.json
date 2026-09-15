@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:railyard:schema:governance-document-metadata:v1",
+  "title": "Governance Document Metadata v1",
+  "description": "Flat machine-readable metadata convention for governance documents. Every document that carries governance weight must declare metadata conforming to this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document_id",
+    "governance_kind",
+    "version",
+    "authority_level",
+    "owner",
+    "scope",
+    "applies_to",
+    "overrideability",
+    "status"
+  ],
+  "properties": {
+    "document_id": {
+      "type": "string",
+      "description": "Unique stable identifier for this document version.",
+      "minLength": 1
+    },
+    "governance_kind": {
+      "type": "string",
+      "description": "Primary governance kind of this document.",
+      "enum": [
+        "protocol",
+        "policy",
+        "contract",
+        "schema",
+        "registry",
+        "guide"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic or calendar version of this document.",
+      "minLength": 1
+    },
+    "authority_level": {
+      "type": "string",
+      "description": "Normative weight of this document.",
+      "enum": [
+        "canonical",
+        "normative_reference",
+        "informational"
+      ]
+    },
+    "owner": {
+      "type": "string",
+      "description": "Role or entity responsible for this document.",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "string",
+      "description": "Domain of applicability for this document's authority.",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle status of this document.",
+      "enum": [
+        "active",
+        "superseded",
+        "draft",
+        "deprecated"
+      ]
+    },
+    "applies_to": {
+      "type": "array",
+      "description": "Artifacts, roles, or components this document governs.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "overrideability": {
+      "type": "string",
+      "description": "How this document's rules may be constrained by narrower scopes.",
+      "enum": [
+        "non_overridable",
+        "stricter_only",
+        "scoped_override",
+        "informational"
+      ]
+    },
+    "canonical_for": {
+      "type": "array",
+      "description": "Topics for which this document provides canonical authority. Each topic must be unique.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "supersedes": {
+      "type": "array",
+      "description": "Versioned document_id references that this document supersedes. Must not contain its own document_id. Must form a directed acyclic graph.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable summary of this document's purpose."
+    }
+  },
+  "allOf": [
+    {
+      "description": "Guide documents must have informational authority and overrideability.",
+      "if": {
+        "properties": {
+          "governance_kind": {
+            "const": "guide"
+          }
+        },
+        "required": ["governance_kind"]
+      },
+      "then": {
+        "properties": {
+          "authority_level": {
+            "const": "informational"
+          },
+          "overrideability": {
+            "const": "informational"
+          }
+        },
+        "required": ["authority_level", "overrideability"]
+      }
+    },
+    {
+      "description": "When overrideability is informational, authority_level must be informational.",
+      "if": {
+        "properties": {
+          "overrideability": {
+            "const": "informational"
+          }
+        },
+        "required": ["overrideability"]
+      },
+      "then": {
+        "properties": {
+          "authority_level": {
+            "const": "informational"
+          }
+        },
+        "required": ["authority_level"]
+      }
+    },
+    {
+      "description": "Non-informational documents must declare canonical ownership via canonical_for.",
+      "if": {
+        "properties": {
+          "authority_level": {
+            "not": { "const": "informational" }
+          }
+        },
+        "required": ["authority_level"]
+      },
+      "then": {
+        "required": ["canonical_for"]
+      }
+    },
+    {
+      "description": "Informational documents must not claim canonical authority.",
+      "if": {
+        "properties": {
+          "authority_level": {
+            "const": "informational"
+          }
+        },
+        "required": ["authority_level"]
+      },
+      "then": {
+        "properties": {
+          "canonical_for": { "not": {} }
+        }
+      }
+    }
+  ],
+  "$comment": "Semantic constraints: supersedes must not contain the document's own document_id, and canonical_for must only appear on non-informational documents. Validation of self-reference and conditional constraints requires external enforcement as JSON Schema Draft 2020-12 cannot express all field-value relationship rules."
+}
