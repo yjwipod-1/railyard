@@ -2,7 +2,7 @@
 
 All notable public-facing changes to Railyard are summarized here.
 
-## v0.8.0 - 2026-08-29
+## v0.8.0 - 2026-09-15
 
 ### Runtime State Foundation
 
